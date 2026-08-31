@@ -8,6 +8,8 @@ fenris sync run            # enumerate + index; later runs drain only changes
 fenris ask "Q3 revenue?"   # cited answer, or an explicit answer state
 ```
 
+Prefer a UI? `make ui` builds the web frontend and serves everything — dashboard, chat with citation cards, sources ledger, settings — from one local process at `http://127.0.0.1:8000`. `make ui-dev` runs the frontend with hot reload while the API runs separately.
+
 ## Why
 
 Hosted vector databases charge you to keep your own documents in RAM. Fenris keeps Drive as the authority and holds only a local read projection: chunk text, embeddings, and a lexical index in SQLite. Storage you already own stores the documents; a laptop-scale database stores the index. Nothing of yours is uploaded anywhere by Fenris.
