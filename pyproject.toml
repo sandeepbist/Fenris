@@ -3,6 +3,14 @@ name = "fenris"
 version = "0.1.0"
 description = "RAG over your own Google Drive: revision-aware, evidence-cited, locally indexed."
 requires-python = ">=3.12"
+# NOTE: `docling` (full) pulls docling-ibm-models -> torch + 15 nvidia-* CUDA wheels
+# (~4.5 GB). This is a CPU-only tool; after any dependency change run:
+#   .venv/bin/pip uninstall -y docling-ibm-models torch torchvision triton nvidia-cublas \
+#     nvidia-cuda-cupti nvidia-cuda-nvrtc nvidia-cuda-runtime nvidia-cudnn-cu13 nvidia-cufft \
+#     nvidia-cufile nvidia-cur nvidia-cusolver nvidia-cusparse nvidia-cusparselt-cu13 \
+#     nvidia-nccl-cu13 nvidia-nvjitlink nvidia-nvshmem-cu13 nvidia-nvtx accelerate
+# and verify `python -c "from docling.document_converter import DocumentConverter"`
+# plus the test suite still pass. Storage on this machine is constrained.
 dependencies = [
     "typer>=0.12",
     "sqlite-vec>=0.1.6",

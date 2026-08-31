@@ -19,6 +19,16 @@ setup: install
 install:
 	python3 -m venv .venv
 	$(PIP) install -e ".[dev]"
+	$(MAKE) slim
+
+# docling (full) drags in torch + CUDA wheels (~4.5 GB); we run CPU-only.
+# See the NOTE in pyproject.toml.
+slim:
+	-$(PIP) uninstall -y docling-ibm-models torch torchvision triton accelerate \
+	  nvidia-cublas nvidia-cuda-cupti nvidia-cuda-nvrtc nvidia-cuda-runtime \
+	  nvidia-cudnn-cu13 nvidia-cufft nvidia-cufile nvidia-curand nvidia-cusolver \
+	  nvidia-cusparse nvidia-cusparselt-cu13 nvidia-nccl-cu13 nvidia-nvjitlink \
+	  nvidia-nvshmem-cu13 nvidia-nvtx >/dev/null 2>&1 || true
 
 test:
 	$(PY) -m pytest

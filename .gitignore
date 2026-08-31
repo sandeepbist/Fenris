@@ -14,3 +14,5 @@ artifacts/
 # Secrets
 client_secret*.json
 .env
+.pytest_cache/
+.ruff_cache/
