@@ -1,0 +1,19 @@
+id: golden-table-004
+suite: golden
+slice: table
+question: How much did I spend on Northwind Logistics on February 7, 2025 for BODEEN?
+expected_docs:
+  exp-000: 2
+  exp-001: 0
+  exp-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Northwind Logistics
+- '57.00'
+expected_spans:
+- doc_id: exp-000
+  start: 165
+  end: 205
+created_by: synth-v1
+locked: false

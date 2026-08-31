@@ -1,0 +1,22 @@
+id: golden-multi-hop-011
+suite: golden
+slice: multi_hop
+question: How did the ATLAS architecture spec change between revision v1 and the approved revision?
+expected_docs:
+  prj-000: 2
+  prj-002: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- ATLAS
+- draft
+- approved
+expected_spans:
+- doc_id: prj-000
+  start: 96
+  end: 101
+- doc_id: prj-002
+  start: 96
+  end: 104
+created_by: synth-v1
+locked: false

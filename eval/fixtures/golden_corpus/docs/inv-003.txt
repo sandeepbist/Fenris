@@ -1,0 +1,8 @@
+INVOICE INV-202304-344
+Vendor: Helios Design Studio
+Invoice date: April 13, 2023
+Bill to: Orbis Consulting
+Project code: BODEEN
+Description: professional services rendered for BODEEN - customer-facing mobile app refresh.
+Total amount due: 3,351.50 USD
+Payment terms: net 30

@@ -1,0 +1,6 @@
+Travel itinerary TRV-2025-06: Lisbon
+Destination: Lisbon, Portugal
+Outbound: July 20, 2025 - flight TP622
+Return: July 23, 2025 - flight TP623
+Hotel: Grand Lisbon Hotel
+Booking reference: TRV-2025-06-HK

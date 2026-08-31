@@ -1,0 +1,19 @@
+id: golden-temporal-002
+suite: golden
+slice: temporal
+question: What did Northwind Logistics invoice in February 2024 for project CINDER?
+expected_docs:
+  inv-013: 2
+  inv-002: 0
+  inv-010: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Northwind Logistics
+- 3,129.50
+expected_spans:
+- doc_id: inv-013
+  start: 235
+  end: 243
+created_by: synth-v1
+locked: false

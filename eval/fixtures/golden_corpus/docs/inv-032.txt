@@ -1,0 +1,8 @@
+INVOICE INV-202509-381
+Vendor: Northwind Logistics
+Invoice date: September 20, 2025
+Bill to: Orbis Consulting
+Project code: BODEEN
+Description: professional services rendered for BODEEN - customer-facing mobile app refresh.
+Total amount due: 4,141.00 USD
+Payment terms: net 30

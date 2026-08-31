@@ -1,0 +1,6 @@
+Travel itinerary TRV-2025-10: Bristol
+Destination: Bristol, UK
+Outbound: November 4, 2025 - flight TP770
+Return: November 11, 2025 - flight TP771
+Hotel: Grand Bristol Hotel
+Booking reference: TRV-2025-10-HK

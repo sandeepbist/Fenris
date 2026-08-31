@@ -1,0 +1,8 @@
+INVOICE INV-202309-379
+Vendor: Tessellate Consulting
+Invoice date: September 18, 2023
+Bill to: Orbis Consulting
+Project code: DRIFT
+Description: professional services rendered for DRIFT - marketing site relaunch.
+Total amount due: 4,035.00 USD
+Payment terms: net 30

@@ -1,0 +1,22 @@
+id: golden-multi-hop-001
+suite: golden
+slice: multi_hop
+question: Which invoice from Acme Cloud Services relates to the ATLAS budget approved in decision DEC-2024-00,
+  and how much was it for?
+expected_docs:
+  mtg-000: 2
+  inv-012: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Acme Cloud Services
+- 2,992.00
+expected_spans:
+- doc_id: mtg-000
+  start: 170
+  end: 181
+- doc_id: inv-012
+  start: 236
+  end: 244
+created_by: synth-v1
+locked: false

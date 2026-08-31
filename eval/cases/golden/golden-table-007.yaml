@@ -1,0 +1,18 @@
+id: golden-table-007
+suite: golden
+slice: table
+question: How much did I spend on Sable Marketing Group on July 7, 2025 for CINDER?
+expected_docs:
+  exp-000: 2
+  exp-001: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Sable Marketing Group
+- '142.00'
+expected_spans:
+- doc_id: exp-000
+  start: 445
+  end: 488
+created_by: synth-v1
+locked: false

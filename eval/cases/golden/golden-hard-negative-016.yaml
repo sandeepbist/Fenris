@@ -1,0 +1,19 @@
+id: golden-hard-negative-016
+suite: golden
+slice: hard_negative
+question: What was the total amount due on the May 2023 invoice from Bracket & Fell LLP for project DRIFT?
+expected_docs:
+  inv-004: 2
+  inv-015: 0
+  inv-023: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Bracket & Fell LLP
+- 3,487.00
+expected_spans:
+- doc_id: inv-004
+  start: 222
+  end: 230
+created_by: synth-v1
+locked: false

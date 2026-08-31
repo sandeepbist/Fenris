@@ -1,0 +1,17 @@
+id: golden-exact-010
+suite: golden
+slice: exact
+question: Find invoice INV-202310-386
+expected_docs:
+  inv-009: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-202310-386
+- Acme Cloud Services
+expected_spans:
+- doc_id: inv-009
+  start: 8
+  end: 22
+created_by: synth-v1
+locked: false

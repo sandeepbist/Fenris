@@ -1,0 +1,22 @@
+id: golden-multi-hop-006
+suite: golden
+slice: multi_hop
+question: Which invoice from Tessellate Consulting relates to the BODEEN budget approved in decision DEC-2026-05,
+  and how much was it for?
+expected_docs:
+  mtg-005: 2
+  inv-030: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Tessellate Consulting
+- 3,868.00
+expected_spans:
+- doc_id: mtg-005
+  start: 171
+  end: 182
+- doc_id: inv-030
+  start: 239
+  end: 247
+created_by: synth-v1
+locked: false

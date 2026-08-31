@@ -1,0 +1,7 @@
+CINDER architecture spec - revision v3
+Project: CINDER - compliance audit remediation
+Status: approved
+Revision date: October 8, 2026
+Document owner: Dana W.
+Technical lead: Dana W.
+Revision v3 summary: this revision of the CINDER spec updates the scope for compliance audit remediation and records the current status as approved.

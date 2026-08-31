@@ -1,0 +1,16 @@
+id: golden-paraphrase-009
+suite: golden
+slice: paraphrase
+question: On which flight did I fly to Krakow for the October trip?
+expected_docs:
+  trv-003: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- KL511
+expected_spans:
+- doc_id: trv-003
+  start: 101
+  end: 106
+created_by: synth-v1
+locked: false

@@ -1,0 +1,6 @@
+Travel itinerary TRV-2025-00: Lisbon
+Destination: Lisbon, Portugal
+Outbound: January 4, 2025 - flight TP400
+Return: January 7, 2025 - flight TP401
+Hotel: Grand Lisbon Hotel
+Booking reference: TRV-2025-00-HK

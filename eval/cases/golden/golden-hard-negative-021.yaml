@@ -1,0 +1,20 @@
+id: golden-hard-negative-021
+suite: golden
+slice: hard_negative
+question: What was the total amount due on the August 2023 invoice from Sable Marketing Group for project
+  BODEEN?
+expected_docs:
+  inv-007: 2
+  inv-018: 0
+  inv-029: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Sable Marketing Group
+- 3,899.50
+expected_spans:
+- doc_id: inv-007
+  start: 241
+  end: 249
+created_by: synth-v1
+locked: false

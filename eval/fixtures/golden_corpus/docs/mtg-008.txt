@@ -1,0 +1,6 @@
+Meeting notes - ATLAS weekly sync
+Date: May 25, 2026
+Attendees: Dana W., Priya N., Jonah K., Mira H.
+Agenda: ATLAS status, vendor review, budget planning.
+Decision DEC-2026-08: approved 15,000.00 USD budget for internal data-platform migration phase 3.
+Action items: Dana W. to follow up with Acme Cloud Services; Priya N. to draft the ATLAS rollout plan.

@@ -1,0 +1,5 @@
+INVOICE INV-2024-ND3b
+Vendor: Sable Marketing Group
+Invoice date: March 13, 2024
+Project code: DRIFT
+Total amount due: 1,383.00 USD

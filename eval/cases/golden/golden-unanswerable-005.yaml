@@ -1,0 +1,11 @@
+id: golden-unanswerable-005
+suite: golden
+slice: unanswerable
+question: How much did Vantage Pixel Studio invoice us for in 2025?
+expected_docs: {}
+answerable: false
+expected_state: INSUFFICIENT
+expected_answer_facts: []
+expected_spans: []
+created_by: synth-v1
+locked: false

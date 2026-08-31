@@ -1,0 +1,6 @@
+Meeting notes - ATLAS weekly sync
+Date: January 10, 2024
+Attendees: Dana W., Marcus T., Mira H., Sofia R.
+Agenda: ATLAS status, vendor review, budget planning.
+Decision DEC-2024-12: approved 20,000.00 USD budget for internal data-platform migration phase 1.
+Action items: Dana W. to follow up with Quanta Analytics; Marcus T. to draft the ATLAS rollout plan.

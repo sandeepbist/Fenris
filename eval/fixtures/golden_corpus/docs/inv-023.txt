@@ -1,0 +1,8 @@
+INVOICE INV-202412-401
+Vendor: Bracket & Fell LLP
+Invoice date: December 22, 2024
+Bill to: Orbis Consulting
+Project code: CINDER
+Description: professional services rendered for CINDER - compliance audit remediation.
+Total amount due: 4,500.50 USD
+Payment terms: net 30

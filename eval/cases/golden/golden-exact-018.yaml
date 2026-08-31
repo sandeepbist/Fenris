@@ -1,0 +1,17 @@
+id: golden-exact-018
+suite: golden
+slice: exact
+question: Show me the approved BODEEN architecture spec
+expected_docs:
+  prj-005: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- BODEEN
+- approved
+expected_spans:
+- doc_id: prj-005
+  start: 27
+  end: 38
+created_by: synth-v1
+locked: false

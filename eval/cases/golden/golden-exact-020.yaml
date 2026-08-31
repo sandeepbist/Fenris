@@ -1,0 +1,17 @@
+id: golden-exact-020
+suite: golden
+slice: exact
+question: Show me the approved DRIFT architecture spec
+expected_docs:
+  prj-011: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- DRIFT
+- approved
+expected_spans:
+- doc_id: prj-011
+  start: 26
+  end: 37
+created_by: synth-v1
+locked: false

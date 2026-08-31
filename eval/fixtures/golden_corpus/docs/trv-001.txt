@@ -1,0 +1,6 @@
+Travel itinerary TRV-2026-01: Osaka
+Destination: Osaka, Japan
+Outbound: August 10, 2026 - flight KL437
+Return: August 14, 2026 - flight KL438
+Hotel: Grand Osaka Hotel
+Booking reference: TRV-2026-01-HK

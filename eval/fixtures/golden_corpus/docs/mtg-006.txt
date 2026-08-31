@@ -1,0 +1,6 @@
+Meeting notes - CINDER weekly sync
+Date: July 19, 2024
+Attendees: Alex Q., Priya N., Marcus T., Mira H.
+Agenda: CINDER status, vendor review, budget planning.
+Decision DEC-2024-06: approved 12,500.00 USD budget for compliance audit remediation phase 1.
+Action items: Alex Q. to follow up with Helios Design Studio; Priya N. to draft the CINDER rollout plan.

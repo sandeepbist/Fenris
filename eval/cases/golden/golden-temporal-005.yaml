@@ -1,0 +1,19 @@
+id: golden-temporal-005
+suite: golden
+slice: temporal
+question: What did Quanta Analytics invoice in May 2024 for project ATLAS?
+expected_docs:
+  inv-016: 2
+  inv-005: 0
+  inv-027: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Quanta Analytics
+- 3,540.00
+expected_spans:
+- doc_id: inv-016
+  start: 229
+  end: 237
+created_by: synth-v1
+locked: false

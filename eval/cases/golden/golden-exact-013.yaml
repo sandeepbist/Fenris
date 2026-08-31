@@ -1,0 +1,20 @@
+id: golden-exact-013
+suite: golden
+slice: exact
+question: What was decided in decision DEC-2024-00?
+expected_docs:
+  mtg-000: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- DEC-2024-00
+- 5,000.00
+expected_spans:
+- doc_id: mtg-000
+  start: 170
+  end: 181
+- doc_id: mtg-000
+  start: 192
+  end: 204
+created_by: synth-v1
+locked: false

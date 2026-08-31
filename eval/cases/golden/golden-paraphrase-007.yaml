@@ -1,0 +1,16 @@
+id: golden-paraphrase-007
+suite: golden
+slice: paraphrase
+question: On which flight did I fly to Osaka for the August trip?
+expected_docs:
+  trv-001: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- KL437
+expected_spans:
+- doc_id: trv-001
+  start: 97
+  end: 102
+created_by: synth-v1
+locked: false

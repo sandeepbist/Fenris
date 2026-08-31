@@ -1,0 +1,22 @@
+id: golden-multi-hop-002
+suite: golden
+slice: multi_hop
+question: Which invoice from Bracket & Fell LLP relates to the BODEEN budget approved in decision DEC-2025-01,
+  and how much was it for?
+expected_docs:
+  mtg-001: 2
+  inv-026: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Bracket & Fell LLP
+- 3,320.00
+expected_spans:
+- doc_id: mtg-001
+  start: 166
+  end: 177
+- doc_id: inv-026
+  start: 237
+  end: 245
+created_by: synth-v1
+locked: false

@@ -1,0 +1,6 @@
+Travel itinerary TRV-2026-09: Krakow
+Destination: Krakow, Poland
+Outbound: April 18, 2026 - flight KL733
+Return: April 24, 2026 - flight KL734
+Hotel: Grand Krakow Hotel
+Booking reference: TRV-2026-09-HK

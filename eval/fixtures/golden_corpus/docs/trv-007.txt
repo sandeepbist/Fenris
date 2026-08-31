@@ -1,0 +1,6 @@
+Travel itinerary TRV-2026-07: Osaka
+Destination: Osaka, Japan
+Outbound: February 6, 2026 - flight KL659
+Return: February 10, 2026 - flight KL660
+Hotel: Grand Osaka Hotel
+Booking reference: TRV-2026-07-HK

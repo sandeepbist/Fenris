@@ -1,0 +1,7 @@
+BODEEN architecture spec - revision v2
+Project: BODEEN - customer-facing mobile app refresh
+Status: in review
+Revision date: June 7, 2025
+Document owner: Jonah K.
+Technical lead: Priya N.
+Revision v2 summary: this revision of the BODEEN spec updates the scope for customer-facing mobile app refresh and records the current status as in review.

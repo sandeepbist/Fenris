@@ -1,0 +1,17 @@
+id: golden-exact-017
+suite: golden
+slice: exact
+question: Show me the approved ATLAS architecture spec
+expected_docs:
+  prj-002: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- ATLAS
+- approved
+expected_spans:
+- doc_id: prj-002
+  start: 26
+  end: 37
+created_by: synth-v1
+locked: false

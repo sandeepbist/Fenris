@@ -1,0 +1,18 @@
+id: golden-hard-negative-006
+suite: golden
+slice: hard_negative
+question: What is the total amount due on invoice INV-2026-ND2b from Ridgeline Hardware dated 2026?
+expected_docs:
+  nd-2b: 2
+  nd-2a: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-2026-ND2b
+- 1,272.00
+expected_spans:
+- doc_id: nd-2b
+  start: 8
+  end: 21
+created_by: synth-v1
+locked: false

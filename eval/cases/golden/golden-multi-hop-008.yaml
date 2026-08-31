@@ -1,0 +1,22 @@
+id: golden-multi-hop-008
+suite: golden
+slice: multi_hop
+question: Which invoice from Ridgeline Hardware relates to the DRIFT budget approved in decision DEC-2025-07,
+  and how much was it for?
+expected_docs:
+  mtg-007: 2
+  inv-006: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Ridgeline Hardware
+- 3,762.00
+expected_spans:
+- doc_id: mtg-007
+  start: 171
+  end: 182
+- doc_id: inv-006
+  start: 223
+  end: 231
+created_by: synth-v1
+locked: false

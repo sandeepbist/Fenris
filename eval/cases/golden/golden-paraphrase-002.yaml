@@ -1,0 +1,18 @@
+id: golden-paraphrase-002
+suite: golden
+slice: paraphrase
+question: How much did Acme Cloud Services charge us for work on BODEEN back in February 2023?
+expected_docs:
+  inv-001: 2
+  inv-003: 0
+  inv-005: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- 3,076.50
+expected_spans:
+- doc_id: inv-001
+  start: 241
+  end: 249
+created_by: synth-v1
+locked: false

@@ -1,0 +1,22 @@
+id: golden-multi-hop-003
+suite: golden
+slice: multi_hop
+question: Which invoice from Sable Marketing Group relates to the CINDER budget approved in decision DEC-2026-02,
+  and how much was it for?
+expected_docs:
+  mtg-002: 2
+  inv-040: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Sable Marketing Group
+- 3,646.00
+expected_spans:
+- doc_id: mtg-002
+  start: 169
+  end: 180
+- doc_id: inv-040
+  start: 232
+  end: 240
+created_by: synth-v1
+locked: false

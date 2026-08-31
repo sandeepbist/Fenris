@@ -1,0 +1,22 @@
+id: golden-multi-hop-013
+suite: golden
+slice: multi_hop
+question: How did the CINDER architecture spec change between revision v1 and the approved revision?
+expected_docs:
+  prj-006: 2
+  prj-008: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- CINDER
+- draft
+- approved
+expected_spans:
+- doc_id: prj-006
+  start: 94
+  end: 99
+- doc_id: prj-008
+  start: 94
+  end: 102
+created_by: synth-v1
+locked: false

@@ -1,0 +1,19 @@
+id: golden-table-013
+suite: golden
+slice: table
+question: What is the ATLAS expense with Quanta Analytics dated January 12, 2025 in the 2025 sheet?
+expected_docs:
+  exp-001: 2
+  exp-000: 0
+  exp-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Quanta Analytics
+- '244.00'
+expected_spans:
+- doc_id: exp-001
+  start: 88
+  end: 136
+created_by: synth-v1
+locked: false

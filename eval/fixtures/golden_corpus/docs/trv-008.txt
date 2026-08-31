@@ -1,0 +1,6 @@
+Travel itinerary TRV-2025-08: Toronto
+Destination: Toronto, Canada
+Outbound: September 12, 2025 - flight TP696
+Return: September 17, 2025 - flight TP697
+Hotel: Grand Toronto Hotel
+Booking reference: TRV-2025-08-HK

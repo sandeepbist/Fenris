@@ -1,0 +1,18 @@
+id: golden-table-008
+suite: golden
+slice: table
+question: How much did I spend on Tessellate Consulting on August 12, 2025 for DRIFT?
+expected_docs:
+  exp-000: 2
+  exp-001: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Tessellate Consulting
+- '159.00'
+expected_spans:
+- doc_id: exp-000
+  start: 507
+  end: 549
+created_by: synth-v1
+locked: false

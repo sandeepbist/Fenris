@@ -1,0 +1,11 @@
+id: golden-unanswerable-011
+suite: golden
+slice: unanswerable
+question: Find invoice INV-99002
+expected_docs: {}
+answerable: false
+expected_state: INSUFFICIENT
+expected_answer_facts: []
+expected_spans: []
+created_by: synth-v1
+locked: false

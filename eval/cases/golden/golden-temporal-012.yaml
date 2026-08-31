@@ -1,0 +1,20 @@
+id: golden-temporal-012
+suite: golden
+slice: temporal
+question: When did I travel to Krakow in October 2026?
+expected_docs:
+  trv-003: 2
+  trv-000: 0
+  trv-001: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Krakow
+- October
+- '2026'
+expected_spans:
+- doc_id: trv-003
+  start: 75
+  end: 91
+created_by: synth-v1
+locked: false

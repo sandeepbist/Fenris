@@ -1,0 +1,16 @@
+id: golden-paraphrase-013
+suite: golden
+slice: paraphrase
+question: What spending cap did the team set for CINDER phase work?
+expected_docs:
+  mtg-002: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- 7,500.00
+expected_spans:
+- doc_id: mtg-002
+  start: 191
+  end: 199
+created_by: synth-v1
+locked: false

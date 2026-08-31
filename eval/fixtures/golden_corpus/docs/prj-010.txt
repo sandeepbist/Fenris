@@ -1,0 +1,7 @@
+DRIFT architecture spec - revision v2
+Project: DRIFT - marketing site relaunch
+Status: in review
+Revision date: December 7, 2027
+Document owner: Dana W.
+Technical lead: Sofia R.
+Revision v2 summary: this revision of the DRIFT spec updates the scope for marketing site relaunch and records the current status as in review.

@@ -1,0 +1,20 @@
+id: golden-temporal-011
+suite: golden
+slice: temporal
+question: When did I travel to Toronto in March 2025?
+expected_docs:
+  trv-002: 2
+  trv-000: 0
+  trv-001: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Toronto
+- March
+- '2025'
+expected_spans:
+- doc_id: trv-002
+  start: 77
+  end: 91
+created_by: synth-v1
+locked: false

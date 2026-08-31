@@ -1,0 +1,20 @@
+id: golden-temporal-010
+suite: golden
+slice: temporal
+question: When did I travel to Osaka in August 2026?
+expected_docs:
+  trv-001: 2
+  trv-000: 0
+  trv-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Osaka
+- August
+- '2026'
+expected_spans:
+- doc_id: trv-001
+  start: 72
+  end: 87
+created_by: synth-v1
+locked: false

@@ -1,0 +1,5 @@
+INVOICE INV-2026-ND2b
+Vendor: Ridgeline Hardware
+Invoice date: April 12, 2026
+Project code: CINDER
+Total amount due: 1,272.00 USD

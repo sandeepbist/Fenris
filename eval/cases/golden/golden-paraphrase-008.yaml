@@ -1,0 +1,16 @@
+id: golden-paraphrase-008
+suite: golden
+slice: paraphrase
+question: On which flight did I fly to Toronto for the March trip?
+expected_docs:
+  trv-002: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- TP474
+expected_spans:
+- doc_id: trv-002
+  start: 101
+  end: 106
+created_by: synth-v1
+locked: false

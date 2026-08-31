@@ -1,0 +1,8 @@
+INVOICE INV-202406-359
+Vendor: Ridgeline Hardware
+Invoice date: June 16, 2024
+Bill to: Orbis Consulting
+Project code: CINDER
+Description: professional services rendered for CINDER - compliance audit remediation.
+Total amount due: 3,677.50 USD
+Payment terms: net 30

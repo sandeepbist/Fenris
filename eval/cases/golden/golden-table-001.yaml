@@ -1,0 +1,19 @@
+id: golden-table-001
+suite: golden
+slice: table
+question: How much did I spend on Acme Cloud Services on January 2, 2025 for ATLAS?
+expected_docs:
+  exp-000: 2
+  exp-001: 0
+  exp-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Acme Cloud Services
+- '40.00'
+expected_spans:
+- doc_id: exp-000
+  start: 106
+  end: 145
+created_by: synth-v1
+locked: false

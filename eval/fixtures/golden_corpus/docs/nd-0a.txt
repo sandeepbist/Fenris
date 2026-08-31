@@ -1,0 +1,5 @@
+INVOICE INV-2024-ND0a
+Vendor: Acme Cloud Services
+Invoice date: April 10, 2024
+Project code: ATLAS
+Total amount due: 800.00 USD

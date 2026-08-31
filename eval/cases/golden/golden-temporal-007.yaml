@@ -1,0 +1,19 @@
+id: golden-temporal-007
+suite: golden
+slice: temporal
+question: What did Sable Marketing Group invoice in July 2024 for project ATLAS?
+expected_docs:
+  inv-018: 2
+  inv-007: 0
+  inv-029: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Sable Marketing Group
+- 3,815.00
+expected_spans:
+- doc_id: inv-018
+  start: 235
+  end: 243
+created_by: synth-v1
+locked: false

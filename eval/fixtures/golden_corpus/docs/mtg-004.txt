@@ -1,0 +1,6 @@
+Meeting notes - ATLAS weekly sync
+Date: September 13, 2025
+Attendees: Jonah K., Alex Q., Mira H., Elena V.
+Agenda: ATLAS status, vendor review, budget planning.
+Decision DEC-2025-04: approved 10,000.00 USD budget for internal data-platform migration phase 2.
+Action items: Jonah K. to follow up with Quanta Analytics; Alex Q. to draft the ATLAS rollout plan.

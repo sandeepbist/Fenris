@@ -1,0 +1,20 @@
+id: golden-temporal-009
+suite: golden
+slice: temporal
+question: When did I travel to Lisbon in January 2025?
+expected_docs:
+  trv-000: 2
+  trv-001: 0
+  trv-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Lisbon
+- January
+- '2025'
+expected_spans:
+- doc_id: trv-000
+  start: 77
+  end: 92
+created_by: synth-v1
+locked: false

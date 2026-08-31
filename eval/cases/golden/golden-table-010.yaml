@@ -1,0 +1,19 @@
+id: golden-table-010
+suite: golden
+slice: table
+question: What is the BODEEN expense with Northwind Logistics dated October 22, 2025 in the 2025 sheet?
+expected_docs:
+  exp-000: 2
+  exp-001: 0
+  exp-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Northwind Logistics
+- '193.00'
+expected_spans:
+- doc_id: exp-000
+  start: 612
+  end: 663
+created_by: synth-v1
+locked: false

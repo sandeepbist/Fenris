@@ -1,0 +1,7 @@
+ATLAS architecture spec - revision v2
+Project: ATLAS - internal data-platform migration
+Status: in review
+Revision date: March 7, 2024
+Document owner: Elena V.
+Technical lead: Alex Q.
+Revision v2 summary: this revision of the ATLAS spec updates the scope for internal data-platform migration and records the current status as in review.

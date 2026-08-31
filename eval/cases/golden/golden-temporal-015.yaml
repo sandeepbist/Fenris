@@ -1,0 +1,19 @@
+id: golden-temporal-015
+suite: golden
+slice: temporal
+question: What budget was approved for BODEEN in June 2025?
+expected_docs:
+  mtg-001: 2
+  mtg-005: 0
+  mtg-009: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- BODEEN
+- 6,250.00
+expected_spans:
+- doc_id: mtg-001
+  start: 188
+  end: 196
+created_by: synth-v1
+locked: false

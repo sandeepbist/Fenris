@@ -1,0 +1,20 @@
+id: golden-temporal-013
+suite: golden
+slice: temporal
+question: When did I travel to Bristol in May 2025?
+expected_docs:
+  trv-004: 2
+  trv-000: 0
+  trv-001: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Bristol
+- May
+- '2025'
+expected_spans:
+- doc_id: trv-004
+  start: 73
+  end: 84
+created_by: synth-v1
+locked: false

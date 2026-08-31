@@ -1,0 +1,14 @@
+Expenses 2025 - tracked purchases (sheet block 2 of 3)
+Date | Vendor | Amount | Project
+January 12, 2025 | Quanta Analytics | 244.00 USD | ATLAS
+February 17, 2025 | Ridgeline Hardware | 261.00 USD | BODEEN
+March 22, 2025 | Sable Marketing Group | 278.00 USD | CINDER
+April 2, 2025 | Tessellate Consulting | 295.00 USD | DRIFT
+May 7, 2025 | Acme Cloud Services | 312.00 USD | ATLAS
+June 12, 2025 | Northwind Logistics | 329.00 USD | BODEEN
+July 17, 2025 | Helios Design Studio | 346.00 USD | CINDER
+August 22, 2025 | Bracket & Fell LLP | 363.00 USD | DRIFT
+September 2, 2025 | Quanta Analytics | 380.00 USD | ATLAS
+October 7, 2025 | Ridgeline Hardware | 397.00 USD | BODEEN
+November 12, 2025 | Sable Marketing Group | 414.00 USD | CINDER
+December 17, 2025 | Tessellate Consulting | 431.00 USD | DRIFT

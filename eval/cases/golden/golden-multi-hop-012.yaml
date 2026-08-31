@@ -1,0 +1,22 @@
+id: golden-multi-hop-012
+suite: golden
+slice: multi_hop
+question: How did the BODEEN architecture spec change between revision v1 and the approved revision?
+expected_docs:
+  prj-003: 2
+  prj-005: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- BODEEN
+- draft
+- approved
+expected_spans:
+- doc_id: prj-003
+  start: 100
+  end: 105
+- doc_id: prj-005
+  start: 100
+  end: 108
+created_by: synth-v1
+locked: false

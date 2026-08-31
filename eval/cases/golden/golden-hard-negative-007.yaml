@@ -1,0 +1,18 @@
+id: golden-hard-negative-007
+suite: golden
+slice: hard_negative
+question: What is the total amount due on invoice INV-2023-ND3a from Sable Marketing Group dated 2023?
+expected_docs:
+  nd-3a: 2
+  nd-3b: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-2023-ND3a
+- 1,133.00
+expected_spans:
+- doc_id: nd-3a
+  start: 8
+  end: 21
+created_by: synth-v1
+locked: false

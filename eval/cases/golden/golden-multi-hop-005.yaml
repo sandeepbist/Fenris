@@ -1,0 +1,22 @@
+id: golden-multi-hop-005
+suite: golden
+slice: multi_hop
+question: Which invoice from Quanta Analytics relates to the ATLAS budget approved in decision DEC-2025-04,
+  and how much was it for?
+expected_docs:
+  mtg-004: 2
+  inv-016: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Quanta Analytics
+- 3,540.00
+expected_spans:
+- doc_id: mtg-004
+  start: 170
+  end: 181
+- doc_id: inv-016
+  start: 229
+  end: 237
+created_by: synth-v1
+locked: false

@@ -1,0 +1,18 @@
+id: golden-hard-negative-014
+suite: golden
+slice: hard_negative
+question: How much was invoice INV-202301-323 for DRIFT?
+expected_docs:
+  inv-000: 2
+  inv-002: 0
+  inv-004: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- 2,939.00
+expected_spans:
+- doc_id: inv-000
+  start: 229
+  end: 237
+created_by: synth-v1
+locked: false

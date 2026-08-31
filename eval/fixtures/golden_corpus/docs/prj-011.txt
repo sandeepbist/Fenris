@@ -1,0 +1,7 @@
+DRIFT architecture spec - revision v3
+Project: DRIFT - marketing site relaunch
+Status: approved
+Revision date: January 8, 2027
+Document owner: Alex Q.
+Technical lead: Mira H.
+Revision v3 summary: this revision of the DRIFT spec updates the scope for marketing site relaunch and records the current status as approved.

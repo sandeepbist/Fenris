@@ -1,0 +1,19 @@
+id: golden-temporal-004
+suite: golden
+slice: temporal
+question: What did Bracket & Fell LLP invoice in April 2024 for project CINDER?
+expected_docs:
+  inv-015: 2
+  inv-004: 0
+  inv-023: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Bracket & Fell LLP
+- 3,404.50
+expected_spans:
+- doc_id: inv-015
+  start: 231
+  end: 239
+created_by: synth-v1
+locked: false

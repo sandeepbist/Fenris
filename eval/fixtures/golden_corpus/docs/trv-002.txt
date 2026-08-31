@@ -1,0 +1,6 @@
+Travel itinerary TRV-2025-02: Toronto
+Destination: Toronto, Canada
+Outbound: March 16, 2025 - flight TP474
+Return: March 21, 2025 - flight TP475
+Hotel: Grand Toronto Hotel
+Booking reference: TRV-2025-02-HK

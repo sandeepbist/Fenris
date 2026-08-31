@@ -1,0 +1,17 @@
+id: golden-exact-011
+suite: golden
+slice: exact
+question: Find invoice INV-202311-393
+expected_docs:
+  inv-010: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-202311-393
+- Northwind Logistics
+expected_spans:
+- doc_id: inv-010
+  start: 8
+  end: 22
+created_by: synth-v1
+locked: false

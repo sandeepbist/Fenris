@@ -1,0 +1,17 @@
+id: golden-exact-001
+suite: golden
+slice: exact
+question: Find invoice INV-202301-323
+expected_docs:
+  inv-000: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-202301-323
+- Tessellate Consulting
+expected_spans:
+- doc_id: inv-000
+  start: 8
+  end: 22
+created_by: synth-v1
+locked: false

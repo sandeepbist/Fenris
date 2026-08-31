@@ -1,0 +1,8 @@
+INVOICE INV-202402-331
+Vendor: Northwind Logistics
+Invoice date: February 12, 2024
+Bill to: Orbis Consulting
+Project code: CINDER
+Description: professional services rendered for CINDER - compliance audit remediation.
+Total amount due: 3,129.50 USD
+Payment terms: net 30

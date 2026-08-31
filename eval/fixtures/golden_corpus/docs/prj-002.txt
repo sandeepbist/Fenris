@@ -1,0 +1,7 @@
+ATLAS architecture spec - revision v3
+Project: ATLAS - internal data-platform migration
+Status: approved
+Revision date: April 8, 2024
+Document owner: Jonah K.
+Technical lead: Marcus T.
+Revision v3 summary: this revision of the ATLAS spec updates the scope for internal data-platform migration and records the current status as approved.

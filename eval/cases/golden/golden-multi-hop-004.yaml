@@ -1,0 +1,22 @@
+id: golden-multi-hop-004
+suite: golden
+slice: multi_hop
+question: Which invoice from Northwind Logistics relates to the DRIFT budget approved in decision DEC-2024-03,
+  and how much was it for?
+expected_docs:
+  mtg-003: 2
+  inv-002: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Northwind Logistics
+- 3,214.00
+expected_spans:
+- doc_id: mtg-003
+  start: 165
+  end: 176
+- doc_id: inv-002
+  start: 225
+  end: 233
+created_by: synth-v1
+locked: false

@@ -1,0 +1,6 @@
+Travel itinerary TRV-2026-11: Medellin
+Destination: Medellin, Colombia
+Outbound: June 10, 2026 - flight KL807
+Return: June 18, 2026 - flight KL808
+Hotel: Grand Medellin Hotel
+Booking reference: TRV-2026-11-HK

@@ -1,0 +1,17 @@
+id: golden-exact-012
+suite: golden
+slice: exact
+question: Find invoice INV-202312-400
+expected_docs:
+  inv-011: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-202312-400
+- Helios Design Studio
+expected_spans:
+- doc_id: inv-011
+  start: 8
+  end: 22
+created_by: synth-v1
+locked: false

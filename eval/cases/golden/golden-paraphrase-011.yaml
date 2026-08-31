@@ -1,0 +1,16 @@
+id: golden-paraphrase-011
+suite: golden
+slice: paraphrase
+question: What spending cap did the team set for ATLAS phase work?
+expected_docs:
+  mtg-000: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- 5,000.00
+expected_spans:
+- doc_id: mtg-000
+  start: 192
+  end: 200
+created_by: synth-v1
+locked: false

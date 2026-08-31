@@ -1,0 +1,19 @@
+id: golden-table-009
+suite: golden
+slice: table
+question: What is the ATLAS expense with Acme Cloud Services dated September 17, 2025 in the 2025 sheet?
+expected_docs:
+  exp-000: 2
+  exp-001: 0
+  exp-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Acme Cloud Services
+- '176.00'
+expected_spans:
+- doc_id: exp-000
+  start: 550
+  end: 603
+created_by: synth-v1
+locked: false

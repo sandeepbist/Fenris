@@ -1,0 +1,17 @@
+id: golden-exact-008
+suite: golden
+slice: exact
+question: Find invoice INV-202308-372
+expected_docs:
+  inv-007: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-202308-372
+- Sable Marketing Group
+expected_spans:
+- doc_id: inv-007
+  start: 8
+  end: 22
+created_by: synth-v1
+locked: false

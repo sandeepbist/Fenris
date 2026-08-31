@@ -1,0 +1,3145 @@
+{
+  "seed": 20260831,
+  "generated_by": "eval/fixtures/generate_corpus.py",
+  "doc_count": 99,
+  "families": [
+    "expenses",
+    "invoice",
+    "meeting",
+    "near_dup",
+    "project",
+    "travel"
+  ],
+  "docs": [
+    {
+      "doc_id": "inv-000",
+      "family": "invoice",
+      "title": "Invoice INV-202301-323 - Tessellate Consulting",
+      "text": "INVOICE INV-202301-323\nVendor: Tessellate Consulting\nInvoice date: January 10, 2023\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 2,939.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202301-323"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-000",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202301-323",
+        "vendor": "Tessellate Consulting",
+        "year": 2023,
+        "month": "January",
+        "amount": 2939.0,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-001",
+      "family": "invoice",
+      "title": "Invoice INV-202302-330 - Acme Cloud Services",
+      "text": "INVOICE INV-202302-330\nVendor: Acme Cloud Services\nInvoice date: February 11, 2023\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 3,076.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202302-330"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-001",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202302-330",
+        "vendor": "Acme Cloud Services",
+        "year": 2023,
+        "month": "February",
+        "amount": 3076.5,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-002",
+      "family": "invoice",
+      "title": "Invoice INV-202303-337 - Northwind Logistics",
+      "text": "INVOICE INV-202303-337\nVendor: Northwind Logistics\nInvoice date: March 12, 2023\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 3,214.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202303-337"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-002",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202303-337",
+        "vendor": "Northwind Logistics",
+        "year": 2023,
+        "month": "March",
+        "amount": 3214.0,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-003",
+      "family": "invoice",
+      "title": "Invoice INV-202304-344 - Helios Design Studio",
+      "text": "INVOICE INV-202304-344\nVendor: Helios Design Studio\nInvoice date: April 13, 2023\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 3,351.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202304-344"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-003",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202304-344",
+        "vendor": "Helios Design Studio",
+        "year": 2023,
+        "month": "April",
+        "amount": 3351.5,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-004",
+      "family": "invoice",
+      "title": "Invoice INV-202305-351 - Bracket & Fell LLP",
+      "text": "INVOICE INV-202305-351\nVendor: Bracket & Fell LLP\nInvoice date: May 14, 2023\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 3,487.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202305-351"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-004",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202305-351",
+        "vendor": "Bracket & Fell LLP",
+        "year": 2023,
+        "month": "May",
+        "amount": 3487.0,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-005",
+      "family": "invoice",
+      "title": "Invoice INV-202306-358 - Quanta Analytics",
+      "text": "INVOICE INV-202306-358\nVendor: Quanta Analytics\nInvoice date: June 15, 2023\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 3,624.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202306-358"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-005",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202306-358",
+        "vendor": "Quanta Analytics",
+        "year": 2023,
+        "month": "June",
+        "amount": 3624.5,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-006",
+      "family": "invoice",
+      "title": "Invoice INV-202307-365 - Ridgeline Hardware",
+      "text": "INVOICE INV-202307-365\nVendor: Ridgeline Hardware\nInvoice date: July 16, 2023\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 3,762.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202307-365"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-006",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202307-365",
+        "vendor": "Ridgeline Hardware",
+        "year": 2023,
+        "month": "July",
+        "amount": 3762.0,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-007",
+      "family": "invoice",
+      "title": "Invoice INV-202308-372 - Sable Marketing Group",
+      "text": "INVOICE INV-202308-372\nVendor: Sable Marketing Group\nInvoice date: August 17, 2023\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 3,899.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202308-372"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-007",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202308-372",
+        "vendor": "Sable Marketing Group",
+        "year": 2023,
+        "month": "August",
+        "amount": 3899.5,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-008",
+      "family": "invoice",
+      "title": "Invoice INV-202309-379 - Tessellate Consulting",
+      "text": "INVOICE INV-202309-379\nVendor: Tessellate Consulting\nInvoice date: September 18, 2023\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 4,035.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202309-379"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-008",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202309-379",
+        "vendor": "Tessellate Consulting",
+        "year": 2023,
+        "month": "September",
+        "amount": 4035.0,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-009",
+      "family": "invoice",
+      "title": "Invoice INV-202310-386 - Acme Cloud Services",
+      "text": "INVOICE INV-202310-386\nVendor: Acme Cloud Services\nInvoice date: October 19, 2023\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 4,172.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202310-386"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-009",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202310-386",
+        "vendor": "Acme Cloud Services",
+        "year": 2023,
+        "month": "October",
+        "amount": 4172.5,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-010",
+      "family": "invoice",
+      "title": "Invoice INV-202311-393 - Northwind Logistics",
+      "text": "INVOICE INV-202311-393\nVendor: Northwind Logistics\nInvoice date: November 20, 2023\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 4,310.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202311-393"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-010",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202311-393",
+        "vendor": "Northwind Logistics",
+        "year": 2023,
+        "month": "November",
+        "amount": 4310.0,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-011",
+      "family": "invoice",
+      "title": "Invoice INV-202312-400 - Helios Design Studio",
+      "text": "INVOICE INV-202312-400\nVendor: Helios Design Studio\nInvoice date: December 21, 2023\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 4,447.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202312-400"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-011",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202312-400",
+        "vendor": "Helios Design Studio",
+        "year": 2023,
+        "month": "December",
+        "amount": 4447.5,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-012",
+      "family": "invoice",
+      "title": "Invoice INV-202401-324 - Acme Cloud Services",
+      "text": "INVOICE INV-202401-324\nVendor: Acme Cloud Services\nInvoice date: January 11, 2024\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 2,992.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202401-324"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-012",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202401-324",
+        "vendor": "Acme Cloud Services",
+        "year": 2024,
+        "month": "January",
+        "amount": 2992.0,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-013",
+      "family": "invoice",
+      "title": "Invoice INV-202402-331 - Northwind Logistics",
+      "text": "INVOICE INV-202402-331\nVendor: Northwind Logistics\nInvoice date: February 12, 2024\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 3,129.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202402-331"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-013",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202402-331",
+        "vendor": "Northwind Logistics",
+        "year": 2024,
+        "month": "February",
+        "amount": 3129.5,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-014",
+      "family": "invoice",
+      "title": "Invoice INV-202403-338 - Helios Design Studio",
+      "text": "INVOICE INV-202403-338\nVendor: Helios Design Studio\nInvoice date: March 13, 2024\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 3,267.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202403-338"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-014",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202403-338",
+        "vendor": "Helios Design Studio",
+        "year": 2024,
+        "month": "March",
+        "amount": 3267.0,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-015",
+      "family": "invoice",
+      "title": "Invoice INV-202404-345 - Bracket & Fell LLP",
+      "text": "INVOICE INV-202404-345\nVendor: Bracket & Fell LLP\nInvoice date: April 14, 2024\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 3,404.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202404-345"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-015",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202404-345",
+        "vendor": "Bracket & Fell LLP",
+        "year": 2024,
+        "month": "April",
+        "amount": 3404.5,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-016",
+      "family": "invoice",
+      "title": "Invoice INV-202405-352 - Quanta Analytics",
+      "text": "INVOICE INV-202405-352\nVendor: Quanta Analytics\nInvoice date: May 15, 2024\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 3,540.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202405-352"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-016",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202405-352",
+        "vendor": "Quanta Analytics",
+        "year": 2024,
+        "month": "May",
+        "amount": 3540.0,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-017",
+      "family": "invoice",
+      "title": "Invoice INV-202406-359 - Ridgeline Hardware",
+      "text": "INVOICE INV-202406-359\nVendor: Ridgeline Hardware\nInvoice date: June 16, 2024\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 3,677.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202406-359"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-017",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202406-359",
+        "vendor": "Ridgeline Hardware",
+        "year": 2024,
+        "month": "June",
+        "amount": 3677.5,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-018",
+      "family": "invoice",
+      "title": "Invoice INV-202407-366 - Sable Marketing Group",
+      "text": "INVOICE INV-202407-366\nVendor: Sable Marketing Group\nInvoice date: July 17, 2024\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 3,815.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202407-366"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-018",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202407-366",
+        "vendor": "Sable Marketing Group",
+        "year": 2024,
+        "month": "July",
+        "amount": 3815.0,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-019",
+      "family": "invoice",
+      "title": "Invoice INV-202408-373 - Tessellate Consulting",
+      "text": "INVOICE INV-202408-373\nVendor: Tessellate Consulting\nInvoice date: August 18, 2024\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 3,952.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202408-373"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-019",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202408-373",
+        "vendor": "Tessellate Consulting",
+        "year": 2024,
+        "month": "August",
+        "amount": 3952.5,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-020",
+      "family": "invoice",
+      "title": "Invoice INV-202409-380 - Acme Cloud Services",
+      "text": "INVOICE INV-202409-380\nVendor: Acme Cloud Services\nInvoice date: September 19, 2024\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 4,088.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202409-380"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-020",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202409-380",
+        "vendor": "Acme Cloud Services",
+        "year": 2024,
+        "month": "September",
+        "amount": 4088.0,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-021",
+      "family": "invoice",
+      "title": "Invoice INV-202410-387 - Northwind Logistics",
+      "text": "INVOICE INV-202410-387\nVendor: Northwind Logistics\nInvoice date: October 20, 2024\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 4,225.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202410-387"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-021",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202410-387",
+        "vendor": "Northwind Logistics",
+        "year": 2024,
+        "month": "October",
+        "amount": 4225.5,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-022",
+      "family": "invoice",
+      "title": "Invoice INV-202411-394 - Helios Design Studio",
+      "text": "INVOICE INV-202411-394\nVendor: Helios Design Studio\nInvoice date: November 21, 2024\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 4,363.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202411-394"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-022",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202411-394",
+        "vendor": "Helios Design Studio",
+        "year": 2024,
+        "month": "November",
+        "amount": 4363.0,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-023",
+      "family": "invoice",
+      "title": "Invoice INV-202412-401 - Bracket & Fell LLP",
+      "text": "INVOICE INV-202412-401\nVendor: Bracket & Fell LLP\nInvoice date: December 22, 2024\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 4,500.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202412-401"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-023",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202412-401",
+        "vendor": "Bracket & Fell LLP",
+        "year": 2024,
+        "month": "December",
+        "amount": 4500.5,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-024",
+      "family": "invoice",
+      "title": "Invoice INV-202501-325 - Northwind Logistics",
+      "text": "INVOICE INV-202501-325\nVendor: Northwind Logistics\nInvoice date: January 12, 2025\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 3,045.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202501-325"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-024",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202501-325",
+        "vendor": "Northwind Logistics",
+        "year": 2025,
+        "month": "January",
+        "amount": 3045.0,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-025",
+      "family": "invoice",
+      "title": "Invoice INV-202502-332 - Helios Design Studio",
+      "text": "INVOICE INV-202502-332\nVendor: Helios Design Studio\nInvoice date: February 13, 2025\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 3,182.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202502-332"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-025",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202502-332",
+        "vendor": "Helios Design Studio",
+        "year": 2025,
+        "month": "February",
+        "amount": 3182.5,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-026",
+      "family": "invoice",
+      "title": "Invoice INV-202503-339 - Bracket & Fell LLP",
+      "text": "INVOICE INV-202503-339\nVendor: Bracket & Fell LLP\nInvoice date: March 14, 2025\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 3,320.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202503-339"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-026",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202503-339",
+        "vendor": "Bracket & Fell LLP",
+        "year": 2025,
+        "month": "March",
+        "amount": 3320.0,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-027",
+      "family": "invoice",
+      "title": "Invoice INV-202504-346 - Quanta Analytics",
+      "text": "INVOICE INV-202504-346\nVendor: Quanta Analytics\nInvoice date: April 15, 2025\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 3,457.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202504-346"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-027",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202504-346",
+        "vendor": "Quanta Analytics",
+        "year": 2025,
+        "month": "April",
+        "amount": 3457.5,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-028",
+      "family": "invoice",
+      "title": "Invoice INV-202505-353 - Ridgeline Hardware",
+      "text": "INVOICE INV-202505-353\nVendor: Ridgeline Hardware\nInvoice date: May 16, 2025\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 3,593.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202505-353"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-028",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202505-353",
+        "vendor": "Ridgeline Hardware",
+        "year": 2025,
+        "month": "May",
+        "amount": 3593.0,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-029",
+      "family": "invoice",
+      "title": "Invoice INV-202506-360 - Sable Marketing Group",
+      "text": "INVOICE INV-202506-360\nVendor: Sable Marketing Group\nInvoice date: June 17, 2025\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 3,730.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202506-360"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-029",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202506-360",
+        "vendor": "Sable Marketing Group",
+        "year": 2025,
+        "month": "June",
+        "amount": 3730.5,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-030",
+      "family": "invoice",
+      "title": "Invoice INV-202507-367 - Tessellate Consulting",
+      "text": "INVOICE INV-202507-367\nVendor: Tessellate Consulting\nInvoice date: July 18, 2025\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 3,868.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202507-367"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-030",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202507-367",
+        "vendor": "Tessellate Consulting",
+        "year": 2025,
+        "month": "July",
+        "amount": 3868.0,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-031",
+      "family": "invoice",
+      "title": "Invoice INV-202508-374 - Acme Cloud Services",
+      "text": "INVOICE INV-202508-374\nVendor: Acme Cloud Services\nInvoice date: August 19, 2025\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 4,005.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202508-374"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-031",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202508-374",
+        "vendor": "Acme Cloud Services",
+        "year": 2025,
+        "month": "August",
+        "amount": 4005.5,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-032",
+      "family": "invoice",
+      "title": "Invoice INV-202509-381 - Northwind Logistics",
+      "text": "INVOICE INV-202509-381\nVendor: Northwind Logistics\nInvoice date: September 20, 2025\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 4,141.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202509-381"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-032",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202509-381",
+        "vendor": "Northwind Logistics",
+        "year": 2025,
+        "month": "September",
+        "amount": 4141.0,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-033",
+      "family": "invoice",
+      "title": "Invoice INV-202510-388 - Helios Design Studio",
+      "text": "INVOICE INV-202510-388\nVendor: Helios Design Studio\nInvoice date: October 21, 2025\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 4,278.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202510-388"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-033",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202510-388",
+        "vendor": "Helios Design Studio",
+        "year": 2025,
+        "month": "October",
+        "amount": 4278.5,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-034",
+      "family": "invoice",
+      "title": "Invoice INV-202511-395 - Bracket & Fell LLP",
+      "text": "INVOICE INV-202511-395\nVendor: Bracket & Fell LLP\nInvoice date: November 22, 2025\nBill to: Orbis Consulting\nProject code: BODEEN\nDescription: professional services rendered for BODEEN - customer-facing mobile app refresh.\nTotal amount due: 4,416.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202511-395"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-034",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202511-395",
+        "vendor": "Bracket & Fell LLP",
+        "year": 2025,
+        "month": "November",
+        "amount": 4416.0,
+        "project": "BODEEN"
+      }
+    },
+    {
+      "doc_id": "inv-035",
+      "family": "invoice",
+      "title": "Invoice INV-202512-402 - Quanta Analytics",
+      "text": "INVOICE INV-202512-402\nVendor: Quanta Analytics\nInvoice date: December 23, 2025\nBill to: Orbis Consulting\nProject code: DRIFT\nDescription: professional services rendered for DRIFT - marketing site relaunch.\nTotal amount due: 4,553.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202512-402"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-035",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202512-402",
+        "vendor": "Quanta Analytics",
+        "year": 2025,
+        "month": "December",
+        "amount": 4553.5,
+        "project": "DRIFT"
+      }
+    },
+    {
+      "doc_id": "inv-036",
+      "family": "invoice",
+      "title": "Invoice INV-202601-326 - Helios Design Studio",
+      "text": "INVOICE INV-202601-326\nVendor: Helios Design Studio\nInvoice date: January 13, 2026\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 3,098.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202601-326"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-036",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202601-326",
+        "vendor": "Helios Design Studio",
+        "year": 2026,
+        "month": "January",
+        "amount": 3098.0,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-037",
+      "family": "invoice",
+      "title": "Invoice INV-202602-333 - Bracket & Fell LLP",
+      "text": "INVOICE INV-202602-333\nVendor: Bracket & Fell LLP\nInvoice date: February 14, 2026\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 3,235.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202602-333"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-037",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202602-333",
+        "vendor": "Bracket & Fell LLP",
+        "year": 2026,
+        "month": "February",
+        "amount": 3235.5,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-038",
+      "family": "invoice",
+      "title": "Invoice INV-202603-340 - Quanta Analytics",
+      "text": "INVOICE INV-202603-340\nVendor: Quanta Analytics\nInvoice date: March 15, 2026\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 3,373.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202603-340"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-038",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202603-340",
+        "vendor": "Quanta Analytics",
+        "year": 2026,
+        "month": "March",
+        "amount": 3373.0,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-039",
+      "family": "invoice",
+      "title": "Invoice INV-202604-347 - Ridgeline Hardware",
+      "text": "INVOICE INV-202604-347\nVendor: Ridgeline Hardware\nInvoice date: April 16, 2026\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 3,510.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202604-347"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-039",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202604-347",
+        "vendor": "Ridgeline Hardware",
+        "year": 2026,
+        "month": "April",
+        "amount": 3510.5,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-040",
+      "family": "invoice",
+      "title": "Invoice INV-202605-354 - Sable Marketing Group",
+      "text": "INVOICE INV-202605-354\nVendor: Sable Marketing Group\nInvoice date: May 17, 2026\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 3,646.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202605-354"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-040",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202605-354",
+        "vendor": "Sable Marketing Group",
+        "year": 2026,
+        "month": "May",
+        "amount": 3646.0,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-041",
+      "family": "invoice",
+      "title": "Invoice INV-202606-361 - Tessellate Consulting",
+      "text": "INVOICE INV-202606-361\nVendor: Tessellate Consulting\nInvoice date: June 18, 2026\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 3,783.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202606-361"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-041",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202606-361",
+        "vendor": "Tessellate Consulting",
+        "year": 2026,
+        "month": "June",
+        "amount": 3783.5,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-042",
+      "family": "invoice",
+      "title": "Invoice INV-202607-368 - Acme Cloud Services",
+      "text": "INVOICE INV-202607-368\nVendor: Acme Cloud Services\nInvoice date: July 19, 2026\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 3,921.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202607-368"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-042",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202607-368",
+        "vendor": "Acme Cloud Services",
+        "year": 2026,
+        "month": "July",
+        "amount": 3921.0,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-043",
+      "family": "invoice",
+      "title": "Invoice INV-202608-375 - Northwind Logistics",
+      "text": "INVOICE INV-202608-375\nVendor: Northwind Logistics\nInvoice date: August 20, 2026\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 4,058.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202608-375"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-043",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202608-375",
+        "vendor": "Northwind Logistics",
+        "year": 2026,
+        "month": "August",
+        "amount": 4058.5,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-044",
+      "family": "invoice",
+      "title": "Invoice INV-202609-382 - Helios Design Studio",
+      "text": "INVOICE INV-202609-382\nVendor: Helios Design Studio\nInvoice date: September 21, 2026\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 4,194.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202609-382"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-044",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202609-382",
+        "vendor": "Helios Design Studio",
+        "year": 2026,
+        "month": "September",
+        "amount": 4194.0,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-045",
+      "family": "invoice",
+      "title": "Invoice INV-202610-389 - Bracket & Fell LLP",
+      "text": "INVOICE INV-202610-389\nVendor: Bracket & Fell LLP\nInvoice date: October 22, 2026\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 4,331.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202610-389"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-045",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202610-389",
+        "vendor": "Bracket & Fell LLP",
+        "year": 2026,
+        "month": "October",
+        "amount": 4331.5,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "inv-046",
+      "family": "invoice",
+      "title": "Invoice INV-202611-396 - Quanta Analytics",
+      "text": "INVOICE INV-202611-396\nVendor: Quanta Analytics\nInvoice date: November 23, 2026\nBill to: Orbis Consulting\nProject code: CINDER\nDescription: professional services rendered for CINDER - compliance audit remediation.\nTotal amount due: 4,469.00 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202611-396"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-046",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202611-396",
+        "vendor": "Quanta Analytics",
+        "year": 2026,
+        "month": "November",
+        "amount": 4469.0,
+        "project": "CINDER"
+      }
+    },
+    {
+      "doc_id": "inv-047",
+      "family": "invoice",
+      "title": "Invoice INV-202612-403 - Ridgeline Hardware",
+      "text": "INVOICE INV-202612-403\nVendor: Ridgeline Hardware\nInvoice date: December 24, 2026\nBill to: Orbis Consulting\nProject code: ATLAS\nDescription: professional services rendered for ATLAS - internal data-platform migration.\nTotal amount due: 4,606.50 USD\nPayment terms: net 30\n",
+      "questions": [
+        "exact-INV-202612-403"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "inv-047",
+          "start": 8,
+          "end": 22
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-202612-403",
+        "vendor": "Ridgeline Hardware",
+        "year": 2026,
+        "month": "December",
+        "amount": 4606.5,
+        "project": "ATLAS"
+      }
+    },
+    {
+      "doc_id": "mtg-000",
+      "family": "meeting",
+      "title": "ATLAS sync - January 1, 2024",
+      "text": "Meeting notes - ATLAS weekly sync\nDate: January 1, 2024\nAttendees: Jonah K., Marcus T., Sofia R., Elena V.\nAgenda: ATLAS status, vendor review, budget planning.\nDecision DEC-2024-00: approved 5,000.00 USD budget for internal data-platform migration phase 1.\nAction items: Jonah K. to follow up with Acme Cloud Services; Marcus T. to draft the ATLAS rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2024-00"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-000",
+          "start": 170,
+          "end": 181
+        },
+        {
+          "doc_id": "mtg-000",
+          "start": 192,
+          "end": 204
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2024-00",
+        "project": "ATLAS",
+        "budget": 5000,
+        "attendees": [
+          "Jonah K.",
+          "Marcus T.",
+          "Sofia R.",
+          "Elena V."
+        ],
+        "vendor": "Acme Cloud Services",
+        "date": "January 1, 2024",
+        "year": 2024,
+        "month": "January"
+      }
+    },
+    {
+      "doc_id": "mtg-001",
+      "family": "meeting",
+      "title": "BODEEN sync - June 4, 2025",
+      "text": "Meeting notes - BODEEN weekly sync\nDate: June 4, 2025\nAttendees: Mira H., Dana W., Priya N., Jonah K.\nAgenda: BODEEN status, vendor review, budget planning.\nDecision DEC-2025-01: approved 6,250.00 USD budget for customer-facing mobile app refresh phase 2.\nAction items: Mira H. to follow up with Bracket & Fell LLP; Dana W. to draft the BODEEN rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2025-01"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-001",
+          "start": 166,
+          "end": 177
+        },
+        {
+          "doc_id": "mtg-001",
+          "start": 188,
+          "end": 200
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2025-01",
+        "project": "BODEEN",
+        "budget": 6250,
+        "attendees": [
+          "Mira H.",
+          "Dana W.",
+          "Priya N.",
+          "Jonah K."
+        ],
+        "vendor": "Bracket & Fell LLP",
+        "date": "June 4, 2025",
+        "year": 2025,
+        "month": "June"
+      }
+    },
+    {
+      "doc_id": "mtg-002",
+      "family": "meeting",
+      "title": "CINDER sync - November 7, 2026",
+      "text": "Meeting notes - CINDER weekly sync\nDate: November 7, 2026\nAttendees: Alex Q., Mira H., Dana W., Priya N.\nAgenda: CINDER status, vendor review, budget planning.\nDecision DEC-2026-02: approved 7,500.00 USD budget for compliance audit remediation phase 3.\nAction items: Alex Q. to follow up with Sable Marketing Group; Mira H. to draft the CINDER rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2026-02"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-002",
+          "start": 169,
+          "end": 180
+        },
+        {
+          "doc_id": "mtg-002",
+          "start": 191,
+          "end": 203
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2026-02",
+        "project": "CINDER",
+        "budget": 7500,
+        "attendees": [
+          "Alex Q.",
+          "Mira H.",
+          "Dana W.",
+          "Priya N."
+        ],
+        "vendor": "Sable Marketing Group",
+        "date": "November 7, 2026",
+        "year": 2026,
+        "month": "November"
+      }
+    },
+    {
+      "doc_id": "mtg-003",
+      "family": "meeting",
+      "title": "DRIFT sync - April 10, 2024",
+      "text": "Meeting notes - DRIFT weekly sync\nDate: April 10, 2024\nAttendees: Dana W., Alex Q., Mira H., Elena V.\nAgenda: DRIFT status, vendor review, budget planning.\nDecision DEC-2024-03: approved 8,750.00 USD budget for marketing site relaunch phase 1.\nAction items: Dana W. to follow up with Northwind Logistics; Alex Q. to draft the DRIFT rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2024-03"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-003",
+          "start": 165,
+          "end": 176
+        },
+        {
+          "doc_id": "mtg-003",
+          "start": 187,
+          "end": 199
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2024-03",
+        "project": "DRIFT",
+        "budget": 8750,
+        "attendees": [
+          "Dana W.",
+          "Alex Q.",
+          "Mira H.",
+          "Elena V."
+        ],
+        "vendor": "Northwind Logistics",
+        "date": "April 10, 2024",
+        "year": 2024,
+        "month": "April"
+      }
+    },
+    {
+      "doc_id": "mtg-004",
+      "family": "meeting",
+      "title": "ATLAS sync - September 13, 2025",
+      "text": "Meeting notes - ATLAS weekly sync\nDate: September 13, 2025\nAttendees: Jonah K., Alex Q., Mira H., Elena V.\nAgenda: ATLAS status, vendor review, budget planning.\nDecision DEC-2025-04: approved 10,000.00 USD budget for internal data-platform migration phase 2.\nAction items: Jonah K. to follow up with Quanta Analytics; Alex Q. to draft the ATLAS rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2025-04"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-004",
+          "start": 170,
+          "end": 181
+        },
+        {
+          "doc_id": "mtg-004",
+          "start": 192,
+          "end": 205
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2025-04",
+        "project": "ATLAS",
+        "budget": 10000,
+        "attendees": [
+          "Jonah K.",
+          "Alex Q.",
+          "Mira H.",
+          "Elena V."
+        ],
+        "vendor": "Quanta Analytics",
+        "date": "September 13, 2025",
+        "year": 2025,
+        "month": "September"
+      }
+    },
+    {
+      "doc_id": "mtg-005",
+      "family": "meeting",
+      "title": "BODEEN sync - February 16, 2026",
+      "text": "Meeting notes - BODEEN weekly sync\nDate: February 16, 2026\nAttendees: Elena V., Mira H., Dana W., Sofia R.\nAgenda: BODEEN status, vendor review, budget planning.\nDecision DEC-2026-05: approved 11,250.00 USD budget for customer-facing mobile app refresh phase 3.\nAction items: Elena V. to follow up with Tessellate Consulting; Mira H. to draft the BODEEN rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2026-05"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-005",
+          "start": 171,
+          "end": 182
+        },
+        {
+          "doc_id": "mtg-005",
+          "start": 193,
+          "end": 206
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2026-05",
+        "project": "BODEEN",
+        "budget": 11250,
+        "attendees": [
+          "Elena V.",
+          "Mira H.",
+          "Dana W.",
+          "Sofia R."
+        ],
+        "vendor": "Tessellate Consulting",
+        "date": "February 16, 2026",
+        "year": 2026,
+        "month": "February"
+      }
+    },
+    {
+      "doc_id": "mtg-006",
+      "family": "meeting",
+      "title": "CINDER sync - July 19, 2024",
+      "text": "Meeting notes - CINDER weekly sync\nDate: July 19, 2024\nAttendees: Alex Q., Priya N., Marcus T., Mira H.\nAgenda: CINDER status, vendor review, budget planning.\nDecision DEC-2024-06: approved 12,500.00 USD budget for compliance audit remediation phase 1.\nAction items: Alex Q. to follow up with Helios Design Studio; Priya N. to draft the CINDER rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2024-06"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-006",
+          "start": 168,
+          "end": 179
+        },
+        {
+          "doc_id": "mtg-006",
+          "start": 190,
+          "end": 203
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2024-06",
+        "project": "CINDER",
+        "budget": 12500,
+        "attendees": [
+          "Alex Q.",
+          "Priya N.",
+          "Marcus T.",
+          "Mira H."
+        ],
+        "vendor": "Helios Design Studio",
+        "date": "July 19, 2024",
+        "year": 2024,
+        "month": "July"
+      }
+    },
+    {
+      "doc_id": "mtg-007",
+      "family": "meeting",
+      "title": "DRIFT sync - December 22, 2025",
+      "text": "Meeting notes - DRIFT weekly sync\nDate: December 22, 2025\nAttendees: Jonah K., Alex Q., Priya N., Marcus T.\nAgenda: DRIFT status, vendor review, budget planning.\nDecision DEC-2025-07: approved 13,750.00 USD budget for marketing site relaunch phase 2.\nAction items: Jonah K. to follow up with Ridgeline Hardware; Alex Q. to draft the DRIFT rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2025-07"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-007",
+          "start": 171,
+          "end": 182
+        },
+        {
+          "doc_id": "mtg-007",
+          "start": 193,
+          "end": 206
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2025-07",
+        "project": "DRIFT",
+        "budget": 13750,
+        "attendees": [
+          "Jonah K.",
+          "Alex Q.",
+          "Priya N.",
+          "Marcus T."
+        ],
+        "vendor": "Ridgeline Hardware",
+        "date": "December 22, 2025",
+        "year": 2025,
+        "month": "December"
+      }
+    },
+    {
+      "doc_id": "mtg-008",
+      "family": "meeting",
+      "title": "ATLAS sync - May 25, 2026",
+      "text": "Meeting notes - ATLAS weekly sync\nDate: May 25, 2026\nAttendees: Dana W., Priya N., Jonah K., Mira H.\nAgenda: ATLAS status, vendor review, budget planning.\nDecision DEC-2026-08: approved 15,000.00 USD budget for internal data-platform migration phase 3.\nAction items: Dana W. to follow up with Acme Cloud Services; Priya N. to draft the ATLAS rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2026-08"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-008",
+          "start": 164,
+          "end": 175
+        },
+        {
+          "doc_id": "mtg-008",
+          "start": 186,
+          "end": 199
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2026-08",
+        "project": "ATLAS",
+        "budget": 15000,
+        "attendees": [
+          "Dana W.",
+          "Priya N.",
+          "Jonah K.",
+          "Mira H."
+        ],
+        "vendor": "Acme Cloud Services",
+        "date": "May 25, 2026",
+        "year": 2026,
+        "month": "May"
+      }
+    },
+    {
+      "doc_id": "mtg-009",
+      "family": "meeting",
+      "title": "BODEEN sync - October 1, 2024",
+      "text": "Meeting notes - BODEEN weekly sync\nDate: October 1, 2024\nAttendees: Marcus T., Elena V., Jonah K., Sofia R.\nAgenda: BODEEN status, vendor review, budget planning.\nDecision DEC-2024-09: approved 16,250.00 USD budget for customer-facing mobile app refresh phase 1.\nAction items: Marcus T. to follow up with Bracket & Fell LLP; Elena V. to draft the BODEEN rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2024-09"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-009",
+          "start": 172,
+          "end": 183
+        },
+        {
+          "doc_id": "mtg-009",
+          "start": 194,
+          "end": 207
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2024-09",
+        "project": "BODEEN",
+        "budget": 16250,
+        "attendees": [
+          "Marcus T.",
+          "Elena V.",
+          "Jonah K.",
+          "Sofia R."
+        ],
+        "vendor": "Bracket & Fell LLP",
+        "date": "October 1, 2024",
+        "year": 2024,
+        "month": "October"
+      }
+    },
+    {
+      "doc_id": "mtg-010",
+      "family": "meeting",
+      "title": "CINDER sync - March 4, 2025",
+      "text": "Meeting notes - CINDER weekly sync\nDate: March 4, 2025\nAttendees: Dana W., Jonah K., Sofia R., Marcus T.\nAgenda: CINDER status, vendor review, budget planning.\nDecision DEC-2025-10: approved 17,500.00 USD budget for compliance audit remediation phase 2.\nAction items: Dana W. to follow up with Sable Marketing Group; Jonah K. to draft the CINDER rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2025-10"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-010",
+          "start": 169,
+          "end": 180
+        },
+        {
+          "doc_id": "mtg-010",
+          "start": 191,
+          "end": 204
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2025-10",
+        "project": "CINDER",
+        "budget": 17500,
+        "attendees": [
+          "Dana W.",
+          "Jonah K.",
+          "Sofia R.",
+          "Marcus T."
+        ],
+        "vendor": "Sable Marketing Group",
+        "date": "March 4, 2025",
+        "year": 2025,
+        "month": "March"
+      }
+    },
+    {
+      "doc_id": "mtg-011",
+      "family": "meeting",
+      "title": "DRIFT sync - August 7, 2026",
+      "text": "Meeting notes - DRIFT weekly sync\nDate: August 7, 2026\nAttendees: Mira H., Jonah K., Dana W., Elena V.\nAgenda: DRIFT status, vendor review, budget planning.\nDecision DEC-2026-11: approved 18,750.00 USD budget for marketing site relaunch phase 3.\nAction items: Mira H. to follow up with Northwind Logistics; Jonah K. to draft the DRIFT rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2026-11"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-011",
+          "start": 166,
+          "end": 177
+        },
+        {
+          "doc_id": "mtg-011",
+          "start": 188,
+          "end": 201
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2026-11",
+        "project": "DRIFT",
+        "budget": 18750,
+        "attendees": [
+          "Mira H.",
+          "Jonah K.",
+          "Dana W.",
+          "Elena V."
+        ],
+        "vendor": "Northwind Logistics",
+        "date": "August 7, 2026",
+        "year": 2026,
+        "month": "August"
+      }
+    },
+    {
+      "doc_id": "mtg-012",
+      "family": "meeting",
+      "title": "ATLAS sync - January 10, 2024",
+      "text": "Meeting notes - ATLAS weekly sync\nDate: January 10, 2024\nAttendees: Dana W., Marcus T., Mira H., Sofia R.\nAgenda: ATLAS status, vendor review, budget planning.\nDecision DEC-2024-12: approved 20,000.00 USD budget for internal data-platform migration phase 1.\nAction items: Dana W. to follow up with Quanta Analytics; Marcus T. to draft the ATLAS rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2024-12"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-012",
+          "start": 169,
+          "end": 180
+        },
+        {
+          "doc_id": "mtg-012",
+          "start": 191,
+          "end": 204
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2024-12",
+        "project": "ATLAS",
+        "budget": 20000,
+        "attendees": [
+          "Dana W.",
+          "Marcus T.",
+          "Mira H.",
+          "Sofia R."
+        ],
+        "vendor": "Quanta Analytics",
+        "date": "January 10, 2024",
+        "year": 2024,
+        "month": "January"
+      }
+    },
+    {
+      "doc_id": "mtg-013",
+      "family": "meeting",
+      "title": "BODEEN sync - June 13, 2025",
+      "text": "Meeting notes - BODEEN weekly sync\nDate: June 13, 2025\nAttendees: Mira H., Alex Q., Elena V., Priya N.\nAgenda: BODEEN status, vendor review, budget planning.\nDecision DEC-2025-13: approved 21,250.00 USD budget for customer-facing mobile app refresh phase 2.\nAction items: Mira H. to follow up with Tessellate Consulting; Alex Q. to draft the BODEEN rollout plan.\n",
+      "questions": [
+        "meeting-DEC-2025-13"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "mtg-013",
+          "start": 167,
+          "end": 178
+        },
+        {
+          "doc_id": "mtg-013",
+          "start": 189,
+          "end": 202
+        }
+      ],
+      "meta": {
+        "decision_no": "DEC-2025-13",
+        "project": "BODEEN",
+        "budget": 21250,
+        "attendees": [
+          "Mira H.",
+          "Alex Q.",
+          "Elena V.",
+          "Priya N."
+        ],
+        "vendor": "Tessellate Consulting",
+        "date": "June 13, 2025",
+        "year": 2025,
+        "month": "June"
+      }
+    },
+    {
+      "doc_id": "prj-000",
+      "family": "project",
+      "title": "ATLAS architecture spec v1",
+      "text": "ATLAS architecture spec - revision v1\nProject: ATLAS - internal data-platform migration\nStatus: draft\nRevision date: February 6, 2024\nDocument owner: Marcus T.\nTechnical lead: Jonah K.\nRevision v1 summary: this revision of the ATLAS spec updates the scope for internal data-platform migration and records the current status as draft.\n",
+      "questions": [
+        "project-ATLAS-v1"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-000",
+          "start": 26,
+          "end": 38
+        },
+        {
+          "doc_id": "prj-000",
+          "start": 324,
+          "end": 334
+        }
+      ],
+      "meta": {
+        "project": "ATLAS",
+        "revision": 1,
+        "status": "draft",
+        "year": 2024,
+        "month": "February",
+        "owner": "Marcus T.",
+        "lead": "Jonah K.",
+        "is_latest": false
+      }
+    },
+    {
+      "doc_id": "prj-001",
+      "family": "project",
+      "title": "ATLAS architecture spec v2",
+      "text": "ATLAS architecture spec - revision v2\nProject: ATLAS - internal data-platform migration\nStatus: in review\nRevision date: March 7, 2024\nDocument owner: Elena V.\nTechnical lead: Alex Q.\nRevision v2 summary: this revision of the ATLAS spec updates the scope for internal data-platform migration and records the current status as in review.\n",
+      "questions": [
+        "project-ATLAS-v2"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-001",
+          "start": 26,
+          "end": 38
+        },
+        {
+          "doc_id": "prj-001",
+          "start": 323,
+          "end": 337
+        }
+      ],
+      "meta": {
+        "project": "ATLAS",
+        "revision": 2,
+        "status": "in review",
+        "year": 2024,
+        "month": "March",
+        "owner": "Elena V.",
+        "lead": "Alex Q.",
+        "is_latest": false
+      }
+    },
+    {
+      "doc_id": "prj-002",
+      "family": "project",
+      "title": "ATLAS architecture spec v3",
+      "text": "ATLAS architecture spec - revision v3\nProject: ATLAS - internal data-platform migration\nStatus: approved\nRevision date: April 8, 2024\nDocument owner: Jonah K.\nTechnical lead: Marcus T.\nRevision v3 summary: this revision of the ATLAS spec updates the scope for internal data-platform migration and records the current status as approved.\n",
+      "questions": [
+        "project-ATLAS-v3"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-002",
+          "start": 26,
+          "end": 38
+        },
+        {
+          "doc_id": "prj-002",
+          "start": 324,
+          "end": 337
+        }
+      ],
+      "meta": {
+        "project": "ATLAS",
+        "revision": 3,
+        "status": "approved",
+        "year": 2024,
+        "month": "April",
+        "owner": "Jonah K.",
+        "lead": "Marcus T.",
+        "is_latest": true
+      }
+    },
+    {
+      "doc_id": "prj-003",
+      "family": "project",
+      "title": "BODEEN architecture spec v1",
+      "text": "BODEEN architecture spec - revision v1\nProject: BODEEN - customer-facing mobile app refresh\nStatus: draft\nRevision date: May 6, 2025\nDocument owner: Elena V.\nTechnical lead: Dana W.\nRevision v1 summary: this revision of the BODEEN spec updates the scope for customer-facing mobile app refresh and records the current status as draft.\n",
+      "questions": [
+        "project-BODEEN-v1"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-003",
+          "start": 27,
+          "end": 39
+        },
+        {
+          "doc_id": "prj-003",
+          "start": 324,
+          "end": 334
+        }
+      ],
+      "meta": {
+        "project": "BODEEN",
+        "revision": 1,
+        "status": "draft",
+        "year": 2025,
+        "month": "May",
+        "owner": "Elena V.",
+        "lead": "Dana W.",
+        "is_latest": false
+      }
+    },
+    {
+      "doc_id": "prj-004",
+      "family": "project",
+      "title": "BODEEN architecture spec v2",
+      "text": "BODEEN architecture spec - revision v2\nProject: BODEEN - customer-facing mobile app refresh\nStatus: in review\nRevision date: June 7, 2025\nDocument owner: Jonah K.\nTechnical lead: Priya N.\nRevision v2 summary: this revision of the BODEEN spec updates the scope for customer-facing mobile app refresh and records the current status as in review.\n",
+      "questions": [
+        "project-BODEEN-v2"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-004",
+          "start": 27,
+          "end": 39
+        },
+        {
+          "doc_id": "prj-004",
+          "start": 330,
+          "end": 344
+        }
+      ],
+      "meta": {
+        "project": "BODEEN",
+        "revision": 2,
+        "status": "in review",
+        "year": 2025,
+        "month": "June",
+        "owner": "Jonah K.",
+        "lead": "Priya N.",
+        "is_latest": false
+      }
+    },
+    {
+      "doc_id": "prj-005",
+      "family": "project",
+      "title": "BODEEN architecture spec v3",
+      "text": "BODEEN architecture spec - revision v3\nProject: BODEEN - customer-facing mobile app refresh\nStatus: approved\nRevision date: July 8, 2025\nDocument owner: Sofia R.\nTechnical lead: Jonah K.\nRevision v3 summary: this revision of the BODEEN spec updates the scope for customer-facing mobile app refresh and records the current status as approved.\n",
+      "questions": [
+        "project-BODEEN-v3"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-005",
+          "start": 27,
+          "end": 39
+        },
+        {
+          "doc_id": "prj-005",
+          "start": 329,
+          "end": 342
+        }
+      ],
+      "meta": {
+        "project": "BODEEN",
+        "revision": 3,
+        "status": "approved",
+        "year": 2025,
+        "month": "July",
+        "owner": "Sofia R.",
+        "lead": "Jonah K.",
+        "is_latest": true
+      }
+    },
+    {
+      "doc_id": "prj-006",
+      "family": "project",
+      "title": "CINDER architecture spec v1",
+      "text": "CINDER architecture spec - revision v1\nProject: CINDER - compliance audit remediation\nStatus: draft\nRevision date: August 6, 2026\nDocument owner: Jonah K.\nTechnical lead: Mira H.\nRevision v1 summary: this revision of the CINDER spec updates the scope for compliance audit remediation and records the current status as draft.\n",
+      "questions": [
+        "project-CINDER-v1"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-006",
+          "start": 27,
+          "end": 39
+        },
+        {
+          "doc_id": "prj-006",
+          "start": 315,
+          "end": 325
+        }
+      ],
+      "meta": {
+        "project": "CINDER",
+        "revision": 1,
+        "status": "draft",
+        "year": 2026,
+        "month": "August",
+        "owner": "Jonah K.",
+        "lead": "Mira H.",
+        "is_latest": false
+      }
+    },
+    {
+      "doc_id": "prj-007",
+      "family": "project",
+      "title": "CINDER architecture spec v2",
+      "text": "CINDER architecture spec - revision v2\nProject: CINDER - compliance audit remediation\nStatus: in review\nRevision date: September 7, 2026\nDocument owner: Sofia R.\nTechnical lead: Elena V.\nRevision v2 summary: this revision of the CINDER spec updates the scope for compliance audit remediation and records the current status as in review.\n",
+      "questions": [
+        "project-CINDER-v2"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-007",
+          "start": 27,
+          "end": 39
+        },
+        {
+          "doc_id": "prj-007",
+          "start": 323,
+          "end": 337
+        }
+      ],
+      "meta": {
+        "project": "CINDER",
+        "revision": 2,
+        "status": "in review",
+        "year": 2026,
+        "month": "September",
+        "owner": "Sofia R.",
+        "lead": "Elena V.",
+        "is_latest": false
+      }
+    },
+    {
+      "doc_id": "prj-008",
+      "family": "project",
+      "title": "CINDER architecture spec v3",
+      "text": "CINDER architecture spec - revision v3\nProject: CINDER - compliance audit remediation\nStatus: approved\nRevision date: October 8, 2026\nDocument owner: Dana W.\nTechnical lead: Dana W.\nRevision v3 summary: this revision of the CINDER spec updates the scope for compliance audit remediation and records the current status as approved.\n",
+      "questions": [
+        "project-CINDER-v3"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-008",
+          "start": 27,
+          "end": 39
+        },
+        {
+          "doc_id": "prj-008",
+          "start": 318,
+          "end": 331
+        }
+      ],
+      "meta": {
+        "project": "CINDER",
+        "revision": 3,
+        "status": "approved",
+        "year": 2026,
+        "month": "October",
+        "owner": "Dana W.",
+        "lead": "Dana W.",
+        "is_latest": true
+      }
+    },
+    {
+      "doc_id": "prj-009",
+      "family": "project",
+      "title": "DRIFT architecture spec v1",
+      "text": "DRIFT architecture spec - revision v1\nProject: DRIFT - marketing site relaunch\nStatus: draft\nRevision date: November 6, 2027\nDocument owner: Sofia R.\nTechnical lead: Marcus T.\nRevision v1 summary: this revision of the DRIFT spec updates the scope for marketing site relaunch and records the current status as draft.\n",
+      "questions": [
+        "project-DRIFT-v1"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-009",
+          "start": 26,
+          "end": 38
+        },
+        {
+          "doc_id": "prj-009",
+          "start": 306,
+          "end": 316
+        }
+      ],
+      "meta": {
+        "project": "DRIFT",
+        "revision": 1,
+        "status": "draft",
+        "year": 2027,
+        "month": "November",
+        "owner": "Sofia R.",
+        "lead": "Marcus T.",
+        "is_latest": false
+      }
+    },
+    {
+      "doc_id": "prj-010",
+      "family": "project",
+      "title": "DRIFT architecture spec v2",
+      "text": "DRIFT architecture spec - revision v2\nProject: DRIFT - marketing site relaunch\nStatus: in review\nRevision date: December 7, 2027\nDocument owner: Dana W.\nTechnical lead: Sofia R.\nRevision v2 summary: this revision of the DRIFT spec updates the scope for marketing site relaunch and records the current status as in review.\n",
+      "questions": [
+        "project-DRIFT-v2"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-010",
+          "start": 26,
+          "end": 38
+        },
+        {
+          "doc_id": "prj-010",
+          "start": 308,
+          "end": 322
+        }
+      ],
+      "meta": {
+        "project": "DRIFT",
+        "revision": 2,
+        "status": "in review",
+        "year": 2027,
+        "month": "December",
+        "owner": "Dana W.",
+        "lead": "Sofia R.",
+        "is_latest": false
+      }
+    },
+    {
+      "doc_id": "prj-011",
+      "family": "project",
+      "title": "DRIFT architecture spec v3",
+      "text": "DRIFT architecture spec - revision v3\nProject: DRIFT - marketing site relaunch\nStatus: approved\nRevision date: January 8, 2027\nDocument owner: Alex Q.\nTechnical lead: Mira H.\nRevision v3 summary: this revision of the DRIFT spec updates the scope for marketing site relaunch and records the current status as approved.\n",
+      "questions": [
+        "project-DRIFT-v3"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "prj-011",
+          "start": 26,
+          "end": 38
+        },
+        {
+          "doc_id": "prj-011",
+          "start": 305,
+          "end": 318
+        }
+      ],
+      "meta": {
+        "project": "DRIFT",
+        "revision": 3,
+        "status": "approved",
+        "year": 2027,
+        "month": "January",
+        "owner": "Alex Q.",
+        "lead": "Mira H.",
+        "is_latest": true
+      }
+    },
+    {
+      "doc_id": "exp-000",
+      "family": "expenses",
+      "title": "Expenses 2025 sheet block 1",
+      "text": "Expenses 2025 - tracked purchases (sheet block 1 of 3)\nDate | Vendor | Amount | Project\nJanuary 2, 2025 | Acme Cloud Services | 40.00 USD | ATLAS\nFebruary 7, 2025 | Northwind Logistics | 57.00 USD | BODEEN\nMarch 12, 2025 | Helios Design Studio | 74.00 USD | CINDER\nApril 17, 2025 | Bracket & Fell LLP | 91.00 USD | DRIFT\nMay 22, 2025 | Quanta Analytics | 108.00 USD | ATLAS\nJune 2, 2025 | Ridgeline Hardware | 125.00 USD | BODEEN\nJuly 7, 2025 | Sable Marketing Group | 142.00 USD | CINDER\nAugust 12, 2025 | Tessellate Consulting | 159.00 USD | DRIFT\nSeptember 17, 2025 | Acme Cloud Services | 176.00 USD | ATLAS\nOctober 22, 2025 | Northwind Logistics | 193.00 USD | BODEEN\nNovember 2, 2025 | Helios Design Studio | 210.00 USD | CINDER\nDecember 7, 2025 | Bracket & Fell LLP | 227.00 USD | DRIFT\n",
+      "questions": [
+        "expenses-block-0"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "exp-000",
+          "start": 106,
+          "end": 137
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 165,
+          "end": 196
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 223,
+          "end": 255
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 282,
+          "end": 312
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 336,
+          "end": 365
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 389,
+          "end": 420
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 445,
+          "end": 479
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 507,
+          "end": 541
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 571,
+          "end": 603
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 631,
+          "end": 663
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 692,
+          "end": 725
+        },
+        {
+          "doc_id": "exp-000",
+          "start": 754,
+          "end": 785
+        }
+      ],
+      "meta": {
+        "block": 0,
+        "rows": [
+          {
+            "date": "January 2, 2025",
+            "vendor": "Acme Cloud Services",
+            "amount": 40.0,
+            "project": "ATLAS",
+            "row": 2
+          },
+          {
+            "date": "February 7, 2025",
+            "vendor": "Northwind Logistics",
+            "amount": 57.0,
+            "project": "BODEEN",
+            "row": 3
+          },
+          {
+            "date": "March 12, 2025",
+            "vendor": "Helios Design Studio",
+            "amount": 74.0,
+            "project": "CINDER",
+            "row": 4
+          },
+          {
+            "date": "April 17, 2025",
+            "vendor": "Bracket & Fell LLP",
+            "amount": 91.0,
+            "project": "DRIFT",
+            "row": 5
+          },
+          {
+            "date": "May 22, 2025",
+            "vendor": "Quanta Analytics",
+            "amount": 108.0,
+            "project": "ATLAS",
+            "row": 6
+          },
+          {
+            "date": "June 2, 2025",
+            "vendor": "Ridgeline Hardware",
+            "amount": 125.0,
+            "project": "BODEEN",
+            "row": 7
+          },
+          {
+            "date": "July 7, 2025",
+            "vendor": "Sable Marketing Group",
+            "amount": 142.0,
+            "project": "CINDER",
+            "row": 8
+          },
+          {
+            "date": "August 12, 2025",
+            "vendor": "Tessellate Consulting",
+            "amount": 159.0,
+            "project": "DRIFT",
+            "row": 9
+          },
+          {
+            "date": "September 17, 2025",
+            "vendor": "Acme Cloud Services",
+            "amount": 176.0,
+            "project": "ATLAS",
+            "row": 10
+          },
+          {
+            "date": "October 22, 2025",
+            "vendor": "Northwind Logistics",
+            "amount": 193.0,
+            "project": "BODEEN",
+            "row": 11
+          },
+          {
+            "date": "November 2, 2025",
+            "vendor": "Helios Design Studio",
+            "amount": 210.0,
+            "project": "CINDER",
+            "row": 12
+          },
+          {
+            "date": "December 7, 2025",
+            "vendor": "Bracket & Fell LLP",
+            "amount": 227.0,
+            "project": "DRIFT",
+            "row": 13
+          }
+        ]
+      }
+    },
+    {
+      "doc_id": "exp-001",
+      "family": "expenses",
+      "title": "Expenses 2025 sheet block 2",
+      "text": "Expenses 2025 - tracked purchases (sheet block 2 of 3)\nDate | Vendor | Amount | Project\nJanuary 12, 2025 | Quanta Analytics | 244.00 USD | ATLAS\nFebruary 17, 2025 | Ridgeline Hardware | 261.00 USD | BODEEN\nMarch 22, 2025 | Sable Marketing Group | 278.00 USD | CINDER\nApril 2, 2025 | Tessellate Consulting | 295.00 USD | DRIFT\nMay 7, 2025 | Acme Cloud Services | 312.00 USD | ATLAS\nJune 12, 2025 | Northwind Logistics | 329.00 USD | BODEEN\nJuly 17, 2025 | Helios Design Studio | 346.00 USD | CINDER\nAugust 22, 2025 | Bracket & Fell LLP | 363.00 USD | DRIFT\nSeptember 2, 2025 | Quanta Analytics | 380.00 USD | ATLAS\nOctober 7, 2025 | Ridgeline Hardware | 397.00 USD | BODEEN\nNovember 12, 2025 | Sable Marketing Group | 414.00 USD | CINDER\nDecember 17, 2025 | Tessellate Consulting | 431.00 USD | DRIFT\n",
+      "questions": [
+        "expenses-block-1"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "exp-001",
+          "start": 107,
+          "end": 136
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 165,
+          "end": 196
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 223,
+          "end": 257
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 283,
+          "end": 317
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 340,
+          "end": 372
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 397,
+          "end": 429
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 455,
+          "end": 488
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 516,
+          "end": 547
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 576,
+          "end": 605
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 632,
+          "end": 663
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 693,
+          "end": 727
+        },
+        {
+          "doc_id": "exp-001",
+          "start": 757,
+          "end": 791
+        }
+      ],
+      "meta": {
+        "block": 1,
+        "rows": [
+          {
+            "date": "January 12, 2025",
+            "vendor": "Quanta Analytics",
+            "amount": 244.0,
+            "project": "ATLAS",
+            "row": 14
+          },
+          {
+            "date": "February 17, 2025",
+            "vendor": "Ridgeline Hardware",
+            "amount": 261.0,
+            "project": "BODEEN",
+            "row": 15
+          },
+          {
+            "date": "March 22, 2025",
+            "vendor": "Sable Marketing Group",
+            "amount": 278.0,
+            "project": "CINDER",
+            "row": 16
+          },
+          {
+            "date": "April 2, 2025",
+            "vendor": "Tessellate Consulting",
+            "amount": 295.0,
+            "project": "DRIFT",
+            "row": 17
+          },
+          {
+            "date": "May 7, 2025",
+            "vendor": "Acme Cloud Services",
+            "amount": 312.0,
+            "project": "ATLAS",
+            "row": 18
+          },
+          {
+            "date": "June 12, 2025",
+            "vendor": "Northwind Logistics",
+            "amount": 329.0,
+            "project": "BODEEN",
+            "row": 19
+          },
+          {
+            "date": "July 17, 2025",
+            "vendor": "Helios Design Studio",
+            "amount": 346.0,
+            "project": "CINDER",
+            "row": 20
+          },
+          {
+            "date": "August 22, 2025",
+            "vendor": "Bracket & Fell LLP",
+            "amount": 363.0,
+            "project": "DRIFT",
+            "row": 21
+          },
+          {
+            "date": "September 2, 2025",
+            "vendor": "Quanta Analytics",
+            "amount": 380.0,
+            "project": "ATLAS",
+            "row": 22
+          },
+          {
+            "date": "October 7, 2025",
+            "vendor": "Ridgeline Hardware",
+            "amount": 397.0,
+            "project": "BODEEN",
+            "row": 23
+          },
+          {
+            "date": "November 12, 2025",
+            "vendor": "Sable Marketing Group",
+            "amount": 414.0,
+            "project": "CINDER",
+            "row": 24
+          },
+          {
+            "date": "December 17, 2025",
+            "vendor": "Tessellate Consulting",
+            "amount": 431.0,
+            "project": "DRIFT",
+            "row": 25
+          }
+        ]
+      }
+    },
+    {
+      "doc_id": "exp-002",
+      "family": "expenses",
+      "title": "Expenses 2025 sheet block 3",
+      "text": "Expenses 2025 - tracked purchases (sheet block 3 of 3)\nDate | Vendor | Amount | Project\nJanuary 22, 2025 | Acme Cloud Services | 448.00 USD | ATLAS\nFebruary 2, 2025 | Northwind Logistics | 465.00 USD | BODEEN\nMarch 7, 2025 | Helios Design Studio | 482.00 USD | CINDER\nApril 12, 2025 | Bracket & Fell LLP | 499.00 USD | DRIFT\nMay 17, 2025 | Quanta Analytics | 56.00 USD | ATLAS\nJune 22, 2025 | Ridgeline Hardware | 73.00 USD | BODEEN\nJuly 2, 2025 | Sable Marketing Group | 90.00 USD | CINDER\nAugust 7, 2025 | Tessellate Consulting | 107.00 USD | DRIFT\nSeptember 12, 2025 | Acme Cloud Services | 124.00 USD | ATLAS\nOctober 17, 2025 | Northwind Logistics | 141.00 USD | BODEEN\nNovember 22, 2025 | Helios Design Studio | 158.00 USD | CINDER\nDecember 2, 2025 | Bracket & Fell LLP | 175.00 USD | DRIFT\n",
+      "questions": [
+        "expenses-block-2"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "exp-002",
+          "start": 107,
+          "end": 139
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 167,
+          "end": 199
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 225,
+          "end": 258
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 285,
+          "end": 316
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 340,
+          "end": 368
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 393,
+          "end": 423
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 448,
+          "end": 481
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 508,
+          "end": 542
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 572,
+          "end": 604
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 632,
+          "end": 664
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 694,
+          "end": 727
+        },
+        {
+          "doc_id": "exp-002",
+          "start": 756,
+          "end": 787
+        }
+      ],
+      "meta": {
+        "block": 2,
+        "rows": [
+          {
+            "date": "January 22, 2025",
+            "vendor": "Acme Cloud Services",
+            "amount": 448.0,
+            "project": "ATLAS",
+            "row": 26
+          },
+          {
+            "date": "February 2, 2025",
+            "vendor": "Northwind Logistics",
+            "amount": 465.0,
+            "project": "BODEEN",
+            "row": 27
+          },
+          {
+            "date": "March 7, 2025",
+            "vendor": "Helios Design Studio",
+            "amount": 482.0,
+            "project": "CINDER",
+            "row": 28
+          },
+          {
+            "date": "April 12, 2025",
+            "vendor": "Bracket & Fell LLP",
+            "amount": 499.0,
+            "project": "DRIFT",
+            "row": 29
+          },
+          {
+            "date": "May 17, 2025",
+            "vendor": "Quanta Analytics",
+            "amount": 56.0,
+            "project": "ATLAS",
+            "row": 30
+          },
+          {
+            "date": "June 22, 2025",
+            "vendor": "Ridgeline Hardware",
+            "amount": 73.0,
+            "project": "BODEEN",
+            "row": 31
+          },
+          {
+            "date": "July 2, 2025",
+            "vendor": "Sable Marketing Group",
+            "amount": 90.0,
+            "project": "CINDER",
+            "row": 32
+          },
+          {
+            "date": "August 7, 2025",
+            "vendor": "Tessellate Consulting",
+            "amount": 107.0,
+            "project": "DRIFT",
+            "row": 33
+          },
+          {
+            "date": "September 12, 2025",
+            "vendor": "Acme Cloud Services",
+            "amount": 124.0,
+            "project": "ATLAS",
+            "row": 34
+          },
+          {
+            "date": "October 17, 2025",
+            "vendor": "Northwind Logistics",
+            "amount": 141.0,
+            "project": "BODEEN",
+            "row": 35
+          },
+          {
+            "date": "November 22, 2025",
+            "vendor": "Helios Design Studio",
+            "amount": 158.0,
+            "project": "CINDER",
+            "row": 36
+          },
+          {
+            "date": "December 2, 2025",
+            "vendor": "Bracket & Fell LLP",
+            "amount": 175.0,
+            "project": "DRIFT",
+            "row": 37
+          }
+        ]
+      }
+    },
+    {
+      "doc_id": "trv-000",
+      "family": "travel",
+      "title": "Itinerary TRV-2025-00 - Lisbon",
+      "text": "Travel itinerary TRV-2025-00: Lisbon\nDestination: Lisbon, Portugal\nOutbound: January 4, 2025 - flight TP400\nReturn: January 7, 2025 - flight TP401\nHotel: Grand Lisbon Hotel\nBooking reference: TRV-2025-00-HK\n",
+      "questions": [
+        "travel-TRV-2025-00"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-000",
+          "start": 102,
+          "end": 107
+        },
+        {
+          "doc_id": "trv-000",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Lisbon",
+        "country": "Portugal",
+        "flight": "TP400",
+        "conf": "TRV-2025-00",
+        "year": 2025,
+        "month": "January",
+        "date": "January 4, 2025",
+        "ret_date": "January 7, 2025"
+      }
+    },
+    {
+      "doc_id": "trv-001",
+      "family": "travel",
+      "title": "Itinerary TRV-2026-01 - Osaka",
+      "text": "Travel itinerary TRV-2026-01: Osaka\nDestination: Osaka, Japan\nOutbound: August 10, 2026 - flight KL437\nReturn: August 14, 2026 - flight KL438\nHotel: Grand Osaka Hotel\nBooking reference: TRV-2026-01-HK\n",
+      "questions": [
+        "travel-TRV-2026-01"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-001",
+          "start": 97,
+          "end": 102
+        },
+        {
+          "doc_id": "trv-001",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Osaka",
+        "country": "Japan",
+        "flight": "KL437",
+        "conf": "TRV-2026-01",
+        "year": 2026,
+        "month": "August",
+        "date": "August 10, 2026",
+        "ret_date": "August 14, 2026"
+      }
+    },
+    {
+      "doc_id": "trv-002",
+      "family": "travel",
+      "title": "Itinerary TRV-2025-02 - Toronto",
+      "text": "Travel itinerary TRV-2025-02: Toronto\nDestination: Toronto, Canada\nOutbound: March 16, 2025 - flight TP474\nReturn: March 21, 2025 - flight TP475\nHotel: Grand Toronto Hotel\nBooking reference: TRV-2025-02-HK\n",
+      "questions": [
+        "travel-TRV-2025-02"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-002",
+          "start": 101,
+          "end": 106
+        },
+        {
+          "doc_id": "trv-002",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Toronto",
+        "country": "Canada",
+        "flight": "TP474",
+        "conf": "TRV-2025-02",
+        "year": 2025,
+        "month": "March",
+        "date": "March 16, 2025",
+        "ret_date": "March 21, 2025"
+      }
+    },
+    {
+      "doc_id": "trv-003",
+      "family": "travel",
+      "title": "Itinerary TRV-2026-03 - Krakow",
+      "text": "Travel itinerary TRV-2026-03: Krakow\nDestination: Krakow, Poland\nOutbound: October 22, 2026 - flight KL511\nReturn: October 28, 2026 - flight KL512\nHotel: Grand Krakow Hotel\nBooking reference: TRV-2026-03-HK\n",
+      "questions": [
+        "travel-TRV-2026-03"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-003",
+          "start": 101,
+          "end": 106
+        },
+        {
+          "doc_id": "trv-003",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Krakow",
+        "country": "Poland",
+        "flight": "KL511",
+        "conf": "TRV-2026-03",
+        "year": 2026,
+        "month": "October",
+        "date": "October 22, 2026",
+        "ret_date": "October 28, 2026"
+      }
+    },
+    {
+      "doc_id": "trv-004",
+      "family": "travel",
+      "title": "Itinerary TRV-2025-04 - Bristol",
+      "text": "Travel itinerary TRV-2025-04: Bristol\nDestination: Bristol, UK\nOutbound: May 8, 2025 - flight TP548\nReturn: May 15, 2025 - flight TP549\nHotel: Grand Bristol Hotel\nBooking reference: TRV-2025-04-HK\n",
+      "questions": [
+        "travel-TRV-2025-04"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-004",
+          "start": 94,
+          "end": 99
+        },
+        {
+          "doc_id": "trv-004",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Bristol",
+        "country": "UK",
+        "flight": "TP548",
+        "conf": "TRV-2025-04",
+        "year": 2025,
+        "month": "May",
+        "date": "May 8, 2025",
+        "ret_date": "May 15, 2025"
+      }
+    },
+    {
+      "doc_id": "trv-005",
+      "family": "travel",
+      "title": "Itinerary TRV-2026-05 - Medellin",
+      "text": "Travel itinerary TRV-2026-05: Medellin\nDestination: Medellin, Colombia\nOutbound: December 14, 2026 - flight KL585\nReturn: December 22, 2026 - flight KL586\nHotel: Grand Medellin Hotel\nBooking reference: TRV-2026-05-HK\n",
+      "questions": [
+        "travel-TRV-2026-05"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-005",
+          "start": 108,
+          "end": 113
+        },
+        {
+          "doc_id": "trv-005",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Medellin",
+        "country": "Colombia",
+        "flight": "KL585",
+        "conf": "TRV-2026-05",
+        "year": 2026,
+        "month": "December",
+        "date": "December 14, 2026",
+        "ret_date": "December 22, 2026"
+      }
+    },
+    {
+      "doc_id": "trv-006",
+      "family": "travel",
+      "title": "Itinerary TRV-2025-06 - Lisbon",
+      "text": "Travel itinerary TRV-2025-06: Lisbon\nDestination: Lisbon, Portugal\nOutbound: July 20, 2025 - flight TP622\nReturn: July 23, 2025 - flight TP623\nHotel: Grand Lisbon Hotel\nBooking reference: TRV-2025-06-HK\n",
+      "questions": [
+        "travel-TRV-2025-06"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-006",
+          "start": 100,
+          "end": 105
+        },
+        {
+          "doc_id": "trv-006",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Lisbon",
+        "country": "Portugal",
+        "flight": "TP622",
+        "conf": "TRV-2025-06",
+        "year": 2025,
+        "month": "July",
+        "date": "July 20, 2025",
+        "ret_date": "July 23, 2025"
+      }
+    },
+    {
+      "doc_id": "trv-007",
+      "family": "travel",
+      "title": "Itinerary TRV-2026-07 - Osaka",
+      "text": "Travel itinerary TRV-2026-07: Osaka\nDestination: Osaka, Japan\nOutbound: February 6, 2026 - flight KL659\nReturn: February 10, 2026 - flight KL660\nHotel: Grand Osaka Hotel\nBooking reference: TRV-2026-07-HK\n",
+      "questions": [
+        "travel-TRV-2026-07"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-007",
+          "start": 98,
+          "end": 103
+        },
+        {
+          "doc_id": "trv-007",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Osaka",
+        "country": "Japan",
+        "flight": "KL659",
+        "conf": "TRV-2026-07",
+        "year": 2026,
+        "month": "February",
+        "date": "February 6, 2026",
+        "ret_date": "February 10, 2026"
+      }
+    },
+    {
+      "doc_id": "trv-008",
+      "family": "travel",
+      "title": "Itinerary TRV-2025-08 - Toronto",
+      "text": "Travel itinerary TRV-2025-08: Toronto\nDestination: Toronto, Canada\nOutbound: September 12, 2025 - flight TP696\nReturn: September 17, 2025 - flight TP697\nHotel: Grand Toronto Hotel\nBooking reference: TRV-2025-08-HK\n",
+      "questions": [
+        "travel-TRV-2025-08"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-008",
+          "start": 105,
+          "end": 110
+        },
+        {
+          "doc_id": "trv-008",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Toronto",
+        "country": "Canada",
+        "flight": "TP696",
+        "conf": "TRV-2025-08",
+        "year": 2025,
+        "month": "September",
+        "date": "September 12, 2025",
+        "ret_date": "September 17, 2025"
+      }
+    },
+    {
+      "doc_id": "trv-009",
+      "family": "travel",
+      "title": "Itinerary TRV-2026-09 - Krakow",
+      "text": "Travel itinerary TRV-2026-09: Krakow\nDestination: Krakow, Poland\nOutbound: April 18, 2026 - flight KL733\nReturn: April 24, 2026 - flight KL734\nHotel: Grand Krakow Hotel\nBooking reference: TRV-2026-09-HK\n",
+      "questions": [
+        "travel-TRV-2026-09"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-009",
+          "start": 99,
+          "end": 104
+        },
+        {
+          "doc_id": "trv-009",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Krakow",
+        "country": "Poland",
+        "flight": "KL733",
+        "conf": "TRV-2026-09",
+        "year": 2026,
+        "month": "April",
+        "date": "April 18, 2026",
+        "ret_date": "April 24, 2026"
+      }
+    },
+    {
+      "doc_id": "trv-010",
+      "family": "travel",
+      "title": "Itinerary TRV-2025-10 - Bristol",
+      "text": "Travel itinerary TRV-2025-10: Bristol\nDestination: Bristol, UK\nOutbound: November 4, 2025 - flight TP770\nReturn: November 11, 2025 - flight TP771\nHotel: Grand Bristol Hotel\nBooking reference: TRV-2025-10-HK\n",
+      "questions": [
+        "travel-TRV-2025-10"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-010",
+          "start": 99,
+          "end": 104
+        },
+        {
+          "doc_id": "trv-010",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Bristol",
+        "country": "UK",
+        "flight": "TP770",
+        "conf": "TRV-2025-10",
+        "year": 2025,
+        "month": "November",
+        "date": "November 4, 2025",
+        "ret_date": "November 11, 2025"
+      }
+    },
+    {
+      "doc_id": "trv-011",
+      "family": "travel",
+      "title": "Itinerary TRV-2026-11 - Medellin",
+      "text": "Travel itinerary TRV-2026-11: Medellin\nDestination: Medellin, Colombia\nOutbound: June 10, 2026 - flight KL807\nReturn: June 18, 2026 - flight KL808\nHotel: Grand Medellin Hotel\nBooking reference: TRV-2026-11-HK\n",
+      "questions": [
+        "travel-TRV-2026-11"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "trv-011",
+          "start": 104,
+          "end": 109
+        },
+        {
+          "doc_id": "trv-011",
+          "start": 17,
+          "end": 28
+        }
+      ],
+      "meta": {
+        "city": "Medellin",
+        "country": "Colombia",
+        "flight": "KL807",
+        "conf": "TRV-2026-11",
+        "year": 2026,
+        "month": "June",
+        "date": "June 10, 2026",
+        "ret_date": "June 18, 2026"
+      }
+    },
+    {
+      "doc_id": "nd-0a",
+      "family": "near_dup",
+      "title": "Invoice INV-2024-ND0a - Acme Cloud Services",
+      "text": "INVOICE INV-2024-ND0a\nVendor: Acme Cloud Services\nInvoice date: April 10, 2024\nProject code: ATLAS\nTotal amount due: 800.00 USD\n",
+      "questions": [
+        "near-dup-INV-2024-ND0a"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-0a",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2024-ND0a",
+        "vendor": "Acme Cloud Services",
+        "year": 2024,
+        "amount": 800.0,
+        "project": "ATLAS",
+        "pair": 0,
+        "tag": "a"
+      }
+    },
+    {
+      "doc_id": "nd-0b",
+      "family": "near_dup",
+      "title": "Invoice INV-2025-ND0b - Acme Cloud Services",
+      "text": "INVOICE INV-2025-ND0b\nVendor: Acme Cloud Services\nInvoice date: April 10, 2025\nProject code: ATLAS\nTotal amount due: 1,050.00 USD\n",
+      "questions": [
+        "near-dup-INV-2025-ND0b"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-0b",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2025-ND0b",
+        "vendor": "Acme Cloud Services",
+        "year": 2025,
+        "amount": 1050.0,
+        "project": "ATLAS",
+        "pair": 0,
+        "tag": "b"
+      }
+    },
+    {
+      "doc_id": "nd-1a",
+      "family": "near_dup",
+      "title": "Invoice INV-2023-ND1a - Quanta Analytics",
+      "text": "INVOICE INV-2023-ND1a\nVendor: Quanta Analytics\nInvoice date: March 11, 2023\nProject code: BODEEN\nTotal amount due: 911.00 USD\n",
+      "questions": [
+        "near-dup-INV-2023-ND1a"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-1a",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2023-ND1a",
+        "vendor": "Quanta Analytics",
+        "year": 2023,
+        "amount": 911.0,
+        "project": "BODEEN",
+        "pair": 1,
+        "tag": "a"
+      }
+    },
+    {
+      "doc_id": "nd-1b",
+      "family": "near_dup",
+      "title": "Invoice INV-2025-ND1b - Quanta Analytics",
+      "text": "INVOICE INV-2025-ND1b\nVendor: Quanta Analytics\nInvoice date: March 11, 2025\nProject code: BODEEN\nTotal amount due: 1,161.00 USD\n",
+      "questions": [
+        "near-dup-INV-2025-ND1b"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-1b",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2025-ND1b",
+        "vendor": "Quanta Analytics",
+        "year": 2025,
+        "amount": 1161.0,
+        "project": "BODEEN",
+        "pair": 1,
+        "tag": "b"
+      }
+    },
+    {
+      "doc_id": "nd-2a",
+      "family": "near_dup",
+      "title": "Invoice INV-2024-ND2a - Ridgeline Hardware",
+      "text": "INVOICE INV-2024-ND2a\nVendor: Ridgeline Hardware\nInvoice date: April 12, 2024\nProject code: CINDER\nTotal amount due: 1,022.00 USD\n",
+      "questions": [
+        "near-dup-INV-2024-ND2a"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-2a",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2024-ND2a",
+        "vendor": "Ridgeline Hardware",
+        "year": 2024,
+        "amount": 1022.0,
+        "project": "CINDER",
+        "pair": 2,
+        "tag": "a"
+      }
+    },
+    {
+      "doc_id": "nd-2b",
+      "family": "near_dup",
+      "title": "Invoice INV-2026-ND2b - Ridgeline Hardware",
+      "text": "INVOICE INV-2026-ND2b\nVendor: Ridgeline Hardware\nInvoice date: April 12, 2026\nProject code: CINDER\nTotal amount due: 1,272.00 USD\n",
+      "questions": [
+        "near-dup-INV-2026-ND2b"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-2b",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2026-ND2b",
+        "vendor": "Ridgeline Hardware",
+        "year": 2026,
+        "amount": 1272.0,
+        "project": "CINDER",
+        "pair": 2,
+        "tag": "b"
+      }
+    },
+    {
+      "doc_id": "nd-3a",
+      "family": "near_dup",
+      "title": "Invoice INV-2023-ND3a - Sable Marketing Group",
+      "text": "INVOICE INV-2023-ND3a\nVendor: Sable Marketing Group\nInvoice date: March 13, 2023\nProject code: DRIFT\nTotal amount due: 1,133.00 USD\n",
+      "questions": [
+        "near-dup-INV-2023-ND3a"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-3a",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2023-ND3a",
+        "vendor": "Sable Marketing Group",
+        "year": 2023,
+        "amount": 1133.0,
+        "project": "DRIFT",
+        "pair": 3,
+        "tag": "a"
+      }
+    },
+    {
+      "doc_id": "nd-3b",
+      "family": "near_dup",
+      "title": "Invoice INV-2024-ND3b - Sable Marketing Group",
+      "text": "INVOICE INV-2024-ND3b\nVendor: Sable Marketing Group\nInvoice date: March 13, 2024\nProject code: DRIFT\nTotal amount due: 1,383.00 USD\n",
+      "questions": [
+        "near-dup-INV-2024-ND3b"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-3b",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2024-ND3b",
+        "vendor": "Sable Marketing Group",
+        "year": 2024,
+        "amount": 1383.0,
+        "project": "DRIFT",
+        "pair": 3,
+        "tag": "b"
+      }
+    },
+    {
+      "doc_id": "nd-4a",
+      "family": "near_dup",
+      "title": "Invoice INV-2025-ND4a - Tessellate Consulting",
+      "text": "INVOICE INV-2025-ND4a\nVendor: Tessellate Consulting\nInvoice date: April 14, 2025\nProject code: ATLAS\nTotal amount due: 1,244.00 USD\n",
+      "questions": [
+        "near-dup-INV-2025-ND4a"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-4a",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2025-ND4a",
+        "vendor": "Tessellate Consulting",
+        "year": 2025,
+        "amount": 1244.0,
+        "project": "ATLAS",
+        "pair": 4,
+        "tag": "a"
+      }
+    },
+    {
+      "doc_id": "nd-4b",
+      "family": "near_dup",
+      "title": "Invoice INV-2026-ND4b - Tessellate Consulting",
+      "text": "INVOICE INV-2026-ND4b\nVendor: Tessellate Consulting\nInvoice date: April 14, 2026\nProject code: ATLAS\nTotal amount due: 1,494.00 USD\n",
+      "questions": [
+        "near-dup-INV-2026-ND4b"
+      ],
+      "answer_spans": [
+        {
+          "doc_id": "nd-4b",
+          "start": 8,
+          "end": 21
+        }
+      ],
+      "meta": {
+        "invoice_no": "INV-2026-ND4b",
+        "vendor": "Tessellate Consulting",
+        "year": 2026,
+        "amount": 1494.0,
+        "project": "ATLAS",
+        "pair": 4,
+        "tag": "b"
+      }
+    }
+  ]
+}

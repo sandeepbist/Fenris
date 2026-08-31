@@ -1,0 +1,17 @@
+id: golden-exact-006
+suite: golden
+slice: exact
+question: Find invoice INV-202306-358
+expected_docs:
+  inv-005: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-202306-358
+- Quanta Analytics
+expected_spans:
+- doc_id: inv-005
+  start: 8
+  end: 22
+created_by: synth-v1
+locked: false

@@ -1,0 +1,7 @@
+DRIFT architecture spec - revision v1
+Project: DRIFT - marketing site relaunch
+Status: draft
+Revision date: November 6, 2027
+Document owner: Sofia R.
+Technical lead: Marcus T.
+Revision v1 summary: this revision of the DRIFT spec updates the scope for marketing site relaunch and records the current status as draft.

@@ -1,0 +1,5 @@
+INVOICE INV-2025-ND0b
+Vendor: Acme Cloud Services
+Invoice date: April 10, 2025
+Project code: ATLAS
+Total amount due: 1,050.00 USD

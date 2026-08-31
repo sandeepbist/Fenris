@@ -1,0 +1,18 @@
+id: golden-hard-negative-008
+suite: golden
+slice: hard_negative
+question: What is the total amount due on invoice INV-2024-ND3b from Sable Marketing Group dated 2024?
+expected_docs:
+  nd-3b: 2
+  nd-3a: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-2024-ND3b
+- 1,383.00
+expected_spans:
+- doc_id: nd-3b
+  start: 8
+  end: 21
+created_by: synth-v1
+locked: false

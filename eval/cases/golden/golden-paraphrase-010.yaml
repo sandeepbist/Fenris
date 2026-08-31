@@ -1,0 +1,16 @@
+id: golden-paraphrase-010
+suite: golden
+slice: paraphrase
+question: On which flight did I fly to Bristol for the May trip?
+expected_docs:
+  trv-004: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- TP548
+expected_spans:
+- doc_id: trv-004
+  start: 94
+  end: 99
+created_by: synth-v1
+locked: false

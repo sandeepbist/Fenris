@@ -1,0 +1,19 @@
+id: golden-table-012
+suite: golden
+slice: table
+question: What is the DRIFT expense with Bracket & Fell LLP dated December 7, 2025 in the 2025 sheet?
+expected_docs:
+  exp-000: 2
+  exp-001: 0
+  exp-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Bracket & Fell LLP
+- '227.00'
+expected_spans:
+- doc_id: exp-000
+  start: 735
+  end: 785
+created_by: synth-v1
+locked: false

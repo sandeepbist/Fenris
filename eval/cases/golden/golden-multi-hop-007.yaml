@@ -1,0 +1,22 @@
+id: golden-multi-hop-007
+suite: golden
+slice: multi_hop
+question: Which invoice from Helios Design Studio relates to the CINDER budget approved in decision DEC-2024-06,
+  and how much was it for?
+expected_docs:
+  mtg-006: 2
+  inv-036: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Helios Design Studio
+- 3,098.00
+expected_spans:
+- doc_id: mtg-006
+  start: 168
+  end: 179
+- doc_id: inv-036
+  start: 235
+  end: 243
+created_by: synth-v1
+locked: false

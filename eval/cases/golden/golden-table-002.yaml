@@ -1,0 +1,19 @@
+id: golden-table-002
+suite: golden
+slice: table
+question: How much did I spend on Bracket & Fell LLP on April 17, 2025 for DRIFT?
+expected_docs:
+  exp-000: 2
+  exp-001: 0
+  exp-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Bracket & Fell LLP
+- '91.00'
+expected_spans:
+- doc_id: exp-000
+  start: 282
+  end: 320
+created_by: synth-v1
+locked: false

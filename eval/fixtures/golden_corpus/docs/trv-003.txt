@@ -1,0 +1,6 @@
+Travel itinerary TRV-2026-03: Krakow
+Destination: Krakow, Poland
+Outbound: October 22, 2026 - flight KL511
+Return: October 28, 2026 - flight KL512
+Hotel: Grand Krakow Hotel
+Booking reference: TRV-2026-03-HK

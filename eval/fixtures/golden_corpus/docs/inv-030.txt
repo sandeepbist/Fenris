@@ -1,0 +1,8 @@
+INVOICE INV-202507-367
+Vendor: Tessellate Consulting
+Invoice date: July 18, 2025
+Bill to: Orbis Consulting
+Project code: BODEEN
+Description: professional services rendered for BODEEN - customer-facing mobile app refresh.
+Total amount due: 3,868.00 USD
+Payment terms: net 30

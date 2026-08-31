@@ -1,0 +1,7 @@
+BODEEN architecture spec - revision v1
+Project: BODEEN - customer-facing mobile app refresh
+Status: draft
+Revision date: May 6, 2025
+Document owner: Elena V.
+Technical lead: Dana W.
+Revision v1 summary: this revision of the BODEEN spec updates the scope for customer-facing mobile app refresh and records the current status as draft.

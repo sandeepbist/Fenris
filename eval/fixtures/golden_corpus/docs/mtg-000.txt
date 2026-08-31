@@ -1,0 +1,6 @@
+Meeting notes - ATLAS weekly sync
+Date: January 1, 2024
+Attendees: Jonah K., Marcus T., Sofia R., Elena V.
+Agenda: ATLAS status, vendor review, budget planning.
+Decision DEC-2024-00: approved 5,000.00 USD budget for internal data-platform migration phase 1.
+Action items: Jonah K. to follow up with Acme Cloud Services; Marcus T. to draft the ATLAS rollout plan.

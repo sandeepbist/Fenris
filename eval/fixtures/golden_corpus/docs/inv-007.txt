@@ -1,0 +1,8 @@
+INVOICE INV-202308-372
+Vendor: Sable Marketing Group
+Invoice date: August 17, 2023
+Bill to: Orbis Consulting
+Project code: BODEEN
+Description: professional services rendered for BODEEN - customer-facing mobile app refresh.
+Total amount due: 3,899.50 USD
+Payment terms: net 30

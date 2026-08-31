@@ -1,0 +1,22 @@
+id: golden-multi-hop-014
+suite: golden
+slice: multi_hop
+question: How did the DRIFT architecture spec change between revision v1 and the approved revision?
+expected_docs:
+  prj-009: 2
+  prj-011: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- DRIFT
+- draft
+- approved
+expected_spans:
+- doc_id: prj-009
+  start: 87
+  end: 92
+- doc_id: prj-011
+  start: 87
+  end: 95
+created_by: synth-v1
+locked: false

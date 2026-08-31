@@ -1,0 +1,8 @@
+INVOICE INV-202403-338
+Vendor: Helios Design Studio
+Invoice date: March 13, 2024
+Bill to: Orbis Consulting
+Project code: ATLAS
+Description: professional services rendered for ATLAS - internal data-platform migration.
+Total amount due: 3,267.00 USD
+Payment terms: net 30

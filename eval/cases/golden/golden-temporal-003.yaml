@@ -1,0 +1,19 @@
+id: golden-temporal-003
+suite: golden
+slice: temporal
+question: What did Helios Design Studio invoice in March 2024 for project ATLAS?
+expected_docs:
+  inv-014: 2
+  inv-003: 0
+  inv-011: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Helios Design Studio
+- 3,267.00
+expected_spans:
+- doc_id: inv-014
+  start: 235
+  end: 243
+created_by: synth-v1
+locked: false

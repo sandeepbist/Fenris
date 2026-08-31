@@ -1,0 +1,6 @@
+Travel itinerary TRV-2025-04: Bristol
+Destination: Bristol, UK
+Outbound: May 8, 2025 - flight TP548
+Return: May 15, 2025 - flight TP549
+Hotel: Grand Bristol Hotel
+Booking reference: TRV-2025-04-HK

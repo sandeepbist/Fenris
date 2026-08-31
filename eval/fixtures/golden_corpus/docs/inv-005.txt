@@ -1,0 +1,8 @@
+INVOICE INV-202306-358
+Vendor: Quanta Analytics
+Invoice date: June 15, 2023
+Bill to: Orbis Consulting
+Project code: BODEEN
+Description: professional services rendered for BODEEN - customer-facing mobile app refresh.
+Total amount due: 3,624.50 USD
+Payment terms: net 30

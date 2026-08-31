@@ -1,0 +1,17 @@
+id: golden-exact-007
+suite: golden
+slice: exact
+question: Find invoice INV-202307-365
+expected_docs:
+  inv-006: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-202307-365
+- Ridgeline Hardware
+expected_spans:
+- doc_id: inv-006
+  start: 8
+  end: 22
+created_by: synth-v1
+locked: false

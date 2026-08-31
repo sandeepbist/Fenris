@@ -1,0 +1,5 @@
+INVOICE INV-2025-ND1b
+Vendor: Quanta Analytics
+Invoice date: March 11, 2025
+Project code: BODEEN
+Total amount due: 1,161.00 USD

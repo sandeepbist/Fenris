@@ -1,0 +1,18 @@
+id: golden-hard-negative-002
+suite: golden
+slice: hard_negative
+question: What is the total amount due on invoice INV-2025-ND0b from Acme Cloud Services dated 2025?
+expected_docs:
+  nd-0b: 2
+  nd-0a: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- INV-2025-ND0b
+- 1,050.00
+expected_spans:
+- doc_id: nd-0b
+  start: 8
+  end: 21
+created_by: synth-v1
+locked: false

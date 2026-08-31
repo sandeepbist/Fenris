@@ -1,0 +1,18 @@
+id: golden-hard-negative-013
+suite: golden
+slice: hard_negative
+question: How much was invoice INV-202402-331 for CINDER?
+expected_docs:
+  inv-013: 2
+  inv-015: 0
+  inv-017: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- 3,129.50
+expected_spans:
+- doc_id: inv-013
+  start: 235
+  end: 243
+created_by: synth-v1
+locked: false

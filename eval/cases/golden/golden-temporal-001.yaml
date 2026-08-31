@@ -1,0 +1,19 @@
+id: golden-temporal-001
+suite: golden
+slice: temporal
+question: What did Acme Cloud Services invoice in January 2024 for project ATLAS?
+expected_docs:
+  inv-012: 2
+  inv-001: 0
+  inv-009: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Acme Cloud Services
+- 2,992.00
+expected_spans:
+- doc_id: inv-012
+  start: 236
+  end: 244
+created_by: synth-v1
+locked: false

@@ -1,0 +1,18 @@
+id: golden-paraphrase-005
+suite: golden
+slice: paraphrase
+question: How much did Bracket & Fell LLP charge us for work on DRIFT back in May 2023?
+expected_docs:
+  inv-004: 2
+  inv-000: 0
+  inv-002: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- 3,487.00
+expected_spans:
+- doc_id: inv-004
+  start: 222
+  end: 230
+created_by: synth-v1
+locked: false

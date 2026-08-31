@@ -1,0 +1,19 @@
+id: golden-temporal-014
+suite: golden
+slice: temporal
+question: What budget was approved for ATLAS in January 2024?
+expected_docs:
+  mtg-000: 2
+  mtg-004: 0
+  mtg-008: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- ATLAS
+- 5,000.00
+expected_spans:
+- doc_id: mtg-000
+  start: 192
+  end: 200
+created_by: synth-v1
+locked: false

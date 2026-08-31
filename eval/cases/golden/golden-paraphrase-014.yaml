@@ -1,0 +1,16 @@
+id: golden-paraphrase-014
+suite: golden
+slice: paraphrase
+question: What spending cap did the team set for DRIFT phase work?
+expected_docs:
+  mtg-003: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- 8,750.00
+expected_spans:
+- doc_id: mtg-003
+  start: 187
+  end: 195
+created_by: synth-v1
+locked: false

@@ -1,0 +1,8 @@
+INVOICE INV-202510-388
+Vendor: Helios Design Studio
+Invoice date: October 21, 2025
+Bill to: Orbis Consulting
+Project code: DRIFT
+Description: professional services rendered for DRIFT - marketing site relaunch.
+Total amount due: 4,278.50 USD
+Payment terms: net 30

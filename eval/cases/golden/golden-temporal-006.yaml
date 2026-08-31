@@ -1,0 +1,19 @@
+id: golden-temporal-006
+suite: golden
+slice: temporal
+question: What did Ridgeline Hardware invoice in June 2024 for project CINDER?
+expected_docs:
+  inv-017: 2
+  inv-006: 0
+  inv-028: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Ridgeline Hardware
+- 3,677.50
+expected_spans:
+- doc_id: inv-017
+  start: 230
+  end: 238
+created_by: synth-v1
+locked: false

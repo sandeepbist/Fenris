@@ -1,0 +1,23 @@
+id: golden-multi-hop-015
+suite: golden
+slice: multi_hop
+question: Who owned the ATLAS spec while it was drafted, and what budget did the team later approve for
+  it?
+expected_docs:
+  prj-000: 2
+  mtg-000: 2
+  prj-002: 1
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Marcus T.
+- 5,000.00
+expected_spans:
+- doc_id: prj-000
+  start: 150
+  end: 159
+- doc_id: mtg-000
+  start: 192
+  end: 200
+created_by: synth-v1
+locked: false

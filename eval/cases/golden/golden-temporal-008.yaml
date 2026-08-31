@@ -1,0 +1,19 @@
+id: golden-temporal-008
+suite: golden
+slice: temporal
+question: What did Tessellate Consulting invoice in August 2024 for project CINDER?
+expected_docs:
+  inv-019: 2
+  inv-000: 0
+  inv-008: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Tessellate Consulting
+- 3,952.50
+expected_spans:
+- doc_id: inv-019
+  start: 235
+  end: 243
+created_by: synth-v1
+locked: false

@@ -1,0 +1,8 @@
+INVOICE INV-202609-382
+Vendor: Helios Design Studio
+Invoice date: September 21, 2026
+Bill to: Orbis Consulting
+Project code: CINDER
+Description: professional services rendered for CINDER - compliance audit remediation.
+Total amount due: 4,194.00 USD
+Payment terms: net 30

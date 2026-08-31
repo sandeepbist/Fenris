@@ -1,0 +1,17 @@
+id: golden-hard-negative-023
+suite: golden
+slice: hard_negative
+question: Which booking reference covers my stay at the Grand Bristol Hotel in May 2025?
+expected_docs:
+  trv-004: 2
+  trv-010: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- TRV-2025-04
+expected_spans:
+- doc_id: trv-004
+  start: 17
+  end: 28
+created_by: synth-v1
+locked: false

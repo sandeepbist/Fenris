@@ -1,0 +1,16 @@
+id: golden-paraphrase-006
+suite: golden
+slice: paraphrase
+question: On which flight did I fly to Lisbon for the January trip?
+expected_docs:
+  trv-000: 2
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- TP400
+expected_spans:
+- doc_id: trv-000
+  start: 102
+  end: 107
+created_by: synth-v1
+locked: false

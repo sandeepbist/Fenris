@@ -1,0 +1,18 @@
+id: golden-table-006
+suite: golden
+slice: table
+question: How much did I spend on Ridgeline Hardware on June 2, 2025 for BODEEN?
+expected_docs:
+  exp-000: 2
+  exp-001: 0
+answerable: true
+expected_state: ANSWERED
+expected_answer_facts:
+- Ridgeline Hardware
+- '125.00'
+expected_spans:
+- doc_id: exp-000
+  start: 389
+  end: 429
+created_by: synth-v1
+locked: false

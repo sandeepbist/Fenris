@@ -1,0 +1,7 @@
+CINDER architecture spec - revision v2
+Project: CINDER - compliance audit remediation
+Status: in review
+Revision date: September 7, 2026
+Document owner: Sofia R.
+Technical lead: Elena V.
+Revision v2 summary: this revision of the CINDER spec updates the scope for compliance audit remediation and records the current status as in review.

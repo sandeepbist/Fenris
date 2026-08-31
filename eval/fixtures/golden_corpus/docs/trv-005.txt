@@ -1,0 +1,6 @@
+Travel itinerary TRV-2026-05: Medellin
+Destination: Medellin, Colombia
+Outbound: December 14, 2026 - flight KL585
+Return: December 22, 2026 - flight KL586
+Hotel: Grand Medellin Hotel
+Booking reference: TRV-2026-05-HK
