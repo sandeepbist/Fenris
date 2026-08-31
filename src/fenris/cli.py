@@ -77,7 +77,8 @@ def _make_search_fn(conn, embedder, use_reranker: bool = True):
     if use_reranker:
         try:
             reranker = FlashRankReranker()  # lazy model load; may download once
-        except Exception:
+        except (OSError, ValueError, RuntimeError):
+            # missing model/cache/network: degrade to the identity reranker
             reranker = NoopReranker()
 
     def search_fn(query: str):
