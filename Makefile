@@ -6,13 +6,15 @@ PIP := .venv/bin/pip
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup install test eval lint clean
+.PHONY: help setup install test eval lint clean api ui ui-dev ui-build
 
 help:
 	@echo "fenris targets:"
 	@echo "  make setup  - create venv + install deps (editable, with dev)"
 	@echo "  make test   - run the test suite"
 	@echo "  make lint   - ruff check"
+	@echo "  make ui     - build the frontend (bun) + serve EVERYTHING from the API"
+	@echo "  make ui-dev - frontend dev server on :5173 with hot reload"
 
 setup: install
 
@@ -36,5 +38,16 @@ test:
 lint:
 	$(PY) -m ruff check src tests
 
+# ---- web UI ----------------------------------------------------------------
+
+ui-build:
+	cd frontend && bun run build
+
+ui: ui-build
+	$(PY) -m uvicorn fenris.api:app --host 127.0.0.1 --port 8000
+
+ui-dev:
+	cd frontend && bun run dev
+
 clean:
-	rm -rf .venv build dist *.egg-info src/*.egg-info
+	rm -rf .venv build dist *.egg-info src/*.egg-info frontend/dist

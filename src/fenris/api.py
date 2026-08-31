@@ -17,14 +17,29 @@ the API never authenticates because it never leaves the machine.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from fenris.config import load_config
 from fenris.db import connect
 
 app = FastAPI(title="Fenris", version="0.1.0", docs_url="/api/docs")
+
+# Production: serve the built frontend (frontend/dist) from this process so
+# the whole product is one command. Dev keeps Vite on :5173 with its /api
+# proxy; CORS below covers that case.
+_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+if _DIST.is_dir():
+    app.mount("/assets", StaticFiles(directory=_DIST / "assets"), name="assets")
+
+    @app.get("/", include_in_schema=False)
+    def index() -> FileResponse:
+        return FileResponse(_DIST / "index.html")
 
 # The dev server runs the Vite frontend on :5173; production serves the
 # built assets from this same origin, where CORS is irrelevant.
