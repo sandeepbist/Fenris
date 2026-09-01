@@ -7,10 +7,10 @@ built on top can be trusted.
 
 from __future__ import annotations
 
-import json
 import struct
 
 import pytest
+import sqlite3
 
 from fenris.config import EMBED_DIMS, FenrisConfig
 from fenris.db import connect
@@ -145,7 +145,7 @@ def test_one_active_representation_invariant(cfg):
     conn = connect(cfg.db_path)
     try:
         _insert_source(conn, file_id="f1", revision="r1")
-        with pytest.raises(Exception):
+        with pytest.raises(sqlite3.IntegrityError):
             _insert_source(conn, file_id="f1", revision="r2")
         # retiring the first allows the second
         conn.execute("UPDATE sources SET active=0 WHERE source_revision='r1'")
@@ -160,7 +160,7 @@ def test_chunks_cascade_and_fts_cleanup(cfg):
     conn = connect(cfg.db_path)
     try:
         src = _insert_source(conn)
-        cid = _insert_chunk(conn, src, 1, "h", "zebra quarantine text")
+        _insert_chunk(conn, src, 1, "h", "zebra quarantine text")
         assert conn.execute(
             "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH 'quarantine'"
         ).fetchone()[0] == 1

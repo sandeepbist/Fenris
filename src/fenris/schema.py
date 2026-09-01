@@ -13,6 +13,8 @@ migrations on an existing DB is always safe; schema_version gates forward-only
 changes.
 """
 
+import sqlite3
+
 SCHEMA_VERSION = 1
 
 SCHEMA = """
@@ -198,6 +200,6 @@ def apply_vec0(conn) -> None:
     """Create the vec0 table. Requires sqlite-vec loaded via conn.load_extension."""
     try:
         conn.execute("SELECT count(*) FROM chunks_vec")
-    except Exception:
+    except sqlite3.Error:
         conn.execute(VEC0_DDL)
         conn.commit()
