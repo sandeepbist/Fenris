@@ -184,7 +184,7 @@ def apply_schema(conn) -> None:
     conn.executescript(SCHEMA)
     try:
         conn.execute("SELECT count(*) FROM chunks_vec")
-    except Exception:
+    except sqlite3.Error:
         # vec0 not present yet - caller must load sqlite-vec first and then
         # call apply_vec0(); we do not silently skip the dense index.
         pass

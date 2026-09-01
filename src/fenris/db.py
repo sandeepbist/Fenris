@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 
-import fenris.schema as schema
+from fenris import schema
 
 
 def connect(db_path, apply: bool = True) -> sqlite3.Connection:
@@ -27,7 +27,7 @@ def connect(db_path, apply: bool = True) -> sqlite3.Connection:
 
         sqlite_vec.load(conn)
         conn.enable_load_extension(False)
-    except Exception:
+    except (ImportError, AttributeError, sqlite3.Error, OSError):
         # No sqlite-vec in the environment (e.g., CI smoke tests): schema still
         # applies; vec0 is created lazily by apply_vec0 when the ext is present.
         conn.enable_load_extension(False)
@@ -35,7 +35,7 @@ def connect(db_path, apply: bool = True) -> sqlite3.Connection:
         schema.apply_schema(conn)
         try:
             schema.apply_vec0(conn)
-        except Exception:
+        except sqlite3.Error:
             pass
         conn.commit()
     return conn

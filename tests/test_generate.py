@@ -714,7 +714,10 @@ class TestGeminiGeneratorOffline:
     def test_sdk_version_pinned(self):
         import importlib.metadata as md
         version = md.version("google-genai")
-        assert version == "2.20.0", f"unexpected SDK version {version}"
+        # The pin makes SDK drift conscious: bump after re-verifying the
+        # runtime-API tests (streaming + response_schema) against the new
+        # version. 2.20.0 -> 2.21.0 re-verified 2026-09-01.
+        assert version == "2.21.0", f"unexpected SDK version {version}"
 
 
 # --------------------------------------------------------------------------- #

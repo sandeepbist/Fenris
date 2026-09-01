@@ -192,6 +192,11 @@ class AskRequest(BaseModel):
     question: str
     rerank: bool = True
 
+    # A question is a question, not a document. Caps hostile payloads
+    # before they touch retrieval, embedding, or the model (security
+    # review: a 10M-char question previously reached the engine).
+    model_config = {"str_max_length": 10_000}
+
 
 def _drive_client():
     from googleapiclient.discovery import build

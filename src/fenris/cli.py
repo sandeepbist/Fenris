@@ -110,7 +110,7 @@ def ask(
             try:
                 generator = GeminiGenerator()
                 embedder = _make_embedder()
-            except Exception as e:
+            except (ImportError, ValueError, RuntimeError, OSError) as e:
                 typer.echo(
                     f"cannot reach the Gemini API ({e.__class__.__name__}).\n"
                     "Set GOOGLE_API_KEY (or GEMINI_API_KEY), or use --offline for "
@@ -157,7 +157,7 @@ def eval(
     limit: int = typer.Option(0, "--limit", help="Max cases (0 = all)."),
 ) -> None:
     """Run an eval suite against the real retrieval stack."""
-    conn, cfg = _open_db()
+    conn, _cfg = _open_db()
     try:
         from pathlib import Path
 

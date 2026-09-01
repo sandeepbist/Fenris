@@ -332,8 +332,26 @@ def ingest_file(
         as status='failed' rows and the caller's loop continues.
     """
     from fenris.ingest.embed import FakeEmbedder
+    from fenris.ingest.guards import (
+        content_within_text_cap,
+        sanitize_file_meta,
+    )
 
     embedder = cfg.embedder if cfg is not None and hasattr(cfg, "embedder") else FakeEmbedder()
+
+    # -- hostile-input bounds (security review: metadata bombs, control chars)
+    file_meta = sanitize_file_meta(file_meta)
+
+    # -- text-content storage bound (a 100 MB text file -> ~586 MB projection)
+    if not content_within_text_cap(file_meta.mime_type, content_bytes):
+        source_id = _write_status_row(
+            conn, file_meta, file_meta.mime_type, STATUS_SKIPPED,
+            f"text_cap:{len(content_bytes)}",
+        )
+        return IngestResult(
+            status=STATUS_SKIPPED, source_id=source_id,
+            reason="text_content_over_cap",
+        )
 
     # -- route ---------------------------------------------------------------
     decision = router_mod.route(

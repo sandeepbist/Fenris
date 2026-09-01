@@ -313,6 +313,15 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
             # >= 1 unverifiable claim on an answerable answer -> state review:
             # surface the claims, keep the answer, mark for review
             trace["state_review"] = True
+        if final_state in (INSUFFICIENT, STALE):
+            # The ladder overruled the model: an INSUFFICIENT/STALE verdict
+            # means the evidence does not support generation, so the model's
+            # answer text must not reach the user in ANY form - stripped
+            # markers would read as confident uncited claims (found by the
+            # security review: fabricated text displayed under INSUFFICIENT).
+            rendered.answer_text = ""
+            if rendered.unverifiable_claims:
+                rendered.unverifiable_claims = []
         trace["state_history"].append(final_state)
 
         return AnswerPacket(
