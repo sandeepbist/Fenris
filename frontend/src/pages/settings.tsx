@@ -124,6 +124,32 @@ export function SettingsPage() {
               Gemini API. Nothing else is transmitted, stored remotely, or shared.
             </p>
           </Card>
+
+          <Card>
+            <CardHeader title="Legal" />
+            <div className="divide-y divide-border-subtle">
+              {[
+                { href: "/legal/terms-of-service", label: "Terms of Service" },
+                { href: "/legal/privacy-policy", label: "Privacy Policy" },
+                { href: "/legal/security-disclosure", label: "Security & Data Handling" },
+              ].map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between px-4 py-3 text-sm text-text-muted transition-colors hover:bg-bg-overlay hover:text-accent"
+                >
+                  {l.label}
+                  <span className="mono text-xs text-text-faint">↗</span>
+                </a>
+              ))}
+            </div>
+            <p className="border-t border-border-subtle px-4 py-2 text-xs text-text-faint">
+              Version 1.0 · adapted from attorney-drafted templates (General Legal, CC0).
+              Read them before relying on them.
+            </p>
+          </Card>
         </>
       )}
     </div>

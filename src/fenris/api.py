@@ -41,6 +41,37 @@ if _DIST.is_dir():
     def index() -> FileResponse:
         return FileResponse(_DIST / "index.html")
 
+# Legal documents, served as plain text so they are readable in the
+# browser and linkable from the UI without a markdown renderer.
+_LEGAL_DIR = Path(__file__).resolve().parent.parent.parent / "docs" / "legal"
+_LEGAL_DOCS = {
+    "terms-of-service": "terms-of-service.md",
+    "privacy-policy": "privacy-policy.md",
+    "security-disclosure": "security-disclosure.md",
+}
+
+
+@app.get("/legal/{doc}", include_in_schema=False)
+def legal_doc(doc: str):
+    """Serve the markdown legal documents, escaped, on a minimal page."""
+    filename = _LEGAL_DOCS.get(doc)
+    if filename is None or not (_LEGAL_DIR / filename).exists():
+        raise HTTPException(status_code=404, detail="unknown document")
+    text = (_LEGAL_DIR / filename).read_text(encoding="utf-8")
+    escaped = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    html = (
+        "<!doctype html><html><head><meta charset='utf-8'>"
+        "<title>Fenris — legal</title>"
+        "<style>body{max-width:72ch;margin:2rem auto;padding:0 1rem;"
+        "font:15px/1.65 -apple-system,'Segoe UI',sans-serif;color:#222;background:#fff}"
+        "pre{white-space:pre-wrap;background:none;padding:0;font-family:inherit}"
+        "a{color:#0645ad}table{border-collapse:collapse}td,th{border:1px solid #ddd;padding:6px}"
+        "</style></head><body><pre>" + escaped + "</pre></body></html>"
+    )
+    from fastapi.responses import HTMLResponse
+
+    return HTMLResponse(html)
+
 # The dev server runs the Vite frontend on :5173; production serves the
 # built assets from this same origin, where CORS is irrelevant.
 app.add_middleware(
