@@ -7,10 +7,10 @@ built on top can be trusted.
 
 from __future__ import annotations
 
+import sqlite3
 import struct
 
 import pytest
-import sqlite3
 
 from fenris.config import EMBED_DIMS, FenrisConfig
 from fenris.db import connect
