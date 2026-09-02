@@ -11,6 +11,7 @@ import {
   Settings,
 } from "lucide-react";
 import { WolfMark } from "@/components/wolf-mark";
+import { CommandPalette } from "@/components/command-palette";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -23,6 +24,7 @@ const NAV = [
 export function AppShell() {
   return (
     <div className="flex h-screen flex-col bg-bg text-text">
+      <CommandPalette />
       {/* top bar */}
       <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border-subtle px-4">
         <WolfMark size={26} glow />
@@ -32,6 +34,17 @@ export function AppShell() {
         <span className="mono text-xs text-text-faint">
           rag over your own drive
         </span>
+        <button
+          onClick={() =>
+            window.dispatchEvent(
+              new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }),
+            )
+          }
+          className="mono ml-auto rounded-[--radius-sm] border border-border px-2 py-0.5 text-[10px] text-text-faint transition-colors hover:border-accent/40 hover:text-accent"
+          title="Open the command palette"
+        >
+          ⌘K
+        </button>
       </header>
 
       <div className="flex min-h-0 flex-1">
