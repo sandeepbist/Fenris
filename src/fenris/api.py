@@ -340,3 +340,147 @@ def eval_overview() -> dict:
         return {"runs": [{"id": r[0], "started_at": r[1], "verdict": r[2]} for r in row]}
     finally:
         conn.close()
+
+
+# ---- conversations (P0.2: persisted chat sessions) ---------------------------
+
+import json
+import time
+
+
+def _now_iso() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+class ConversationCreate(BaseModel):
+    title: str | None = None
+
+
+class ConversationPatch(BaseModel):
+    title: str | None = None
+    pinned: bool | None = None
+
+
+class TurnRecord(BaseModel):
+    question: str
+    state: str
+    answer: str = ""
+    citations_json: str = "[]"
+
+
+@app.get("/api/conversations")
+def conversations_list() -> dict:
+    conn = _db()
+    try:
+        rows = conn.execute(
+            """SELECT id, title, pinned, created_at, updated_at,
+                      (SELECT count(*) FROM turns t WHERE t.conversation_id = c.id)
+               FROM conversations c
+               ORDER BY pinned DESC, updated_at DESC LIMIT 200"""
+        ).fetchall()
+        return {
+            "conversations": [
+                {"id": r[0], "title": r[1], "pinned": bool(r[2]),
+                 "created_at": r[3], "updated_at": r[4], "turn_count": r[5]}
+                for r in rows
+            ]
+        }
+    finally:
+        conn.close()
+
+
+@app.post("/api/conversations")
+def conversations_create(req: ConversationCreate) -> dict:
+    conn = _db()
+    try:
+        cur = conn.execute(
+            "INSERT INTO conversations(title, created_at, updated_at) VALUES (?, ?, ?)",
+            (req.title or "New chat", _now_iso(), _now_iso()),
+        )
+        conn.commit()
+        return {"id": cur.lastrowid, "title": req.title or "New chat", "pinned": False}
+    finally:
+        conn.close()
+
+
+@app.get("/api/conversations/{cid}")
+def conversation_get(cid: int) -> dict:
+    conn = _db()
+    try:
+        head = conn.execute(
+            "SELECT id, title, pinned, created_at, updated_at FROM conversations WHERE id=?",
+            (cid,),
+        ).fetchone()
+        if head is None:
+            raise HTTPException(status_code=404, detail="no such conversation")
+        turns = conn.execute(
+            """SELECT question, state, answer, citations_json, created_at
+               FROM turns WHERE conversation_id=? ORDER BY id""",
+            (cid,),
+        ).fetchall()
+        return {
+            "id": head[0], "title": head[1], "pinned": bool(head[2]),
+            "created_at": head[3], "updated_at": head[4],
+            "turns": [
+                {"question": t[0], "state": t[1], "answer": t[2],
+                 "citations": json.loads(t[3]), "created_at": t[4]}
+                for t in turns
+            ],
+        }
+    finally:
+        conn.close()
+
+
+@app.patch("/api/conversations/{cid}")
+def conversation_patch(cid: int, req: ConversationPatch) -> dict:
+    conn = _db()
+    try:
+        if req.title is None and req.pinned is None:
+            raise HTTPException(status_code=422, detail="nothing to update")
+        if req.title is not None:
+            conn.execute("UPDATE conversations SET title=? WHERE id=?", (req.title[:200], cid))
+        if req.pinned is not None:
+            conn.execute("UPDATE conversations SET pinned=? WHERE id=?",
+                         (1 if req.pinned else 0, cid))
+        conn.commit()
+        return {"ok": True}
+    finally:
+        conn.close()
+
+
+@app.delete("/api/conversations/{cid}")
+def conversation_delete(cid: int) -> dict:
+    conn = _db()
+    try:
+        cur = conn.execute("DELETE FROM conversations WHERE id=?", (cid,))
+        conn.commit()  # turns cascade
+        if cur.rowcount == 0:
+            raise HTTPException(status_code=404, detail="no such conversation")
+        return {"ok": True}
+    finally:
+        conn.close()
+
+
+@app.post("/api/conversations/{cid}/turns")
+def conversation_add_turn(cid: int, req: TurnRecord) -> dict:
+    """Persist one completed Q/A turn (called by the UI when a stream finishes)."""
+    conn = _db()
+    try:
+        exists = conn.execute(
+            "SELECT 1 FROM conversations WHERE id=?", (cid,)
+        ).fetchone()
+        if exists is None:
+            raise HTTPException(status_code=404, detail="no such conversation")
+        cur = conn.execute(
+            """INSERT INTO turns(conversation_id, question, state, answer,
+                                 citations_json, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (cid, req.question[:10_000], req.state, req.answer[:100_000],
+             req.citations_json, _now_iso()),
+        )
+        conn.execute("UPDATE conversations SET updated_at=? WHERE id=?",
+                     (_now_iso(), cid))
+        conn.commit()
+        return {"turn_id": cur.lastrowid}
+    finally:
+        conn.close()

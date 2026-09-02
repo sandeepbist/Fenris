@@ -112,6 +112,25 @@ export interface EvalRun {
   verdict: string | null;
 }
 
+// ---- conversations (P0.2) ----------------------------------------------------
+
+export interface ConversationRow {
+  id: number;
+  title: string;
+  pinned: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+  turn_count?: number;
+}
+
+export interface StoredTurn {
+  question: string;
+  state: AnswerState;
+  answer: string;
+  citations: Citation[];
+  created_at: string | null;
+}
+
 // ---- streaming ---------------------------------------------------------------
 
 export interface StreamEvent {
@@ -184,6 +203,34 @@ export function askStream(
 
 export const api = {
   health: () => req<Health>("/api/health"),
+
+  // conversations
+  conversations: () => req<{ conversations: ConversationRow[] }>("/api/conversations"),
+  createConversation: (title?: string) =>
+    req<{ id: number; title: string; pinned: boolean }>("/api/conversations", {
+      method: "POST",
+      body: JSON.stringify({ title: title ?? null }),
+    }),
+  getConversation: (cid: number) =>
+    req<{
+      id: number; title: string; pinned: boolean;
+      created_at: string | null; updated_at: string | null;
+      turns: StoredTurn[];
+    }>(`/api/conversations/${cid}`),
+  patchConversation: (cid: number, patch: { title?: string; pinned?: boolean }) =>
+    req<{ ok: boolean }>(`/api/conversations/${cid}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    }),
+  deleteConversation: (cid: number) =>
+    req<{ ok: boolean }>(`/api/conversations/${cid}`, { method: "DELETE" }),
+  addTurn: (cid: number, turn: {
+    question: string; state: string; answer: string; citations_json: string;
+  }) =>
+    req<{ turn_id: number }>(`/api/conversations/${cid}/turns`, {
+      method: "POST",
+      body: JSON.stringify(turn),
+    }),
 
   status: () => req<Status>("/api/status"),
 

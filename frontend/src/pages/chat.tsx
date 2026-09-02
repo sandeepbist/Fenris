@@ -10,14 +10,16 @@
  * CONFLICTING / ERROR) are first-class, each with its own honest copy.
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUp, ChevronDown, Quote, RotateCcw, Square } from "lucide-react";
+import { ArrowUp, ChevronDown, Pin, Quote, RotateCcw, Square, Trash2 } from "lucide-react";
 import {
+  api,
   askStream,
   SetupNeeded,
   type AskResult,
   type Citation,
+  type ConversationRow,
 } from "@/lib/api";
 import { Badge, Button } from "@/components/ui";
 import { SetupNeededBanner } from "@/components/setup-needed";
@@ -135,9 +137,70 @@ export function ChatPage() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [liveText, setLiveText] = useState("");
+  const [conversations, setConversations] = useState<ConversationRow[]>([]);
+  const [activeCid, setActiveCid] = useState<number | null>(null);
   const stopRef = useRef<(() => void) | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastQuestion = useRef<string>("");
+
+  const refreshConversations = useCallback(async () => {
+    try {
+      const res = await api.conversations();
+      setConversations(res.conversations);
+    } catch {
+      /* engine down: the stream path will surface the setup banner */
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshConversations();
+  }, [refreshConversations]);
+
+  const openConversation = useCallback(async (cid: number) => {
+    if (busy) return;
+    setActiveCid(cid);
+    try {
+      const c = await api.getConversation(cid);
+      const restored: Turn[] = [];
+      for (const t of c.turns) {
+        restored.push({ kind: "user", text: t.question });
+        restored.push({
+          kind: "assistant",
+          result: {
+            state: t.state as AskResult["state"],
+            answer: t.answer,
+            citations: t.citations,
+            missing_evidence: [],
+            unverifiable_claims: [],
+            claims_conflict: false,
+          },
+        });
+      }
+      setTurns(restored);
+      setTimeout(() => bottomRef.current?.scrollIntoView(), 0);
+    } catch {
+      /* 404 raced a delete; the list refreshes next poll */
+    }
+  }, [busy]);
+
+  const newConversation = useCallback(() => {
+    if (busy) return;
+    setActiveCid(null);
+    setTurns([]);
+  }, [busy]);
+
+  /** Create-or-reuse the session id before the first turn of a chat. */
+  const ensureConversation = useCallback(async (): Promise<number | null> => {
+    if (activeCid !== null) return activeCid;
+    try {
+      const c = await api.createConversation();
+      setActiveCid(c.id);
+      void refreshConversations();
+      return c.id;
+    } catch {
+      return null; // persistence is best-effort; the answer still streams
+    }
+  }, [activeCid, refreshConversations]);
 
   const send = useCallback(async () => {
     const question = input.trim();
@@ -149,9 +212,11 @@ export function ChatPage() {
     setLiveText("");
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 
+    const cid = await ensureConversation();
     const { events, stop } = askStream(question);
     stopRef.current = stop;
     let assembled = "";
+    let finalResult: AskResult | null = null;
     try {
       for await (const ev of events) {
         if (ev.type === "delta" && ev.text) {
@@ -167,6 +232,7 @@ export function ChatPage() {
             unverifiable_claims: ev.unverifiable_claims ?? [],
             claims_conflict: ev.claims_conflict ?? false,
           };
+          finalResult = result;
           setTurns((t) => [...t, { kind: "assistant", result }]);
         } else if (ev.type === "error") {
           setTurns((t) => [
@@ -194,8 +260,20 @@ export function ChatPage() {
       setBusy(false);
       stopRef.current = null;
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Persist the completed turn (best-effort: persistence never blocks the UX).
+      if (cid !== null && finalResult) {
+        void api
+          .addTurn(cid, {
+            question,
+            state: finalResult.state,
+            answer: finalResult.answer,
+            citations_json: JSON.stringify(finalResult.citations),
+          })
+          .then(() => refreshConversations())
+          .catch(() => undefined);
+      }
     }
-  }, [input, busy]);
+  }, [input, busy, ensureConversation, refreshConversations]);
 
   const regenerate = useCallback(() => {
     if (!lastQuestion.current || busy) return;
@@ -209,8 +287,63 @@ export function ChatPage() {
   }, []);
 
   return (
-    <div className="mx-auto flex h-full max-w-3xl flex-col">
-      {/* stream */}
+    <div className="mx-auto flex h-full max-w-5xl">
+      {/* conversations rail */}
+      <aside className="flex w-56 shrink-0 flex-col border-r border-border-subtle">
+        <div className="flex items-center justify-between px-3 py-3">
+          <span className="mono text-[10px] uppercase tracking-wider text-text-faint">
+            chats
+          </span>
+          <button
+            onClick={newConversation}
+            className="mono rounded-[--radius-sm] px-2 py-0.5 text-xs text-text-muted transition-colors hover:bg-bg-raised hover:text-accent"
+            title="New chat"
+          >
+            + new
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-3">
+          {conversations.map((c) => (
+            <div
+              key={c.id}
+              className={
+                "group flex cursor-pointer items-center gap-1.5 rounded-[--radius-sm] px-2.5 py-1.5 text-sm transition-colors " +
+                (c.id === activeCid
+                  ? "bg-accent-dim text-accent"
+                  : "text-text-muted hover:bg-bg-raised hover:text-text")
+              }
+              onClick={() => void openConversation(c.id)}
+            >
+              {c.pinned && <Pin size={11} className="shrink-0" />}
+              <span className="min-w-0 flex-1 truncate">{c.title}</span>
+              <span className="hidden shrink-0 gap-0.5 group-hover:flex">
+                <PinButton
+                  cid={c.id}
+                  pinned={c.pinned}
+                  onDone={() => void refreshConversations()}
+                />
+                <button
+                  className="rounded p-0.5 text-text-faint hover:text-state-error"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void api.deleteConversation(c.id).then(() => refreshConversations());
+                  }}
+                >
+                  <Trash2 size={11} />
+                </button>
+              </span>
+            </div>
+          ))}
+          {conversations.length === 0 && (
+            <p className="mono px-2.5 py-2 text-[10px] text-text-faint">
+              chats persist once you ask something
+            </p>
+          )}
+        </div>
+      </aside>
+
+      {/* stream + composer */}
+      <div className="mx-auto flex h-full min-w-0 flex-1 flex-col">
       <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
         {turns.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
@@ -315,6 +448,21 @@ export function ChatPage() {
           enter to send · shift+enter for a new line · every claim cites evidence
         </p>
       </div>
+      </div>
     </div>
+  );
+}
+
+function PinButton({ cid, pinned, onDone }: { cid: number; pinned: boolean; onDone: () => void }) {
+  return (
+    <button
+      className={"rounded p-0.5 " + (pinned ? "text-accent" : "text-text-faint hover:text-accent")}
+      onClick={(e) => {
+        e.stopPropagation();
+        void api.patchConversation(cid, { pinned: !pinned }).then(() => onDone());
+      }}
+    >
+      <Pin size={11} />
+    </button>
   );
 }

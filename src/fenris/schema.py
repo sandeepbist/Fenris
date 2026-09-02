@@ -148,6 +148,28 @@ CREATE TABLE IF NOT EXISTS source_artifacts (  -- optional DoclingDocument JSON
   last_accessed TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS conversations (   -- persisted chat sessions
+  id INTEGER PRIMARY KEY,
+  title TEXT NOT NULL DEFAULT 'New chat',
+  pinned INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT,
+  updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_conversations_pinned
+  ON conversations(pinned DESC, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS turns (           -- one Q/A pair per row
+  id INTEGER PRIMARY KEY,
+  conversation_id INTEGER NOT NULL
+    REFERENCES conversations(id) ON DELETE CASCADE,
+  question TEXT NOT NULL,
+  state TEXT NOT NULL,                      -- the answer state at completion
+  answer TEXT NOT NULL DEFAULT '',
+  citations_json TEXT NOT NULL DEFAULT '[]',-- resolved Citation[] payloads
+  created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_turns_conversation ON turns(conversation_id);
+
 CREATE TABLE IF NOT EXISTS eval_runs (
   id INTEGER PRIMARY KEY,
   started_at TEXT,
