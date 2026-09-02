@@ -62,7 +62,6 @@ def test_resolved_citation_emits_mid_stream(corpus):
     real_id = evidence[0].evidence_id
 
     items = _run_stream(conn, real_id, f"Revenue was 4.2 million [E:{real_id}].")
-    deltas = [i for i in items if isinstance(i, str)]
     citations = [i for i in items if isinstance(i, tuple) and i[0] == "citation"]
     packets = [i for i in items if not isinstance(i, (str, tuple))]
 

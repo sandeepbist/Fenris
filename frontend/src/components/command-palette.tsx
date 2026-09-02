@@ -14,6 +14,7 @@ import {
   MessageSquareText,
   RefreshCw,
   Settings as SettingsIcon,
+  CalendarClock,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -47,6 +48,16 @@ export function CommandPalette() {
         icon: <RefreshCw size={14} />,
         run: () => {
           void api.sync().catch(() => undefined);
+          navigate("/");
+        },
+      },
+      {
+        id: "digest",
+        label: "Generate Drive digest",
+        hint: "what changed recently",
+        icon: <CalendarClock size={14} />,
+        run: () => {
+          void api.generateDigest(7).catch(() => undefined);
           navigate("/");
         },
       },

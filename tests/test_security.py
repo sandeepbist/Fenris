@@ -117,12 +117,6 @@ class TestHostileMetadata:
         one-chunk doc allocates the same).
         """
         _ingest(conn, title="T" * (10 * 1024 * 1024))
-        title_len, header_len = conn.execute(
-            "SELECT s.title, (SELECT c.header_text FROM chunks c"
-            " WHERE c.source_id = s.id LIMIT 1) FROM sources s LIMIT 1"
-        ).fetchone()[0:1] + conn.execute(
-            "SELECT length(header_text) FROM chunks LIMIT 1"
-        ).fetchone()
         assert conn.execute(
             "SELECT length(title) FROM sources LIMIT 1"
         ).fetchone()[0] <= MAX_TITLE_CHARS

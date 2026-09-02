@@ -94,7 +94,7 @@ def test_stream_done_payload_matches_non_streaming(client):
         "POST", "/api/ask/stream", json={"question": "What was Q3 revenue?"}
     ) as response:
         raw = "".join(chunk for chunk in response.iter_text())
-    done = [e for e in _parse_sse(raw) if e["type"] == "done"][0]
+    done = next(e for e in _parse_sse(raw) if e["type"] == "done")
 
     assert done["state"] == plain["state"]
     assert done["citations"] == plain["citations"]

@@ -17,6 +17,8 @@ the API never authenticates because it never leaves the machine.
 
 from __future__ import annotations
 
+import threading
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -28,7 +30,26 @@ from pydantic import BaseModel
 from fenris.config import load_config
 from fenris.db import connect
 
-app = FastAPI(title="Fenris", version="0.1.0", docs_url="/api/docs")
+# The digest scheduler daemon lives inside the API process: the one
+# always-on host a local deployment has (the desktop shell makes it
+# literally always-on). Stopped cleanly on shutdown; crash-isolated per
+# tick so a bad minute never kills the server.
+_scheduler_stop = threading.Event()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    from fenris.scheduler import start_digest_scheduler
+
+    _scheduler_stop.clear()
+    start_digest_scheduler(_scheduler_stop)
+    yield
+    _scheduler_stop.set()
+
+
+app = FastAPI(
+    title="Fenris", version="0.1.0", docs_url="/api/docs", lifespan=lifespan
+)
 
 # Production: serve the built frontend (frontend/dist) from this process so
 # the whole product is one command. Dev keeps Vite on :5173 with its /api
@@ -810,5 +831,183 @@ def related_files_api(drive_id: str, file_id: str) -> dict:
              "reason": r.reason, "score": r.score}
             for r in related
         ]}
+    finally:
+        conn.close()
+
+
+# ---- scheduled digests (P2.4) --------------------------------------------------
+
+
+class DigestScheduleCreate(BaseModel):
+    name: str
+    at: str          # "HH:MM" (24h)
+    daily: bool = True
+    dow: str = "mon"  # weekly only: sun..sat
+    window_days: float = 7.0
+
+    model_config = {"str_max_length": 120}
+
+
+@app.post("/api/digests/generate")
+def digest_generate(window_days: float = 7.0) -> dict:
+    """Compute + persist one digest now (on-demand; chains the window)."""
+    from fenris.digest import compute_digest, persist_digest
+
+    if not (0.25 <= window_days <= 90):
+        raise HTTPException(status_code=422, detail="window_days must be 0.25-90")
+    conn = _db()
+    try:
+        digest = compute_digest(conn, window_days)
+        run_id = persist_digest(conn, digest)
+        return {
+            "run_id": run_id,
+            "generated_at": digest.generated_at,
+            "window_start": digest.window_start,
+            "window_days": digest.window_days,
+            "counts": digest.counts,
+            "markdown": digest.markdown,
+        }
+    finally:
+        conn.close()
+
+
+@app.get("/api/digests/latest")
+def digest_latest() -> dict:
+    """The most recent digest run (dashboard display)."""
+    from fenris.digest import latest_digest
+
+    conn = _db()
+    try:
+        digest = latest_digest(conn)
+        if digest is None:
+            return {"digest": None}
+        return {"digest": {
+            "generated_at": digest.generated_at,
+            "window_start": digest.window_start,
+            "window_days": digest.window_days,
+            "counts": digest.counts,
+            "markdown": digest.markdown,
+        }}
+    finally:
+        conn.close()
+
+
+@app.get("/api/digests")
+def digests_list(limit: int = 10) -> dict:
+    """Recent digest runs, newest first."""
+    from fenris.digest import recent_digests
+
+    conn = _db()
+    try:
+        return {"runs": recent_digests(conn, max(1, min(limit, 50)))}
+    finally:
+        conn.close()
+
+
+@app.get("/api/digests/run/{run_id}")
+def digest_get(run_id: int) -> dict:
+    """One persisted digest run, markdown included."""
+    conn = _db()
+    try:
+        row = conn.execute(
+            "SELECT generated_at, window_start, window_days, counts_json, markdown FROM digest_runs WHERE id = ?",
+            (run_id,),
+        ).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="no such digest run")
+        return {
+            "id": run_id, "generated_at": row[0], "window_start": row[1],
+            "window_days": row[2], "counts_json": row[3], "markdown": row[4],
+        }
+    finally:
+        conn.close()
+
+
+@app.get("/api/digest-schedules")
+def digest_schedules_list() -> dict:
+    """All digest schedules."""
+    from fenris.digest import list_schedules
+
+    conn = _db()
+    try:
+        return {"schedules": [
+            {"id": s.id, "name": s.name, "at": f"{s.cron_hour.zfill(2)}:{s.cron_minute.zfill(2)}",
+             "daily": s.cron_dow == "*", "dow": s.cron_dow,
+             "window_days": s.window_days, "enabled": s.enabled,
+             "last_run_at": s.last_run_at}
+            for s in list_schedules(conn)
+        ]}
+    finally:
+        conn.close()
+
+
+@app.post("/api/digest-schedules")
+def digest_schedule_create(req: DigestScheduleCreate) -> dict:
+    """Add a digest schedule ('HH:MM', daily or weekly)."""
+    from fenris.digest import add_schedule
+
+    try:
+        hh, mm = req.at.split(":", 1)
+        hour, minute = int(hh), int(mm)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="at must be HH:MM (24h)")
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        raise HTTPException(status_code=422, detail="at must be HH:MM (24h)")
+    dow_field = "*" if req.daily else _dow_from_name(req.dow)
+
+    conn = _db()
+    try:
+        sid = add_schedule(conn, req.name[:100], str(minute), str(hour),
+                           dow_field, req.window_days)
+        return {"id": sid, "ok": True}
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    finally:
+        conn.close()
+
+
+def _dow_from_name(dow: str) -> str:
+    names = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
+    d = dow.strip().lower()[:3]
+    if d not in names:
+        raise HTTPException(status_code=422, detail="dow must be sun..sat")
+    return str(names.index(d))
+
+
+@app.delete("/api/digest-schedules/{sid}")
+def digest_schedule_delete(sid: int) -> dict:
+    from fenris.digest import delete_schedule
+
+    conn = _db()
+    try:
+        if not delete_schedule(conn, sid):
+            raise HTTPException(status_code=404, detail="no such schedule")
+        return {"ok": True}
+    finally:
+        conn.close()
+
+
+@app.post("/api/digest-schedules/{sid}/toggle")
+def digest_schedule_toggle(sid: int, enabled: bool = True) -> dict:
+    from fenris.digest import set_schedule_enabled
+
+    conn = _db()
+    try:
+        if not set_schedule_enabled(conn, sid, enabled):
+            raise HTTPException(status_code=404, detail="no such schedule")
+        return {"ok": True, "enabled": enabled}
+    finally:
+        conn.close()
+
+
+@app.post("/api/digests/run-due")
+def digest_run_due() -> dict:
+    """The scheduler's tick, on demand: run everything due right now."""
+    from fenris.digest import run_due
+
+    conn = _db()
+    try:
+        ran = run_due(conn)
+        return {"ran": ran}
     finally:
         conn.close()

@@ -68,7 +68,7 @@ def test_diff_reports_added_and_removed(seeded):
 
 
 def test_diff_identical_revisions_says_so(seeded):
-    tc, old_id, new_id = seeded
+    tc, _old_id, new_id = seeded
     r = tc.get(f"/api/files/mydrive/contract/diff?from_id={new_id}&to_id={new_id}")
     assert r.status_code == 200
     assert "identical content" in r.json()["summary"]

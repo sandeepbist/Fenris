@@ -33,7 +33,7 @@ def test_conversation_lifecycle(tc):
     assert r.status_code == 200
 
     full = tc.get(f"/api/conversations/{cid}").json()
-    assert full["turn_count"] if "turn_count" in full else True
+    assert full.get("turn_count", True)
     assert len(full["turns"]) == 1
     assert full["turns"][0]["answer"] == "4.2 million"
     assert full["turns"][0]["citations"][0]["evidence_id"] == "a"
@@ -51,7 +51,7 @@ def test_conversation_lifecycle(tc):
 
 
 def test_pinned_sorts_first(tc):
-    a = _create(tc, "unpinned")
+    _create(tc, "unpinned")
     b = _create(tc, "to pin")
     tc.patch(f"/api/conversations/{b}", json={"pinned": True})
     first = tc.get("/api/conversations").json()["conversations"][0]

@@ -295,6 +295,44 @@ export interface SearchResult {
   total_chunks: number;
 }
 
+// ---- digests (P2.4) ------------------------------------------------------------
+
+export interface DigestCounts {
+  new: number;
+  updated: number;
+  removed: number;
+  problems: number;
+  skipped: number;
+}
+
+export interface DigestRunInfo {
+  id: number;
+  schedule_id: number | null;
+  generated_at: string;
+  window_start: string;
+  window_days: number;
+  counts: DigestCounts;
+}
+
+export interface DigestPayload {
+  generated_at: string;
+  window_start: string;
+  window_days: number;
+  counts: DigestCounts;
+  markdown: string;
+}
+
+export interface DigestScheduleRow {
+  id: number;
+  name: string;
+  at: string; // "HH:MM"
+  daily: boolean;
+  dow: string; // cron field, '*' when daily
+  window_days: number;
+  enabled: boolean;
+  last_run_at: string | null;
+}
+
 // ---- client ------------------------------------------------------------------
 
 export const api = {
@@ -350,6 +388,30 @@ export const api = {
       method: "POST",
       body: JSON.stringify(turn),
     }),
+
+  // digests
+  latestDigest: () =>
+    req<{ digest: DigestPayload | null }>("/api/digests/latest"),
+  generateDigest: (windowDays = 7) =>
+    req<DigestPayload & { run_id: number }>(
+      `/api/digests/generate?window_days=${windowDays}`),
+  digestRuns: (limit = 10) =>
+    req<{ runs: DigestRunInfo[] }>(`/api/digests?limit=${limit}`),
+  digestSchedules: () =>
+    req<{ schedules: DigestScheduleRow[] }>("/api/digest-schedules"),
+  addDigestSchedule: (s: { name: string; at: string; daily: boolean; dow: string; window_days: number }) =>
+    req<{ id: number; ok: boolean }>("/api/digest-schedules", {
+      method: "POST",
+      body: JSON.stringify(s),
+    }),
+  deleteDigestSchedule: (sid: number) =>
+    req<{ ok: boolean }>(`/api/digest-schedules/${sid}`, { method: "DELETE" }),
+  toggleDigestSchedule: (sid: number, enabled: boolean) =>
+    req<{ ok: boolean; enabled: boolean }>(
+      `/api/digest-schedules/${sid}/toggle?enabled=${enabled}`, { method: "POST" }),
+  runDueDigests: () =>
+    req<{ ran: { schedule_id: number; name: string; counts: DigestCounts }[] }>(
+      "/api/digests/run-due", { method: "POST" }),
 
   status: () => req<Status>("/api/status"),
 

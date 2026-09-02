@@ -225,6 +225,13 @@ try:
 except ImportError:
     pass
 
+try:
+    from fenris.digest.cli import app as digest_app
+
+    app.add_typer(digest_app, name="digest")
+except ImportError:
+    pass
+
 
 def main() -> None:
     app()

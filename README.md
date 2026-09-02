@@ -12,7 +12,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-7aa2f7.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-306998.svg)](pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-332%20passing-4ade80.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-416%20passing-4ade80.svg)](tests/)
 [![Scope](https://img.shields.io/badge/Drive%20scope-read--only-f97316.svg)](docs/legal/security-disclosure.md)
 [![Offline](https://img.shields.io/badge/retrieval-100%25%20local-7aa2f7.svg)](docs/architecture.md)
 
@@ -65,7 +65,7 @@ make ui                           # build + serve everything at 127.0.0.1:8000
 ```
 
 ```bash
-make test                         # 332 tests, all offline, ~55s
+make test                         # the full suite, all offline, ~1min
 make lint                         # ruff
 make ui-dev                       # hot-reload frontend on :5173
 ```
@@ -126,6 +126,8 @@ evaluation suite — is in **[docs/architecture.md](docs/architecture.md)**.
 | `fenris sync run` | Drains the Drive change feed; renames cost metadata only, edits re-ingest |
 | `fenris sync status` | Cursor state, index counts, staleness verdict |
 | `fenris sync resync` | Full re-enumeration escape hatch with diff reconciliation |
+| `fenris digest now` | Compute + print one "what changed in my Drive" digest |
+| `fenris digest schedule add "Weekly" --at 08:00 --weekly --dow mon` | Monday-8am digest schedule; the API process runs due ones |
 | `fenris ask "..."` | One question, one cited answer (or an explicit state) |
 | `fenris eval --suite golden` | 120 graded cases over a reproducible synthetic corpus |
 | `fenris init` | Create the data directory and apply the schema |
@@ -199,7 +201,7 @@ src/fenris/
 └── api.py        local HTTP surface + one-process web UI
 
 frontend/         React 19 · Tailwind 4 · dark terminal aesthetic
-tests/            332 tests + 1 skip, all offline
+tests/            the full suite, all offline
 docs/             architecture · legal · research notes
 ```
 

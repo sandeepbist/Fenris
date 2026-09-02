@@ -28,6 +28,7 @@ import {
 } from "@/components/ui";
 import { SetupNeededBanner, LoadError } from "@/components/setup-needed";
 import { Onboarding } from "@/components/onboarding";
+import { DigestCard } from "@/components/digest-card";
 
 type Phase =
   | { kind: "loading" }
@@ -204,6 +205,8 @@ export function DashboardPage() {
           </p>
         )}
       </Card>
+
+      <DigestCard onGenerated={() => void load()} />
 
       {syncResult && (
         <motion.div

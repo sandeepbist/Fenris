@@ -183,7 +183,7 @@ def test_eval_tables_keyed(cfg):
         conn.execute(
             "INSERT INTO eval_case_results(run_id, case_id, suite) VALUES (?,?,?)",
             (run_id, "g001", "golden"))
-        with pytest.raises(Exception):
+        with pytest.raises(sqlite3.IntegrityError):
             conn.execute(
                 "INSERT INTO eval_case_results(run_id, case_id, suite) VALUES (?,?,?)",
                 (run_id, "g001", "golden"))

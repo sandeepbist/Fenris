@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from dataclasses import dataclass
 
 from fenris.ingest import chunk as chunk_mod
@@ -79,6 +80,11 @@ class IngestResult:
     tables_inserted: int = 0
     chunks_embedded: int = 0       # API-billed embeds (dedup skipped the rest)
     chunks_deduped: int = 0        # reused stored embeddings
+
+
+def _now_iso() -> str:
+    """UTC index-time stamp (the sources.created_at digest/ordering column)."""
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
 def _text_hash(header_text: str, body_text: str) -> str:
@@ -220,7 +226,7 @@ def _insert_source(conn, meta: FileMeta, target_mime: str, model_id: str) -> int
             meta.path,
             meta.modified_time,
             meta.resource_key,
-            None,
+            _now_iso(),
         ),
     )
     return cur.lastrowid
@@ -300,7 +306,7 @@ def _write_status_row(
                     meta.path,
                     meta.modified_time,
                     meta.resource_key,
-                    None,
+                    _now_iso(),
                 ),
             )
             source_id = cur.lastrowid
