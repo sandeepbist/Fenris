@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { api, SetupNeeded } from "@/lib/api";
+import { api, SetupNeeded, type DoctorReport } from "@/lib/api";
 import { Badge, Card, CardHeader, Stat } from "@/components/ui";
 import { SetupNeededBanner, LoadError } from "@/components/setup-needed";
 
@@ -34,17 +34,16 @@ function Row({ ok, title, body }: { ok: boolean; title: string; body: string }) 
 
 export function SettingsPage() {
   const [phase, setPhase] = useState<Phase>({ kind: "loading" });
+  const [doctor, setDoctor] = useState<DoctorReport | null>(null);
 
   const load = useCallback(async () => {
     setPhase({ kind: "loading" });
     try {
       const health = await api.health();
       let stale = false;
-      let lastDrain: string | null = null;
       try {
         const s = await api.status();
         stale = s.stale_sync;
-        lastDrain = s.last_drain_at;
       } catch {
         /* status needs a cursor row; a fresh DB legitimately lacks one */
       }
@@ -55,7 +54,9 @@ export function SettingsPage() {
         dbPath: health.db_path,
         stale,
       });
-      void lastDrain;
+      // the doctor card is independent: an API-down page still shows it if
+      // reachable, and a doctor failure never blocks the page
+      api.doctor().then(setDoctor).catch(() => setDoctor(null));
     } catch (e) {
       if (e instanceof SetupNeeded) setPhase({ kind: "setup", error: e });
       else if (e instanceof Error) setPhase({ kind: "error", error: e });
@@ -79,18 +80,28 @@ export function SettingsPage() {
           <Card>
             <CardHeader
               title="Setup"
-              action={<Badge tone={phase.hasDb ? "answerable" : "insufficient"}>{phase.hasDb ? "READY" : "FIRST RUN"}</Badge>}
+              action={
+                doctor ? (
+                  <Badge tone={doctor.all_ok ? "answerable" : "stale"}>
+                    {doctor.all_ok ? "ALL OK" : "NEEDS ATTENTION"}
+                  </Badge>
+                ) : (
+                  <Badge tone="insufficient">CHECKING…</Badge>
+                )
+              }
             />
-            <Row
-              ok={phase.engineUp}
-              title="Engine running"
-              body="the local API answered — this is it"
-            />
-            <Row
-              ok={phase.hasDb}
-              title="Local index"
-              body={phase.dbPath}
-            />
+            {doctor ? (
+              <div className="divide-y divide-border-subtle">
+                {doctor.checks.map((c) => (
+                  <Row key={c.name} ok={c.ok} title={c.name} body={c.detail} />
+                ))}
+              </div>
+            ) : (
+              <>
+                <Row ok={phase.engineUp} title="Engine running" body="the local API answered" />
+                <Row ok={false} title="Diagnostics" body="running checks…" />
+              </>
+            )}
             <div className="border-t border-border-subtle px-4 py-3">
               <p className="text-sm font-medium">Google Drive connection</p>
               <p className="text-xs text-text-muted">

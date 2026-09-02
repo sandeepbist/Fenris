@@ -51,6 +51,21 @@ def init() -> None:
     typer.echo(f"schema applied: {n_tables} tables, vec0={'yes' if has_vec else 'no'}")
 
 
+@app.command()
+def doctor() -> None:
+    """Check everything that can break, and say what to do about each."""
+    from fenris.doctor import all_ok, run_doctor
+
+    results = run_doctor()
+    for r in results:
+        mark = "ok" if r["ok"] else "FAIL"
+        typer.echo(f"[{mark:^4}] {r['name']}: {r['detail']}")
+    if all_ok(results):
+        typer.echo("all checks passed")
+        raise typer.Exit(code=0)
+    raise typer.Exit(code=1)
+
+
 def _open_db():
     from fenris.db import connect
 

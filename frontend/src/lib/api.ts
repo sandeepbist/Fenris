@@ -68,6 +68,17 @@ export interface Status {
   chunks: number;
 }
 
+export interface DoctorCheck {
+  name: string;
+  ok: boolean;
+  detail: string;
+}
+
+export interface DoctorReport {
+  checks: DoctorCheck[];
+  all_ok: boolean;
+}
+
 export interface SourceRow {
   file_id: string;
   title: string;
@@ -230,6 +241,8 @@ export interface SourceView {
 
 export const api = {
   health: () => req<Health>("/api/health"),
+
+  doctor: () => req<DoctorReport>("/api/doctor"),
 
   sourceView: (chunkId: number) =>
     req<SourceView>(`/api/source-view?chunk_id=${chunkId}`),

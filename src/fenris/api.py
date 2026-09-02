@@ -536,3 +536,12 @@ def source_view(chunk_id: int) -> dict:
         }
     finally:
         conn.close()
+
+
+@app.get("/api/doctor")
+def doctor() -> dict:
+    """The same diagnostics `fenris doctor` prints, for the Settings page."""
+    from fenris.doctor import all_ok, run_doctor
+
+    results = run_doctor()
+    return {"checks": results, "all_ok": all_ok(results)}
