@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# STUB: replaced by ./build-engine.sh output (PyInstaller onedir binary)
+echo "fenris-engine sidecar stub - run desktop/build-engine.sh to build the real engine" >&2
+exec python -m fenris "$@"

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Fenris",
+  "version": "0.1.0",
+  "identifier": "dev.fenris.desktop",
+  "build": {
+    "frontendDist": "../frontend/dist",
+    "beforeDevCommand": "make -C .. ui-build",
+    "beforeBuildCommand": "make -C .. ui-build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Fenris",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 600,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "externalBin": ["binaries/fenris-engine"],
+    "icon": ["icons/icon.png"]
+  }
+}
