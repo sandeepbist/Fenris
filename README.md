@@ -1,70 +1,221 @@
+<div align="center">
+
+<!-- logo -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/favicon.svg">
+  <img src="frontend/public/favicon.svg" width="110" alt="Fenris">
+</picture>
+
 # Fenris
 
-Search and question-answering over your own Google Drive, on your machine.
+**RAG over your own Google Drive — local-first, citation-enforced, honest by design.**
 
-Fenris connects to your Drive with a read-only token, builds a local index of your documents, and answers questions about them with citations to the exact text it used — or a plain statement that the evidence isn't there. Your files stay on your Drive. The index stays on your disk. Only your questions go anywhere, to the Gemini API, and that's the whole outbound story.
+[![License: MIT](https://img.shields.io/badge/license-MIT-7aa2f7.svg)](LICENSE)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-306998.svg)](pyproject.toml)
+[![Tests](https://img.shields.io/badge/tests-332%20passing-4ade80.svg)](tests/)
+[![Scope](https://img.shields.io/badge/Drive%20scope-read--only-f97316.svg)](docs/legal/security-disclosure.md)
+[![Offline](https://img.shields.io/badge/retrieval-100%25%20local-7aa2f7.svg)](docs/architecture.md)
 
-```
-$ fenris ask "what did the Q3 report say about marketing spend?"
-```
+Fenris connects to your Drive with a read-only token, builds a local search index,
+and answers questions about your files with citations to the exact text it used —
+or a plain statement that the evidence isn't there.
 
-## Why you might want this
+[Key ideas](#key-ideas) · [Quickstart](#quickstart) · [How it works](#how-it-works) · [Commands](#commands) · [Limitations](#honest-limitations) · [Security](#security)
 
-- **Your documents stay yours.** No uploads to a third-party corpus, no vector database billed by the gigabyte. Fenris is a read-only window over storage you already pay for.
-- **Citations you can check.** Every answer links to the file, page, and quoted span it came from. A citation that doesn't resolve to retrieved text is dropped and logged, never shown.
-- **Honest non-answers.** A question resolves to ANSWERABLE, INSUFFICIENT, STALE, CONFLICTING, or ERROR — the system says what's missing rather than writing fluent guesses.
-- **It runs on a laptop.** SQLite with FTS5 and sqlite-vec, brute-force search over personal-scale corpora, a venv under 1.5 GB. No GPU, no server.
+</div>
 
-## What it does
+---
 
-1. **Syncs** from your Drive through the official change feed — renames and moves cost a metadata write; edits trigger re-ingestion of the changed file; deletions and revoked shares stop serving immediately. The sync cursor commits in the same transaction as the index writes, so a crash replays rather than skips.
-2. **Parses and indexes** docx, xlsx, pptx, text, markdown, HTML, EPUB, and Google Docs/Sheets/Slides (via export) with Docling; chunks at 512 tokens with no overlap; keeps tables as structured records with cell-level references.
-3. **Answers** through hybrid BM25 + vector search, RRF fusion, CPU reranking, and adaptive result counts — with every retrieved chunk sandboxed as untrusted data, prompt-injection defenses on by default.
-4. **Serves a web UI** — dashboard, chat with citation cards, sources ledger, settings — from a single local process, or works entirely from the terminal.
+## Key ideas
 
-## Requirements
+Most RAG tools ask you to upload your documents to someone else's corpus.
+Fenris starts from the opposite position: your files stay where they are,
+on storage you already pay for, and everything Fenris needs to search them
+lives on your disk.
 
-- Python 3.12+, and [bun](https://bun.sh) if you want the web UI
-- A Google account whose Drive you own, plus a one-time OAuth consent
-- A Gemini API key ([get one free](https://aistudio.google.com/apikey)) for embeddings and answers
+| Idea | What it means in practice |
+| :--- | :--- |
+| **Local-first** | Google Drive is the authoritative copy. Fenris keeps a local, rebuildable index — a projection, not a warehouse. Queries never touch the network. |
+| **Citation-enforced** | Every answer links to the file, page, and quoted span it came from. A citation that doesn't resolve to retrieved text is dropped and logged. Model-invented sources cannot reach the output. |
+| **Honest non-answers** | A question resolves to `ANSWERABLE`, `INSUFFICIENT`, `STALE`, `CONFLICTING`, or `ERROR`. When the evidence isn't there, Fenris says what's missing instead of writing a fluent guess. |
+| **Correctness before speed** | The sync cursor commits in the same transaction as the index writes, so a crash replays rather than skips. A file can never have two active representations. Deleted or unshared files stop serving immediately. |
+| **Untrusted by default** | Retrieved text is fenced as data, never instructions. No shell, no URL fetcher, no Drive write path exists in the answer loop — a poisoned document has nothing to command. |
+
+---
 
 ## Quickstart
 
-Terminal only:
+Requirements: Python 3.12+, [bun](https://bun.sh) (web UI only), a Google account, and a [Gemini API key](https://aistudio.google.com/apikey).
+
+**Terminal only:**
 
 ```bash
-make setup
-export GOOGLE_API_KEY=...          # from aistudio.google.com
-.venv/bin/fenris drive auth        # one-time; browser opens, approve read-only access
-.venv/bin/fenris sync run           # first run indexes; later runs take seconds
+make setup                        # venv + deps (auto-trims GPU wheels)
+
+export GOOGLE_API_KEY=...         # aistudio.google.com/apikey
+.venv/bin/fenris drive auth      # one-time: browser opens, approve read-only access
+.venv/bin/fenris sync run         # first run indexes; later runs take seconds
 .venv/bin/fenris ask "what's in my 2024 tax folder?"
 ```
 
-With the web UI — dashboard, chat, sources, settings at `http://127.0.0.1:8000`:
+**With the web UI** — dashboard, chat with citation cards, sources ledger, settings:
 
 ```bash
-make ui
+make ui                           # build + serve everything at 127.0.0.1:8000
 ```
 
-Development hot-reload: `make ui-dev` (frontend on :5173) alongside `make api`.
+```bash
+make test                         # 332 tests, all offline, ~55s
+make lint                         # ruff
+make ui-dev                       # hot-reload frontend on :5173
+```
 
-## Honest limitations
+<div align="center"><em>The whole product is one process: UI, API, and engine.</em></div>
 
-- **PDFs and images are skipped** in the default CPU-slim build. Docling's layout models pull a ~1.2 GB PyTorch install; if you want them indexed, install torch and re-run sync. Skipped files are recorded with reasons, visible in the Sources page.
-- **First sync takes real time.** Downloads are paced against Drive's quota (~600/min). A few hundred files is minutes; tens of thousands is hours, by design — quota violations break syncs.
-- **Single user.** One Drive, one machine, one person. There is no multi-tenant anything.
-- **Answers are only as fresh as the last sync.** Fenris tells you when the index is stale rather than pretending.
+---
 
 ## How it works
 
-See [docs/architecture.md](docs/architecture.md) for the full design: revision-aware identity (content hashes, not Drive's version numbers), the crash-safe sync loop, the answer-state ladder, and the evaluation suite with its 120 graded questions over a synthetic personal corpus.
+```
+ Google Drive ──── change feed ────► Sync ──► Ingest ──► SQLite projection
+ (authoritative)                     │        (Docling)   sources · chunks
+                                     │                     FTS5 · vec0
+                                     │                     tables · cursor
+                                     ▼
+        ┌──────────────── local only ────────────────┐
+        │                                            │
+        ▼                                            ▼
+      BM25 ──────── RRF fusion ──────── KNN        Verify
+        └──────────────┬───────────────┘            │
+                       ▼                            ▼
+                   Rerank ──► Adaptive-k ──► State ladder ──► Prompt
+                                  │               │          (untrusted fence)
+                                  ▼               ▼
+                             Diversity      INSUFFICIENT │   │
+                                              STALE ────┤   ▼
+                                           CONFLICTING ─┤ Generate
+                                                      └─► Citation render
+                                                           │
+                                                           ▼
+                                                     Answer + state
+```
 
-For the legal side — terms of use, privacy (what data goes where, precisely), and security disclosures — see [docs/legal/](docs/legal/).
+**The answer path, in one paragraph.** The query is routed deterministically —
+exact-match questions go BM25-first, table questions restrict to structured
+records, everything else runs the hybrid path. BM25 and filtered vector search
+run in parallel against active, untrashed chunks; results fuse via reciprocal
+rank; a CPU reranker scores the fused set; adaptive-k picks how many results
+the question actually deserves (score shape, not a fixed count). Cited sources
+are verified against the index before generation; the model sees evidence
+sandboxed as data and must cite evidence IDs; the renderer resolves those IDs
+deterministically. An answer that survives all of that is shown with its
+citations. Anything less gets an explicit state — never a dressed-up guess.
+
+The full design — revision-aware identity, the crash-safe sync loop, the
+evaluation suite — is in **[docs/architecture.md](docs/architecture.md)**.
+
+---
+
+## Commands
+
+| Command | What it does |
+| :--- | :--- |
+| `fenris drive auth` | PKCE loopback OAuth; refresh token goes to the OS keyring, never a file |
+| `fenris drive disconnect` | Revokes the Google grant for real and deletes the stored token |
+| `fenris drive status` | Connection state and this session's quota counters |
+| `fenris sync run` | Drains the Drive change feed; renames cost metadata only, edits re-ingest |
+| `fenris sync status` | Cursor state, index counts, staleness verdict |
+| `fenris sync resync` | Full re-enumeration escape hatch with diff reconciliation |
+| `fenris ask "..."` | One question, one cited answer (or an explicit state) |
+| `fenris eval --suite golden` | 120 graded cases over a reproducible synthetic corpus |
+| `fenris init` | Create the data directory and apply the schema |
+
+---
+
+## What gets indexed
+
+| Format | Path |
+| :--- | :--- |
+| DOCX · XLSX · PPTX · TXT · MD · HTML · EPUB | Parsed locally with Docling |
+| Google Docs · Sheets · Slides | Exported, hash-verified, then parsed |
+| Tables (in any format) | Kept as structured records with cell-level references |
+| PDF · images | Skipped in the CPU-slim build — see [limitations](#honest-limitations) |
+| Audio · video · archives | Skipped with the reason recorded, visible in the UI |
+
+---
+
+## Honest limitations
+
+Stated plainly, because a tool that hides its gaps invites you to trust it
+anyway.
+
+- **PDFs and images are skipped by default.** Docling's layout models pull a
+  ~1.2 GB PyTorch install; this repo ships CPU-slim instead. Install `torch`
+  and re-run sync to enable them. Skipped files are recorded with reasons.
+- **First sync takes real time.** Downloads are paced against Drive's quota
+  (~600/min). Hundreds of files is minutes; tens of thousands is hours — by
+  design, because quota violations break syncs.
+- **Single user.** One Drive, one machine, one person. No multi-tenant anything.
+- **Answers are only as fresh as the last sync.** Fenris marks staleness when
+  it detects it rather than pretending freshness.
+- **The local index is not encrypted.** The OS login is the boundary; a
+  fake passphrase checkbox would be theater. See the
+  [security disclosure](docs/legal/security-disclosure.md) for the full
+  threat model — what's defended, and what deliberately isn't.
+
+---
+
+## Security
+
+The engine survived an offensive review: five attack batteries (SQL/FTS5
+injection, citation forgery, API abuse, token-path tracing, ingest bombs),
+four real vulnerabilities found and fixed, each locked by a regression test
+in [tests/test_security.py](tests/test_security.py).
+
+- OAuth scope is `drive.readonly` — Fenris cannot write to your Drive, period.
+- The refresh token lives in the OS keyring; `disconnect` revokes at Google
+  even if the network call fails.
+- All SQL is parameterized; control characters and metadata bombs are
+  neutralized at ingest; questions are capped at validation.
+- The web UI binds `127.0.0.1` only and has no auth — it was never meant to
+  face anything but your own browser. Do not port-forward it.
+
+Full disclosure: **[security & data handling](docs/legal/security-disclosure.md)** ·
+[terms of service](docs/legal/terms-of-service.md) ·
+[privacy policy](docs/legal/privacy-policy.md)
+
+---
+
+## Project layout
+
+```
+src/fenris/
+├── drive/        OAuth client, quota accounting, error taxonomy, fakes
+├── sync/         change-feed drain, tombstones, resync, staleness
+├── ingest/       MIME routing, Docling parse, chunking, embeddings, guards
+├── retrieve/     routing, BM25, KNN, RRF, rerank, adaptive-k, evidence
+├── generate/     verification, state ladder, prompts, agentic retry, render
+├── eval/         corpus, 120 graded cases, metrics, runner
+└── api.py        local HTTP surface + one-process web UI
+
+frontend/         React 19 · Tailwind 4 · dark terminal aesthetic
+tests/            332 tests + 1 skip, all offline
+docs/             architecture · legal · research notes
+```
+
+---
 
 ## Contributing
 
-The repo runs on conventional commits and a correctness-first bar: six invariants (cursor/transaction discipline, one active representation per file, retrieved-text-is-data, deterministic citations, no stale or unauthorized serving, network outside transactions) are enforced by tests and described in [CONTRIBUTING.md](CONTRIBUTING.md). All 313 tests run offline.
+Six correctness invariants are enforced by tests and never traded for
+features — the cursor never advances past uncommitted index state; one
+active representation per file; retrieved text is data; citations resolve
+deterministically; nothing stale or unauthorized serves; network never runs
+inside transactions. Read them in **[CONTRIBUTING.md](CONTRIBUTING.md)**
+before opening a PR.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Legal templates adapted from [General Legal](https://github.com/General-Legal/legal-templates) (CC0).
+[MIT](LICENSE) — code. Legal documents adapted from
+[General Legal](https://github.com/General-Legal/legal-templates) (CC0).
+The project is not legal advice.

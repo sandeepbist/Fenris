@@ -9,6 +9,10 @@ from fenris.db import connect
 
 app = typer.Typer(help="Synchronize the local index with Google Drive.", no_args_is_help=True)
 
+# Alias under the name the main CLI registers (the registration block in
+# fenris.cli imports `sync_app`).
+sync_app = app
+
 
 def _get_client():
     from fenris.drive.auth import load_or_refresh
