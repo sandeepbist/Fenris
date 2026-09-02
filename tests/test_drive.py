@@ -17,6 +17,8 @@ import pytest
 from typer.testing import CliRunner
 
 import fenris.drive.auth as auth_mod
+DUMMY_TOKEN_FOR_TESTS = "obviously-fake-test-token"
+
 from fenris.drive.auth import (
     KEYRING_ACCOUNT,
     KEYRING_SERVICE,
@@ -633,7 +635,7 @@ def test_auth_flow_uses_pkce_and_readonly_scope(tmp_path, monkeypatch):
     captured: dict = {}
 
     class FakeCreds:
-        refresh_token = "fresh-refresh-token"
+        refresh_token = DUMMY_TOKEN_FOR_TESTS
 
     class FakeFlow:
         def __init__(self, scopes, autogenerate_code_verifier=None):
@@ -658,11 +660,11 @@ def test_auth_flow_uses_pkce_and_readonly_scope(tmp_path, monkeypatch):
     monkeypatch.setattr(A.keyring, "get_password", ring.get_password)
 
     token = A.run_auth_flow(secrets)
-    assert token == "fresh-refresh-token"
+    assert token == DUMMY_TOKEN_FOR_TESTS
     assert captured["scopes"] == [A.DRIVE_SCOPE]
     assert A.DRIVE_SCOPE == "https://www.googleapis.com/auth/drive.readonly"
     assert captured["autogenerate_code_verifier"] is True   # PKCE loopback
-    assert ring.stored == "fresh-refresh-token"
+    assert ring.stored == DUMMY_TOKEN_FOR_TESTS
     assert ("set", KEYRING_SERVICE, KEYRING_ACCOUNT) in ring.calls
 
 
