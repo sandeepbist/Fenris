@@ -230,6 +230,7 @@ export interface SourceViewChunk {
 export interface SourceView {
   title: string;
   file_id: string;
+  drive_id: string;
   revision: string;
   modified_time: string | null;
   cited: {
@@ -240,6 +241,25 @@ export interface SourceView {
     char_end: number | null;
   };
   chunks: SourceViewChunk[];
+}
+
+export interface RevisionRow {
+  source_id: number;
+  revision: string;
+  created_at: string | null;
+  active: boolean;
+  chunk_count: number;
+}
+
+export interface RevisionDiffPayload {
+  file_id: string;
+  title: string;
+  from: { source_id: number; revision: string; created_at: string | null };
+  to: { source_id: number; revision: string; created_at: string | null };
+  added: { header: string; body: string; pages: string | null }[];
+  removed: { header: string; body: string; pages: string | null }[];
+  unchanged_count: number;
+  summary: string;
 }
 
 export interface SearchMatch {
@@ -279,6 +299,12 @@ export const api = {
 
   sourceView: (chunkId: number) =>
     req<SourceView>(`/api/source-view?chunk_id=${chunkId}`),
+  fileRevisions: (driveId: string, fileId: string) =>
+    req<{ revisions: RevisionRow[] }>(
+      `/api/files/${driveId}/${fileId}/revisions`),
+  revisionDiff: (driveId: string, fileId: string, fromId: number, toId: number) =>
+    req<RevisionDiffPayload>(
+      `/api/files/${driveId}/${fileId}/diff?from_id=${fromId}&to_id=${toId}`),
 
   // conversations
   conversations: () => req<{ conversations: ConversationRow[] }>("/api/conversations"),

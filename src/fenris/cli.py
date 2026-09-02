@@ -166,8 +166,8 @@ def ask(
         conn.close()
 
 
-@app.command()
-def eval(
+@app.command(name="eval")
+def run_eval(
     suite: str = typer.Option("golden", "--suite", help="Eval suite to run."),
     limit: int = typer.Option(0, "--limit", help="Max cases (0 = all)."),
 ) -> None:

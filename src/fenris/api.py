@@ -556,7 +556,7 @@ def source_view(chunk_id: int) -> dict:
         row = conn.execute(
             """SELECT c.chunk_id, c.header_text, c.body_text, c.char_start, c.char_end,
                       c.ordinal, s.id AS source_id, s.title, s.file_id,
-                      s.source_revision, s.modified_time
+                      s.source_revision, s.modified_time, s.drive_id
                FROM chunks c JOIN sources s ON s.id = c.source_id
                WHERE c.chunk_id = ? AND s.active = 1 AND s.trashed = 0""",
             (chunk_id,),
@@ -574,6 +574,7 @@ def source_view(chunk_id: int) -> dict:
         return {
             "title": row[7] or row[8],
             "file_id": row[8],
+            "drive_id": row[11],
             "revision": (row[9] or "")[:12],
             "modified_time": row[10],
             "cited": {
@@ -733,3 +734,57 @@ def conversation_export(cid: int, fmt: str = "md") -> dict:
         )
         return {"format": "html", "content": html, "filename": f"{title}.html"}
     return {"format": "md", "content": markdown, "filename": f"{title}.md"}
+
+
+# ---- versioned-document QA (P2.1: what changed between revisions) ------------
+
+
+@app.get("/api/files/{drive_id}/{file_id}/revisions")
+def file_revisions_api(drive_id: str, file_id: str) -> dict:
+    """Every indexed representation of a file, newest-first."""
+    from fenris.versions import file_revisions
+
+    conn = _db()
+    try:
+        revs = file_revisions(conn, drive_id, file_id)
+        return {"revisions": [
+            {"source_id": r.source_id, "revision": r.revision[:12],
+             "created_at": r.created_at, "active": r.active,
+             "chunk_count": r.chunk_count}
+            for r in revs
+        ]}
+    finally:
+        conn.close()
+
+
+@app.get("/api/files/{drive_id}/{file_id}/diff")
+def revision_diff_api(drive_id: str, file_id: str,
+                      from_id: int, to_id: int) -> dict:
+    """Chunk-level diff between two indexed revisions.
+
+    Computed from stored projections - offline, no Drive fetch. Ids
+    that are not representations of this file 404 honestly.
+    """
+    from fenris.versions import revision_diff
+
+    conn = _db()
+    try:
+        diff = revision_diff(conn, drive_id, file_id, from_id, to_id)
+        if diff is None:
+            raise HTTPException(status_code=404, detail="not revisions of this file")
+        return {
+            "file_id": diff.file_id,
+            "title": diff.title,
+            "from": {"source_id": diff.from_rev.source_id,
+                     "revision": diff.from_rev.revision[:12],
+                     "created_at": diff.from_rev.created_at},
+            "to": {"source_id": diff.to_rev.source_id,
+                   "revision": diff.to_rev.revision[:12],
+                   "created_at": diff.to_rev.created_at},
+            "added": diff.added,
+            "removed": diff.removed,
+            "unchanged_count": diff.unchanged_count,
+            "summary": diff.summary,
+        }
+    finally:
+        conn.close()

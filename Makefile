@@ -31,6 +31,7 @@ slim:
 	  nvidia-cudnn-cu13 nvidia-cufft nvidia-cufile nvidia-curand nvidia-cusolver \
 	  nvidia-cusparse nvidia-cusparselt-cu13 nvidia-nccl-cu13 nvidia-nvjitlink \
 	  nvidia-nvshmem-cu13 nvidia-nvtx >/dev/null 2>&1 || true
+	-rm -rf .venv/lib/python3.14/site-packages/torch
 
 test:
 	$(PY) -m pytest

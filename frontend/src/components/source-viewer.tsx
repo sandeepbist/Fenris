@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { api, type SourceView } from "@/lib/api";
 import { Badge, SkeletonRow } from "@/components/ui";
+import { RevisionHistory } from "@/components/revision-history";
 import { cn } from "@/lib/utils";
 
 export function SourceViewer({
@@ -107,6 +108,10 @@ export function SourceViewer({
             );
           })}
         </div>
+
+        {view && (
+          <RevisionHistory driveId={view.drive_id} fileId={view.file_id} />
+        )}
       </div>
     </div>
   );
