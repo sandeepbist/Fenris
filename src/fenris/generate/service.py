@@ -92,7 +92,7 @@ def _trace_route(result) -> str | None:
 
 def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
         drive_files_rows=None, auth_epoch: int = 0, refresh_fn=None,
-        floor: float | None = None) -> AnswerPacket:
+        floor: float | None = None, strict: bool = False) -> AnswerPacket:
     """Answer one question end-to-end. Never raises: system faults -> ERROR.
 
     - ``qvec``: the pre-embedded query (passed through to nothing here - the
@@ -267,7 +267,7 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
         # ------------------------------------------------------------------ #
         # 6. assemble the prompt (U-shape) + 7. generate
         # ------------------------------------------------------------------ #
-        prompt = prompts.assemble_prompt(query, kept)
+        prompt = prompts.assemble_prompt(query, kept, strict=strict)
         _stage("prompt", evidence_count=len(kept), chars=len(prompt))
         generation = generator.generate(prompt)
         _stage("generate", state=generation.state, ok=generation.ok)
@@ -357,7 +357,8 @@ def _merge_prefer(primary: list[Evidence],
 
 def ask_stream(conn: sqlite3.Connection, query: str, qvec, *, generator,
                search_fn, drive_files_rows=None, auth_epoch: int = 0,
-               refresh_fn=None, floor: float | None = None):
+               refresh_fn=None, floor: float | None = None,
+               strict: bool = False):
     """Streaming variant of :func:`ask` for the CLI's ``fenris ask``.
 
     The retrieval/verify/ladder/prompt stages run identically; the only
@@ -420,7 +421,7 @@ def ask_stream(conn: sqlite3.Connection, query: str, qvec, *, generator,
             state = verify_mod.resolve_state(verification, kept, top_score,
                                              floor, rare_terms=rare)
 
-        prompt = prompts.assemble_prompt(query, kept)
+        prompt = prompts.assemble_prompt(query, kept, strict=strict)
         _stage("prompt", evidence_count=len(kept))
 
         chunks: list[str] = []

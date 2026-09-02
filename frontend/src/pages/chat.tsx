@@ -162,6 +162,10 @@ export function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastQuestion = useRef<string>("");
   const [viewerChunk, setViewerChunk] = useState<number | null>(null);
+  const [scope, setScope] = useState<string[]>([]);
+  const [scopeEditing, setScopeEditing] = useState(false);
+  const [scopeDraft, setScopeDraft] = useState("");
+  const [strict, setStrict] = useState(false);
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -245,7 +249,7 @@ export function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 
     const cid = await ensureConversation();
-    const { events, stop } = askStream(question);
+    const { events, stop } = askStream(question, true, scope, strict);
     stopRef.current = stop;
     let assembled = "";
     let finalResult: AskResult | null = null;
@@ -305,7 +309,7 @@ export function ChatPage() {
           .catch(() => undefined);
       }
     }
-  }, [input, busy, ensureConversation, refreshConversations]);
+  }, [input, busy, ensureConversation, refreshConversations, scope, strict]);
 
   const regenerate = useCallback(() => {
     if (!lastQuestion.current || busy) return;
@@ -441,6 +445,59 @@ export function ChatPage() {
 
       {/* composer */}
       <div className="border-t border-border-subtle p-4">
+        {/* corpus controls: scope chips + strictness toggle */}
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="mono text-[10px] uppercase tracking-wider text-text-faint">
+            scope
+          </span>
+          {scope.length === 0 && (
+            <button
+              onClick={() => setScopeEditing(true)}
+              className="mono rounded-full border border-border px-2 py-0.5 text-[10px] text-text-muted transition-colors hover:border-accent/40 hover:text-accent"
+            >
+              whole drive + set scope
+            </button>
+          )}
+          {scope.map((s) => (
+            <button
+              key={s}
+              onClick={() => setScope((sc) => sc.filter((x) => x !== s))}
+              className="mono rounded-full border border-accent/40 bg-accent-dim px-2 py-0.5 text-[10px] text-accent"
+              title="click to remove"
+            >
+              {s} ×
+            </button>
+          ))}
+          {scopeEditing && (
+            <input
+              autoFocus
+              value={scopeDraft}
+              onChange={(e) => setScopeDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && scopeDraft.trim()) {
+                  setScope((sc) => [...sc, scopeDraft.trim()]);
+                  setScopeDraft("");
+                }
+                if (e.key === "Escape") setScopeEditing(false);
+              }}
+              onBlur={() => setScopeEditing(false)}
+              placeholder="folder or file term, enter…"
+              className="mono w-40 rounded-full border border-accent/40 bg-transparent px-2 py-0.5 text-[10px] text-text placeholder:text-text-faint focus:outline-none"
+            />
+          )}
+          <button
+            onClick={() => setStrict((v) => !v)}
+            className={
+              "mono ml-auto rounded-full border px-2 py-0.5 text-[10px] transition-colors " +
+              (strict
+                ? "border-state-answerable/40 bg-state-answerable/5 text-state-answerable"
+                : "border-border text-text-muted hover:text-text")
+            }
+            title="Strict: every sentence must be cited evidence - no background knowledge"
+          >
+            strict {strict ? "on" : "off"}
+          </button>
+        </div>
         <div className="flex items-end gap-2 rounded-[--radius] border border-border bg-bg-raised p-2 focus-within:border-accent/50">
           <textarea
             value={input}

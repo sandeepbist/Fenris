@@ -798,3 +798,35 @@ class TestSearch:
                 return b"\x00" * (EMBED_DIMS * 4)
 
         assert embed_query("hello", FixedEmbedder()) == b"\x00" * (EMBED_DIMS * 4)
+
+
+class TestScopeFilter:
+    """P1.4: corpus scoping - a scoped miss is honest empty evidence,
+    never a scope-ignoring fallback."""
+
+    def test_scope_restricts_to_matching_files(self, conn):
+        seed_corpus(conn)
+        out = search(conn, "apple", None, scope=["banana"])
+        # 'banana' scope excludes the apple file entirely
+        assert all(e.file_id == "f2" for e in out.evidence)
+
+    def test_no_scope_returns_everything(self, conn):
+        seed_corpus(conn)
+        out = search(conn, "apple", None, scope=None)
+        assert out.evidence
+
+    def test_scope_by_title_matches(self, conn):
+        seed_corpus(conn)
+        out = search(conn, "apple", None, scope=["Apple"])
+        assert out.evidence
+        assert all("Apple" in (e.title or "") for e in out.evidence)
+
+    def test_scope_recorded_in_trace(self, conn):
+        seed_corpus(conn)
+        out = search(conn, "apple", None, scope=["zebra"])
+        assert out.trace.get("scope") == ["zebra"]
+
+    def test_scoped_miss_is_empty_not_fallback(self, conn):
+        seed_corpus(conn)
+        out = search(conn, "apple", None, scope=["nonexistent-term"])
+        assert out.evidence == []

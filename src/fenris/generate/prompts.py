@@ -164,33 +164,55 @@ def _evidence_lines(ev: Evidence) -> list[str]:
 # --------------------------------------------------------------------------- #
 
 
-def system_prompt() -> str:
-    """The system prompt: role + sandbox rule + states + citation + contract."""
+STRICT_MODE_RULE = (
+    "STRICT MODE IS ON. Every sentence in your answer must be directly "
+    "supported by cited evidence. Do not use outside knowledge, background "
+    "facts, or reasonable inferences - if the evidence does not state it, "
+    "either cite it or leave it out, and set state=INSUFFICIENT when the "
+    "evidence does not answer the question."
+)
+
+
+def system_prompt(strict: bool = False) -> str:
+    """The system prompt: role + sandbox rule + states + citation + contract.
+
+    ``strict`` tightens the contract to evidence-only sentences - the user-
+    visible strictness toggle behind the honest-answers ladder.
+    """
     role = (
         "You are Fenris, a precise question-answering assistant over one "
         "person's own Google Drive corpus. You answer strictly from the "
         "provided evidence."
     )
-    return "\n\n".join([
+    parts = [
         role,
         DATA_NOT_INSTRUCTIONS_RULE,
         "Answer states:",
         ANSWER_STATE_DEFINITIONS,
         "Citation rule: " + CITATION_RULE,
         OUTPUT_CONTRACT,
-    ])
+    ]
+    if strict:
+        parts.append(STRICT_MODE_RULE)
+    return "\n\n".join(parts)
 
 
-def assemble_prompt(question: str, evidence: list[Evidence]) -> str:
+def assemble_prompt(question: str, evidence: list[Evidence],
+                    strict: bool = False) -> str:
     """Assemble the full user-turn prompt for one question + evidence set.
 
     The evidence blocks are laid out in U-shape order (rank 1 first, rank 2
     last). The question itself is stated BEFORE the evidence (the model must
     read it with the sandbox rule already active) and repeated after the
-    blocks as a final instruction anchor.
+    blocks as a final instruction anchor. ``strict`` prepends the
+    evidence-only rule so the flat prompt carries it like the system
+    message does in build_messages.
     """
     ordered = u_shape(list(evidence))
     parts: list[str] = []
+    if strict:
+        parts.append(STRICT_MODE_RULE)
+        parts.append("")
     parts.append(f"Question: {question}")
     parts.append("")
     parts.append(
@@ -210,13 +232,14 @@ def assemble_prompt(question: str, evidence: list[Evidence]) -> str:
     return "\n".join(parts)
 
 
-def build_messages(question: str, evidence: list[Evidence]) -> list[dict]:
+def build_messages(question: str, evidence: list[Evidence],
+                   strict: bool = False) -> list[dict]:
     """The (system, user) message pair as a plain list of dicts.
 
     Kept dict-shaped so the Generator protocol stays independent of any one
     SDK's content types; GeminiGenerator maps this to its own types.
     """
     return [
-        {"role": "system", "content": system_prompt()},
+        {"role": "system", "content": system_prompt(strict)},
         {"role": "user", "content": assemble_prompt(question, evidence)},
     ]

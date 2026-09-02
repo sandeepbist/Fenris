@@ -168,6 +168,8 @@ export interface StreamEvent {
 export function askStream(
   question: string,
   rerank = true,
+  scope: string[] = [],
+  strict = false,
 ): { events: AsyncIterable<StreamEvent>; stop: () => void } {
   const controller = new AbortController();
   const decoder = new TextDecoder();
@@ -177,7 +179,7 @@ export function askStream(
     const res = await fetch("/api/ask/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, rerank }),
+      body: JSON.stringify({ question, rerank, scope, strict }),
       signal: controller.signal,
     });
     if (!res.ok || !res.body) {

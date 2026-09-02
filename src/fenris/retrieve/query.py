@@ -68,8 +68,41 @@ class EvidenceSet:
     trace: dict = field(default_factory=dict)
 
 
+def _apply_scope(conn, candidates, scope: list[str] | None):
+    """Restrict candidates to files whose id is in scope (or whose source's
+    title/path contains any scope term - the practical folder semantics).
+
+    Empty scope = no restriction. An all-filtered corpus yields [] and the
+    caller's empty-evidence path takes over - a scoped miss is an honest
+    INSUFFICIENT, not a scope-ignoring fallback.
+    """
+    if not scope:
+        return candidates
+    terms = [s.strip().lower() for s in scope if s and s.strip()]
+    if not terms:
+        return candidates
+    ids = [cid for cid, _s in candidates]
+    if not ids:
+        return []
+    placeholders = ",".join("?" * len(ids))
+    try:
+        rows = conn.execute(
+            f"""SELECT c.chunk_id, s.title, s.path, s.file_id
+                FROM chunks c JOIN sources s ON s.id = c.source_id
+                WHERE c.chunk_id IN ({placeholders})""", ids).fetchall()
+    except Exception:  # noqa: BLE001 - a scope filter must never break search
+        return candidates
+    allowed = set()
+    for chunk_id, title, path, file_id in rows:
+        hay = " ".join([(title or ""), (path or ""), file_id]).lower()
+        if any(t in hay for t in terms):
+            allowed.add(chunk_id)
+    return [(cid, s) for cid, s in candidates if cid in allowed]
+
+
 def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
-           reranker=None, auth_epoch: int = 0) -> EvidenceSet:
+           reranker=None, auth_epoch: int = 0,
+           scope: list[str] | None = None) -> EvidenceSet:
     """Run the full query path; never raises on empty/missing index state.
 
     - ``qvec``: the pre-embedded query as a 1536*4 fp32 blob (or None to run
@@ -78,6 +111,9 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
       NoopReranker() per the slice contract (unit tests must not download
       models).
     - ``auth_epoch``: the current auth epoch; KNN is filtered to it.
+    - ``scope``: optional list of terms; a candidate serves only if its
+      file's title/path/id contains one. Applied post-fusion so both
+      retrieval sides obey it identically.
 
     Returns EvidenceSet(evidence, route_decision, trace). Empty index ->
     empty evidence with the AGENTIC trigger recorded in the decision signals
@@ -99,12 +135,14 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
         dense = _filter_tables(conn, dense)
 
     fused = rrf.rrf_fuse(lexical, dense)
+    fused = _apply_scope(conn, fused, scope)
 
     trace: dict = {
         "query": query,
         "route_id": decision.route_id,
         "policy_version": decision.policy_version,
         "signals": decision.signals,
+        "scope": scope or None,
         "bm25": [(cid, s) for cid, s in lexical],
         "knn": [(cid, s) for cid, s in dense],
         "rrf": [(cid, s) for cid, s in fused],

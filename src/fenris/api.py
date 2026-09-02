@@ -191,6 +191,12 @@ def sync(req: SyncRequest) -> dict:
 class AskRequest(BaseModel):
     question: str
     rerank: bool = True
+    # Scope terms restrict retrieval to files whose title/path/id matches
+    # any term (folder semantics). Empty = whole corpus.
+    scope: list[str] = []
+    # Strict mode: evidence-only answering - the prompt forbids any
+    # external-knowledge sentence, making the honest-answers ladder tighter.
+    strict: bool = False
 
     # A question is a question, not a document. Caps hostile payloads
     # before they touch retrieval, embedding, or the model (security
@@ -248,9 +254,9 @@ def ask(req: AskRequest) -> dict:
         def search_fn(q: str):
             qvec = embedder.embed_documents([f"task: search result | query: {q}"])[0]
             reranker = FlashRankReranker() if req.rerank else NoopReranker()
-            return search_mod(conn, q, qvec, reranker=reranker)
+            return search_mod(conn, q, qvec, reranker=reranker, scope=req.scope)
 
-        packet = ask_service(conn, req.question, None, generator=generator, search_fn=search_fn)
+        packet = ask_service(conn, req.question, None, generator=generator, search_fn=search_fn, strict=req.strict)
         return _ask_payload(packet)
     finally:
         conn.close()
@@ -303,10 +309,11 @@ def ask_stream(req: AskRequest):
             def search_fn(q: str):
                 qvec = embedder.embed_documents([f"task: search result | query: {q}"])[0]
                 reranker = FlashRankReranker() if req.rerank else NoopReranker()
-                return search_mod(conn, q, qvec, reranker=reranker)
+                return search_mod(conn, q, qvec, reranker=reranker, scope=req.scope)
 
             for item in ask_service_stream(
-                conn, req.question, None, generator=generator, search_fn=search_fn
+                conn, req.question, None, generator=generator, search_fn=search_fn,
+                strict=req.strict,
             ):
                 if isinstance(item, str):
                     yield _sse({"type": "delta", "text": item})
