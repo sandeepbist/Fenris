@@ -17,8 +17,6 @@ import pytest
 from typer.testing import CliRunner
 
 import fenris.drive.auth as auth_mod
-DUMMY_TOKEN_FOR_TESTS = "obviously-fake-test-token"
-
 from fenris.drive.auth import (
     KEYRING_ACCOUNT,
     KEYRING_SERVICE,
@@ -43,6 +41,8 @@ from fenris.drive.quota import (
     COST_METADATA_READ,
     QuotaCounter,
 )
+
+DUMMY_TOKEN_FOR_TESTS = "obviously-fake-test-token"
 
 # --------------------------------------------------------------------- helpers
 
