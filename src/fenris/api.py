@@ -251,22 +251,83 @@ def ask(req: AskRequest) -> dict:
             return search_mod(conn, q, qvec, reranker=reranker)
 
         packet = ask_service(conn, req.question, None, generator=generator, search_fn=search_fn)
-        return {
-            "state": packet.state,
-            "answer": packet.answer,
-            "citations": [
-                {
-                    "evidence_id": c.evidence_id, "title": c.title, "page": c.page,
-                    "quote": c.quote, "revision_date": c.revision_date,
-                }
-                for c in packet.citations
-            ],
-            "missing_evidence": packet.missing_evidence,
-            "unverifiable_claims": packet.unverifiable_claims,
-            "claims_conflict": packet.claims_conflict,
-        }
+        return _ask_payload(packet)
     finally:
         conn.close()
+
+
+def _ask_payload(packet) -> dict:
+    """The wire shape shared by /api/ask and the stream's final event."""
+    return {
+        "state": packet.state,
+        "answer": packet.answer,
+        "citations": [
+            {
+                "evidence_id": c.evidence_id, "title": c.title, "page": c.page,
+                "quote": c.quote, "revision_date": c.revision_date,
+            }
+            for c in packet.citations
+        ],
+        "missing_evidence": packet.missing_evidence,
+        "unverifiable_claims": packet.unverifiable_claims,
+        "claims_conflict": packet.claims_conflict,
+    }
+
+
+@app.post("/api/ask/stream")
+def ask_stream(req: AskRequest):
+    """Server-sent events: text deltas as they generate, then the packet.
+
+    Event protocol (one JSON object per SSE `data:` line):
+      {"type": "delta", "text": "..."}            streamed display text
+      {"type": "done", "answer": {...}}           the full AnswerPacket wire shape
+    The connection stays open until "done"; no keepalives needed at
+    local-socket latencies.
+    """
+
+    from fastapi.responses import StreamingResponse
+
+    from fenris.generate.service import ask_stream as ask_service_stream
+    from fenris.retrieve import search as search_mod
+    from fenris.retrieve.rerank import FlashRankReranker, NoopReranker
+
+    conn = _db()
+
+    def gen():
+        try:
+            embedder, generator = _ask_stack(conn)
+            if generator is None:
+                yield _sse({"type": "error", "detail": "Gemini API unavailable. Set GOOGLE_API_KEY."})
+                return
+
+            def search_fn(q: str):
+                qvec = embedder.embed_documents([f"task: search result | query: {q}"])[0]
+                reranker = FlashRankReranker() if req.rerank else NoopReranker()
+                return search_mod(conn, q, qvec, reranker=reranker)
+
+            for item in ask_service_stream(
+                conn, req.question, None, generator=generator, search_fn=search_fn
+            ):
+                if isinstance(item, str):
+                    yield _sse({"type": "delta", "text": item})
+                else:
+                    payload = _ask_payload(item)
+                    payload["type"] = "done"
+                    yield _sse(payload)
+        finally:
+            conn.close()
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+def _sse(obj: dict) -> str:
+    import json as _json
+
+    return f"data: {_json.dumps(obj, ensure_ascii=False)}\n\n"
 
 
 @app.get("/api/eval/overview")

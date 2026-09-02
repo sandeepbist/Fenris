@@ -112,6 +112,74 @@ export interface EvalRun {
   verdict: string | null;
 }
 
+// ---- streaming ---------------------------------------------------------------
+
+export interface StreamEvent {
+  type: "delta" | "done" | "error";
+  text?: string;
+  detail?: string;
+  // done events carry the full AskResult fields
+  state?: AnswerState;
+  answer?: string;
+  citations?: Citation[];
+  missing_evidence?: string[];
+  unverifiable_claims?: string[];
+  claims_conflict?: boolean;
+}
+
+/**
+ * Consume /api/ask/stream (SSE). Returns an async iterator of events and an
+ * abort handle: calling stop() mid-stream ends the fetch without consuming
+ * further deltas.
+ */
+export function askStream(
+  question: string,
+  rerank = true,
+): { events: AsyncIterable<StreamEvent>; stop: () => void } {
+  const controller = new AbortController();
+  const decoder = new TextDecoder();
+
+  async function* iterate(): AsyncIterable<StreamEvent> {
+    let buffer = "";
+    const res = await fetch("/api/ask/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, rerank }),
+      signal: controller.signal,
+    });
+    if (!res.ok || !res.body) {
+      throw new SetupNeeded(`engine error ${res.status}`);
+    }
+    const reader = res.body.getReader();
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        // SSE events are separated by a blank line
+        let sep: number;
+        while ((sep = buffer.indexOf("\n\n")) !== -1) {
+          const block = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          for (const line of block.split("\n")) {
+            if (line.startsWith("data: ")) {
+              try {
+                yield JSON.parse(line.slice(6)) as StreamEvent;
+              } catch {
+                // partial JSON in a torn frame: skip, the retry logic of the
+                // SSE framing self-corrects on the next blank-line boundary
+              }
+            }
+          }
+        }
+      }
+    } finally {
+      controller.abort(); // no-op if already finished; releases the reader
+    }
+  }
+  return { events: iterate(), stop: () => controller.abort() };
+}
+
 // ---- client ------------------------------------------------------------------
 
 export const api = {

@@ -12,8 +12,13 @@
 
 import { useCallback, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUp, ChevronDown, Quote } from "lucide-react";
-import { api, SetupNeeded, type AskResult, type Citation } from "@/lib/api";
+import { ArrowUp, ChevronDown, Quote, RotateCcw, Square } from "lucide-react";
+import {
+  askStream,
+  SetupNeeded,
+  type AskResult,
+  type Citation,
+} from "@/lib/api";
 import { Badge, Button } from "@/components/ui";
 import { SetupNeededBanner } from "@/components/setup-needed";
 import { cn } from "@/lib/utils";
@@ -129,30 +134,79 @@ export function ChatPage() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [liveText, setLiveText] = useState("");
+  const stopRef = useRef<(() => void) | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const lastQuestion = useRef<string>("");
 
   const send = useCallback(async () => {
     const question = input.trim();
     if (!question || busy) return;
     setInput("");
     setBusy(true);
-    setTurns((t) => [...t, { kind: "user", text: question }, { kind: "pending" }]);
+    lastQuestion.current = question;
+    setTurns((t) => [...t, { kind: "user", text: question }]);
+    setLiveText("");
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 
+    const { events, stop } = askStream(question);
+    stopRef.current = stop;
+    let assembled = "";
     try {
-      const result = await api.ask(question);
-      setTurns((t) => [...t.slice(0, -1), { kind: "assistant", result }]);
+      for await (const ev of events) {
+        if (ev.type === "delta" && ev.text) {
+          assembled += ev.text;
+          setLiveText(assembled);
+          bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        } else if (ev.type === "done") {
+          const result: AskResult = {
+            state: (ev.state ?? "ERROR") as AskResult["state"],
+            answer: ev.answer ?? "",
+            citations: ev.citations ?? [],
+            missing_evidence: ev.missing_evidence ?? [],
+            unverifiable_claims: ev.unverifiable_claims ?? [],
+            claims_conflict: ev.claims_conflict ?? false,
+          };
+          setTurns((t) => [...t, { kind: "assistant", result }]);
+        } else if (ev.type === "error") {
+          setTurns((t) => [
+            ...t,
+            { kind: "assistant", result: { state: "ERROR", answer: ev.detail ?? "", citations: [], missing_evidence: [], unverifiable_claims: [], claims_conflict: false } },
+          ]);
+        }
+      }
     } catch (e) {
-      const turn: Turn =
-        e instanceof SetupNeeded
-          ? { kind: "setup", error: e }
-          : { kind: "assistant", result: { state: "ERROR", answer: "", citations: [], missing_evidence: [], unverifiable_claims: [], claims_conflict: false } };
-      setTurns((t) => [...t.slice(0, -1), turn]);
+      if ((e as Error).name === "AbortError") {
+        // user stopped the stream: keep whatever streamed, marked as stopped
+        setTurns((t) => [
+          ...t,
+          { kind: "assistant", result: { state: "INSUFFICIENT", answer: assembled + " — [stopped]", citations: [], missing_evidence: [], unverifiable_claims: [], claims_conflict: false } },
+        ]);
+      } else {
+        const turn: Turn =
+          e instanceof SetupNeeded
+            ? { kind: "setup", error: e }
+            : { kind: "assistant", result: { state: "ERROR", answer: "", citations: [], missing_evidence: [], unverifiable_claims: [], claims_conflict: false } };
+        setTurns((t) => [...t, turn]);
+      }
     } finally {
+      setLiveText("");
       setBusy(false);
+      stopRef.current = null;
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [input, busy]);
+
+  const regenerate = useCallback(() => {
+    if (!lastQuestion.current || busy) return;
+    setInput(lastQuestion.current);
+    // send() reads `input` from state, so call it after the state flush
+    setTimeout(() => void send(), 0);
+  }, [busy, send]);
+
+  const stop = useCallback(() => {
+    stopRef.current?.();
+  }, []);
 
   return (
     <div className="mx-auto flex h-full max-w-3xl flex-col">
@@ -204,6 +258,19 @@ export function ChatPage() {
           );
         })}
         <div ref={bottomRef} />
+
+        {/* the streaming turn: live text with a cursor while generating */}
+        {busy && liveText !== "" && (
+          <div className="whitespace-pre-wrap text-sm leading-relaxed text-text">
+            {liveText}
+            <span className="mono ml-0.5 inline-block animate-pulse text-accent">▍</span>
+          </div>
+        )}
+        {busy && liveText === "" && (
+          <div className="flex gap-2">
+            <span className="mono text-xs text-text-faint">thinking…</span>
+          </div>
+        )}
       </div>
 
       {/* composer */}
@@ -222,14 +289,27 @@ export function ChatPage() {
             rows={1}
             className="max-h-32 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-text placeholder:text-text-faint focus:outline-none"
           />
-          <Button
-            variant="primary"
-            onClick={() => void send()}
-            disabled={busy || !input.trim()}
-            className="shrink-0"
-          >
-            <ArrowUp size={15} />
-          </Button>
+          {busy ? (
+            <Button variant="default" onClick={stop} className="shrink-0">
+              <Square size={13} /> Stop
+            </Button>
+          ) : (
+            <>
+              {turns.length >= 2 && (
+                <Button variant="ghost" onClick={regenerate} className="shrink-0">
+                  <RotateCcw size={14} />
+                </Button>
+              )}
+              <Button
+                variant="primary"
+                onClick={() => void send()}
+                disabled={!input.trim()}
+                className="shrink-0"
+              >
+                <ArrowUp size={15} />
+              </Button>
+            </>
+          )}
         </div>
         <p className="mono mt-2 px-1 text-[10px] text-text-faint">
           enter to send · shift+enter for a new line · every claim cites evidence

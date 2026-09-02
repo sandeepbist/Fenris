@@ -452,6 +452,14 @@ def ask_stream(conn: sqlite3.Connection, query: str, qvec, *, generator,
             final_state = CONFLICTING
         if final_state == ANSWERABLE and generation.state == "CONFLICTING":
             final_state = CONFLICTING
+        if rendered.unverifiable_claims and final_state == ANSWERABLE:
+            trace["state_review"] = True
+        if final_state in (INSUFFICIENT, STALE):
+            # Same rule as ask(): a ladder verdict that overrules the model
+            # withholds the fabricated answer text entirely (security review).
+            rendered.answer_text = ""
+            if rendered.unverifiable_claims:
+                rendered.unverifiable_claims = []
         trace["state_history"].append(final_state)
 
         yield AnswerPacket(
