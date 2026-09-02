@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   MessageSquareText,
   Database,
+  Search,
   Settings,
 } from "lucide-react";
 import { WolfMark } from "@/components/wolf-mark";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/chat", label: "Chat", icon: MessageSquareText },
+  { to: "/search", label: "Search", icon: Search },
   { to: "/sources", label: "Sources", icon: Database },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

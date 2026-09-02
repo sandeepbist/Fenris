@@ -237,10 +237,38 @@ export interface SourceView {
   chunks: SourceViewChunk[];
 }
 
+export interface SearchMatch {
+  chunk_id: number;
+  file_id: string;
+  title: string;
+  header: string;
+  snippet: string;
+  score: number;
+  page_nos: number[];
+  is_table: boolean;
+  modified_time: string | null;
+}
+
+export interface SearchResult {
+  files: {
+    file_id: string;
+    title: string;
+    modified_time: string | null;
+    matches: SearchMatch[];
+  }[];
+  total_chunks: number;
+}
+
 // ---- client ------------------------------------------------------------------
 
 export const api = {
   health: () => req<Health>("/api/health"),
+
+  search: (query: string, tableOnly = false) =>
+    req<SearchResult>("/api/search", {
+      method: "POST",
+      body: JSON.stringify({ query, table_only: tableOnly }),
+    }),
 
   doctor: () => req<DoctorReport>("/api/doctor"),
 

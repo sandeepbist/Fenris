@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Database,
   Keyboard,
+  Search,
   LayoutDashboard,
   MessageSquareText,
   RefreshCw,
@@ -36,6 +37,7 @@ export function CommandPalette() {
     () => [
       { id: "dashboard", label: "Dashboard", hint: "index + sync state", icon: <LayoutDashboard size={14} />, run: () => navigate("/") },
       { id: "chat", label: "Chat", hint: "ask your Drive", icon: <MessageSquareText size={14} />, run: () => navigate("/chat") },
+      { id: "search", label: "Search", hint: "find the file", icon: <Search size={14} />, run: () => navigate("/search") },
       { id: "sources", label: "Sources", hint: "the index ledger", icon: <Database size={14} />, run: () => navigate("/sources") },
       { id: "settings", label: "Settings", hint: "setup + privacy + legal", icon: <SettingsIcon size={14} />, run: () => navigate("/settings") },
       {

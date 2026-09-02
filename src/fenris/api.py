@@ -545,3 +545,68 @@ def doctor() -> dict:
 
     results = run_doctor()
     return {"checks": results, "all_ok": all_ok(results)}
+
+
+# ---- find-the-file search (P1.3) ----------------------------------------------
+
+class SearchRequest(BaseModel):
+    """A search box is not a chat box: bounded, no reranking overhead."""
+
+    query: str
+    table_only: bool = False
+
+    model_config = {"str_max_length": 500}
+
+
+@app.post("/api/search")
+def search(req: SearchRequest) -> dict:
+    """Find-the-file: grouped search results with match snippets.
+
+    Lexical search (BM25) with snippet context per chunk - the 'where is
+    that document' verb, distinct from ask's cited-answer verb. Results
+    group by file with the best-matching chunks first.
+    """
+    from fenris.retrieve.bm25 import bm25_search
+    from fenris.retrieve.evidence import build_evidence
+
+    if not req.query.strip():
+        return {"files": [], "total_chunks": 0}
+
+    conn = _db()
+    try:
+        hits = bm25_search(conn, req.query, table_only=req.table_only, limit=100)
+        results = []
+        for chunk_id, score in hits[:60]:
+            ev = build_evidence(conn, chunk_id, score)
+            if ev is None:
+                continue
+            results.append({
+                "chunk_id": ev.chunk_id,
+                "file_id": ev.file_id,
+                "title": ev.title or ev.path or ev.file_id,
+                "header": ev.header,
+                "snippet": (ev.body_excerpt or "")[:300],
+                "score": round(score, 4),
+                "page_nos": ev.page_nos,
+                "is_table": ev.is_table,
+                "modified_time": ev.modified_time,
+            })
+
+        # group by file, best chunk first within each file
+        by_file: dict[str, dict] = {}
+        order: list[str] = []
+        for r in results:
+            key = r["file_id"]
+            if key not in by_file:
+                by_file[key] = {"file_id": key, "title": r["title"],
+                                "modified_time": r["modified_time"],
+                                "matches": []}
+                order.append(key)
+            by_file[key]["matches"].append(r)
+
+        return {
+            "files": [by_file[k] for k in order],
+            "total_chunks": len(results),
+        }
+    finally:
+        conn.close()
