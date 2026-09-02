@@ -361,6 +361,10 @@ def ask_stream(req: AskRequest):
             ):
                 if isinstance(item, str):
                     yield _sse({"type": "delta", "text": item})
+                elif (isinstance(item, tuple) and len(item) == 2
+                      and item[0] == "citation"):
+                    event = {"type": "citation", **item[1]}
+                    yield _sse(event)
                 else:
                     payload = _ask_payload(
                         item, engine=getattr(generator, "name", "gemini"))

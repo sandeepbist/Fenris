@@ -424,14 +424,39 @@ def ask_stream(conn: sqlite3.Connection, query: str, qvec, *, generator,
         prompt = prompts.assemble_prompt(query, kept, strict=strict)
         _stage("prompt", evidence_count=len(kept))
 
+        # P2.3: live citation resolution during streaming. Evidence ids are
+        # known BEFORE generation (the retrieved set); as text deltas arrive,
+        # [E:...] markers found in the accumulated text that resolve against
+        # that set are emitted as ('citation', id) tuples the caller can
+        # render immediately. Unresolvable ids stay hidden - the post-stream
+        # renderer still drops and logs them.
+        ev_by_id = {ev.evidence_id: ev for ev in kept}
+
         chunks: list[str] = []
         final_result: GenerationResult | None = None
+        seen_citations: list[str] = []
+
+        import re as _re
+        _citation_re = _re.compile(r"\[E:([0-9a-zA-Z]+)\]")
+
         for item in generator.generate_stream(prompt):
             if isinstance(item, GenerationResult):
                 final_result = item
             elif isinstance(item, str):
                 chunks.append(item)
                 yield item
+                # resolve citations present in the streamed text so far
+                text_so_far = "".join(chunks)
+                for match in _citation_re.finditer(text_so_far):
+                    cid = match.group(1)
+                    if cid in ev_by_id and cid not in seen_citations:
+                        seen_citations.append(cid)
+                        ev = ev_by_id[cid]
+                        yield ("citation", {
+                            "evidence_id": cid,
+                            "title": ev.title or ev.file_id,
+                            "chunk_id": ev.chunk_id,
+                        })
 
         generation = final_result or GenerationResult(
             state=INSUFFICIENT, raw_text="".join(chunks),

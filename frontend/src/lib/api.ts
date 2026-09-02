@@ -149,9 +149,13 @@ export interface StoredTurn {
 // ---- streaming ---------------------------------------------------------------
 
 export interface StreamEvent {
-  type: "delta" | "done" | "error";
+  type: "delta" | "done" | "error" | "citation";
   text?: string;
   detail?: string;
+  // citation events carry a resolved evidence anchor mid-stream
+  evidence_id?: string;
+  title?: string;
+  chunk_id?: number;
   // done events carry the full AskResult fields
   engine?: string;
   state?: AnswerState;
@@ -160,6 +164,13 @@ export interface StreamEvent {
   missing_evidence?: string[];
   unverifiable_claims?: string[];
   claims_conflict?: boolean;
+}
+
+export interface LiveCitation {
+  type: "citation";
+  evidence_id: string;
+  title: string;
+  chunk_id: number;
 }
 
 /**

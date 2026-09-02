@@ -159,6 +159,9 @@ export function ChatPage() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [liveText, setLiveText] = useState("");
+  const [liveCites, setLiveCites] = useState<
+    { evidence_id: string; title: string; chunk_id: number }[]
+  >([]);
   const [conversations, setConversations] = useState<ConversationRow[]>([]);
   const [activeCid, setActiveCid] = useState<number | null>(null);
   const stopRef = useRef<(() => void) | null>(null);
@@ -250,6 +253,7 @@ export function ChatPage() {
     lastQuestion.current = question;
     setTurns((t) => [...t, { kind: "user", text: question }]);
     setLiveText("");
+    setLiveCites([]);
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 
     const cid = await ensureConversation();
@@ -263,6 +267,14 @@ export function ChatPage() {
           assembled += ev.text;
           setLiveText(assembled);
           bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+        } else if (ev.type === "citation" && ev.evidence_id) {
+          // P2.3: a live citation anchor arrived mid-stream - show it
+          // immediately under the still-writing answer
+          setLiveCites((c) =>
+            c.some((x) => x.evidence_id === ev.evidence_id)
+              ? c
+              : [...c, { evidence_id: ev.evidence_id!, title: ev.title ?? "", chunk_id: ev.chunk_id ?? 0 }],
+          );
         } else if (ev.type === "done") {
           const result: AskResult = {
             state: (ev.state ?? "ERROR") as AskResult["state"],
@@ -298,6 +310,7 @@ export function ChatPage() {
       }
     } finally {
       setLiveText("");
+      setLiveCites([]);
       setBusy(false);
       stopRef.current = null;
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -436,9 +449,24 @@ export function ChatPage() {
 
         {/* the streaming turn: live text with a cursor while generating */}
         {busy && liveText !== "" && (
-          <div className="whitespace-pre-wrap text-sm leading-relaxed text-text">
-            {liveText}
-            <span className="mono ml-0.5 inline-block animate-pulse text-accent">▍</span>
+          <div className="space-y-2">
+            <div className="whitespace-pre-wrap text-sm leading-relaxed text-text">
+              {liveText}
+              <span className="mono ml-0.5 inline-block animate-pulse text-accent">▍</span>
+            </div>
+            {liveCites.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {liveCites.map((c) => (
+                  <span
+                    key={c.evidence_id}
+                    className="mono rounded-full border border-accent/40 bg-accent-dim px-2 py-0.5 text-[10px] text-accent"
+                    title={c.title}
+                  >
+                    [{c.evidence_id}] {c.title}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )}
         {busy && liveText === "" && (
