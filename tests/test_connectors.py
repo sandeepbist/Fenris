@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import json
 import time
 
 import pytest
 
-from fenris.connectors import ChangesPage, ConnectorFile, FolderConnector
+from fenris.connectors import FolderConnector
 
 
 @pytest.fixture()

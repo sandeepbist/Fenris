@@ -27,9 +27,10 @@ Design rules, inherited from the local-first research:
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator, Protocol
+from typing import Protocol
 
 # Supported ingest formats for the folder connector (same set the
 # Drive router parses directly, minus Drive-specific workspaces).
