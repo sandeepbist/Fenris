@@ -42,7 +42,12 @@ QUOTE_MAX_WORDS = 40
 
 @dataclass
 class Citation:
-    """One resolved, displayable citation (resolved ids only, by construction)."""
+    """One resolved, displayable citation (resolved ids only, by construction).
+
+    ``chunk_id`` + span offsets exist for the jump-to-source viewer; they are
+    populated by the renderer from retrieved evidence, never accepted from
+    the model, so a forged citation still cannot fabricate a jump target.
+    """
 
     evidence_id: str
     title: str
@@ -51,6 +56,9 @@ class Citation:
     revision_date: str | None = None
     file_id: str | None = None
     source_revision: str | None = None
+    chunk_id: int | None = None
+    char_start: int | None = None
+    char_end: int | None = None
     table_range: str | None = None
     row_range: str | None = None
 
@@ -174,6 +182,9 @@ def render_answer(generation: GenerationResult, evidence_set: list[Evidence],
             revision_date=ev.modified_time,
             file_id=ev.file_id,
             source_revision=ev.source_revision,
+            chunk_id=ev.chunk_id,
+            char_start=ev.char_start,
+            char_end=ev.char_end,
             table_range=_table_range(conn, ev.table_id) if ev.is_table else None,
             row_range=ev.row_range if ev.is_table else None,
         ))

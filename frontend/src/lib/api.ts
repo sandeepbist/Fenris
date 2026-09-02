@@ -95,6 +95,9 @@ export interface Citation {
   page: number | null;
   quote: string;
   revision_date: string | null;
+  chunk_id?: number | null;
+  char_start?: number | null;
+  char_end?: number | null;
 }
 
 export interface AskResult {
@@ -199,10 +202,37 @@ export function askStream(
   return { events: iterate(), stop: () => controller.abort() };
 }
 
+export interface SourceViewChunk {
+  chunk_id: number;
+  ordinal: number;
+  header: string;
+  body: string;
+  char_start: number | null;
+  char_end: number | null;
+}
+
+export interface SourceView {
+  title: string;
+  file_id: string;
+  revision: string;
+  modified_time: string | null;
+  cited: {
+    chunk_id: number;
+    ordinal: number;
+    header: string;
+    char_start: number | null;
+    char_end: number | null;
+  };
+  chunks: SourceViewChunk[];
+}
+
 // ---- client ------------------------------------------------------------------
 
 export const api = {
   health: () => req<Health>("/api/health"),
+
+  sourceView: (chunkId: number) =>
+    req<SourceView>(`/api/source-view?chunk_id=${chunkId}`),
 
   // conversations
   conversations: () => req<{ conversations: ConversationRow[] }>("/api/conversations"),

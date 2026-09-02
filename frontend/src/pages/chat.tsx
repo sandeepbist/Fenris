@@ -13,14 +13,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUp, ChevronDown, Pin, Quote, RotateCcw, Square, Trash2 } from "lucide-react";
-import {
-  api,
-  askStream,
-  SetupNeeded,
-  type AskResult,
-  type Citation,
-  type ConversationRow,
-} from "@/lib/api";
+import { api, askStream, SetupNeeded, type AskResult, type Citation, type ConversationRow } from "@/lib/api";
+import { SourceViewer } from "@/components/source-viewer";
 import { Badge, Button } from "@/components/ui";
 import { SetupNeededBanner } from "@/components/setup-needed";
 import { cn } from "@/lib/utils";
@@ -46,8 +40,9 @@ const STATE_COPY: Record<string, string> = {
   ERROR: "The engine hit a fault answering this. Nothing was made up — the state above says what happened.",
 };
 
-function CitationCard({ c }: { c: Citation }) {
+function CitationCard({ c, onJump }: { c: Citation; onJump: (chunkId: number) => void }) {
   const [open, setOpen] = useState(false);
+  const jumpable = c.chunk_id != null;
   return (
     <div className="rounded-[--radius-sm] border border-border-subtle bg-bg-overlay">
       <button
@@ -68,6 +63,13 @@ function CitationCard({ c }: { c: Citation }) {
         {c.page != null && (
           <span className="mono shrink-0 text-xs text-text-faint">p.{c.page}</span>
         )}
+        {jumpable && (
+          <span
+            className="mono ml-auto shrink-0 text-[10px] text-accent opacity-60 transition-opacity group-hover:opacity-100"
+          >
+            view ↗
+          </span>
+        )}
       </button>
       {open && (
         <div className="border-t border-border-subtle px-3 py-2">
@@ -75,18 +77,34 @@ function CitationCard({ c }: { c: Citation }) {
             <Quote size={12} className="mt-0.5 shrink-0 text-accent" />
             <span>{c.quote}</span>
           </p>
-          {c.revision_date && (
-            <p className="mono mt-2 text-[10px] text-text-faint">
-              revision {c.revision_date}
-            </p>
-          )}
+          <div className="mt-2 flex items-center gap-3">
+            {jumpable && (
+              <button
+                onClick={() => onJump(c.chunk_id!)}
+                className="mono text-[10px] text-accent hover:text-accent-hover"
+              >
+                open in document →
+              </button>
+            )}
+            {c.revision_date && (
+              <p className="mono text-[10px] text-text-faint">
+                revision {c.revision_date}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function AssistantTurn({ turn }: { turn: { result: AskResult } }) {
+function AssistantTurn({
+  turn,
+  onJump,
+}: {
+  turn: { result: AskResult };
+  onJump: (chunkId: number) => void;
+}) {
   const r = turn.result;
   return (
     <div className="space-y-3">
@@ -124,7 +142,7 @@ function AssistantTurn({ turn }: { turn: { result: AskResult } }) {
       {r.citations.length > 0 && (
         <div className="space-y-1.5">
           {r.citations.map((c) => (
-            <CitationCard key={c.evidence_id} c={c} />
+            <CitationCard key={c.evidence_id} c={c} onJump={onJump} />
           ))}
         </div>
       )}
@@ -142,6 +160,7 @@ export function ChatPage() {
   const stopRef = useRef<(() => void) | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastQuestion = useRef<string>("");
+  const [viewerChunk, setViewerChunk] = useState<number | null>(null);
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -386,7 +405,7 @@ export function ChatPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.18 }}
             >
-              <AssistantTurn turn={turn} />
+              <AssistantTurn turn={turn} onJump={setViewerChunk} />
             </motion.div>
           );
         })}
@@ -449,6 +468,10 @@ export function ChatPage() {
         </p>
       </div>
       </div>
+
+      {viewerChunk !== null && (
+        <SourceViewer chunkId={viewerChunk} onClose={() => setViewerChunk(null)} />
+      )}
     </div>
   );
 }

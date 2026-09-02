@@ -484,3 +484,55 @@ def conversation_add_turn(cid: int, req: TurnRecord) -> dict:
         return {"turn_id": cur.lastrowid}
     finally:
         conn.close()
+
+
+# ---- jump-to-source (P0.3: the citation viewer) ------------------------------
+
+
+@app.get("/api/source-view")
+def source_view(chunk_id: int) -> dict:
+    """The parent document text around one cited chunk.
+
+    Loads the chunk (active representations only - a retired/trashed
+    revision 404s, which is the honest answer), plus its neighboring chunks
+    of the same source for context, and the cited span offsets the viewer
+    highlights. Only what the projection stores: no Drive fetch, works
+    offline.
+    """
+    conn = _db()
+    try:
+        row = conn.execute(
+            """SELECT c.chunk_id, c.header_text, c.body_text, c.char_start, c.char_end,
+                      c.ordinal, s.id AS source_id, s.title, s.file_id,
+                      s.source_revision, s.modified_time
+               FROM chunks c JOIN sources s ON s.id = c.source_id
+               WHERE c.chunk_id = ? AND s.active = 1 AND s.trashed = 0""",
+            (chunk_id,),
+        ).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="chunk not in an active source")
+
+        source_id = row[6]
+        neighbors = conn.execute(
+            """SELECT chunk_id, ordinal, header_text, body_text,
+                      char_start, char_end
+               FROM chunks WHERE source_id = ? ORDER BY ordinal""",
+            (source_id,),
+        ).fetchall()
+        return {
+            "title": row[7] or row[8],
+            "file_id": row[8],
+            "revision": (row[9] or "")[:12],
+            "modified_time": row[10],
+            "cited": {
+                "chunk_id": row[0], "ordinal": row[5],
+                "header": row[1], "char_start": row[3], "char_end": row[4],
+            },
+            "chunks": [
+                {"chunk_id": n[0], "ordinal": n[1], "header": n[2],
+                 "body": n[3], "char_start": n[4], "char_end": n[5]}
+                for n in neighbors
+            ],
+        }
+    finally:
+        conn.close()
