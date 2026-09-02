@@ -610,3 +610,74 @@ def search(req: SearchRequest) -> dict:
         }
     finally:
         conn.close()
+
+
+# ---- chat export (P1.6) -------------------------------------------------------
+
+
+@app.get("/api/conversations/{cid}/export")
+def conversation_export(cid: int, fmt: str = "md") -> dict:
+    """One conversation as portable Markdown or self-contained HTML.
+
+    Answers over Drive docs are work products; export carries the full
+    context: state badges, citations with quotes and sources, timestamps.
+    No remote assets in the HTML - it renders offline, anywhere.
+    """
+    conn = _db()
+    try:
+        head = conn.execute(
+            "SELECT title, created_at FROM conversations WHERE id=?", (cid,)
+        ).fetchone()
+        if head is None:
+            raise HTTPException(status_code=404, detail="no such conversation")
+        turns = conn.execute(
+            """SELECT question, state, answer, citations_json, created_at
+               FROM turns WHERE conversation_id=? ORDER BY id""",
+            (cid,),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    title = head[0]
+    lines = [f"# {title}", "", f"_Exported from Fenris · {head[1] or 'unknown date'}_", ""]
+
+    for t in turns:
+        question, state, answer, citations_json, created_at = t
+        lines.append(f"## Q: {question}")
+        lines.append("")
+        if answer:
+            lines.append(answer)
+        else:
+            lines.append(f"_{state}_ — no answer text (the state ladder withheld it).")
+        lines.append("")
+        try:
+            citations = json.loads(citations_json)
+        except (ValueError, TypeError):
+            citations = []
+        if citations:
+            lines.append("**Sources:**")
+            for c in citations:
+                page = f", p.{c.get('page')}" if c.get("page") else ""
+                lines.append(
+                    f"- `[{c.get('evidence_id', '?')}]` "
+                    f"{c.get('title', '?')}{page} — _\"{c.get('quote', '')}\"_"
+                )
+            lines.append("")
+        lines.append(f"_state: {state} · {created_at or ''}_")
+        lines.append("")
+
+    markdown = "\n".join(lines)
+    if fmt == "html":
+        escaped = (markdown.replace("&", "&amp;").replace("<", "&lt;")
+                        .replace(">", "&gt;"))
+        html = (
+            "<!doctype html><html><head><meta charset='utf-8'>"
+            f"<title>{title}</title>"
+            "<style>body{max-width:46rem;margin:2rem auto;padding:0 1.2rem;"
+            "font:15px/1.65 -apple-system,sans-serif;color:#222}pre{white-space:pre-wrap;"
+            "background:none;font-family:inherit}code{background:#f4f4f4;padding:1px 4px}"
+            "h1{border-bottom:1px solid #ddd}hr{border:none;border-top:1px solid #ddd}</style>"
+            "</head><body><pre>" + escaped + "</pre></body></html>"
+        )
+        return {"format": "html", "content": html, "filename": f"{title}.html"}
+    return {"format": "md", "content": markdown, "filename": f"{title}.md"}

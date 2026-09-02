@@ -295,6 +295,9 @@ export const api = {
     }),
   deleteConversation: (cid: number) =>
     req<{ ok: boolean }>(`/api/conversations/${cid}`, { method: "DELETE" }),
+  exportConversation: (cid: number, fmt: "md" | "html" = "md") =>
+    req<{ format: string; content: string; filename: string }>(
+      `/api/conversations/${cid}/export?fmt=${fmt}`),
   addTurn: (cid: number, turn: {
     question: string; state: string; answer: string; citations_json: string;
   }) =>

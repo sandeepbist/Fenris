@@ -74,3 +74,47 @@ def test_title_capped_at_200(tc):
     tc.patch(f"/api/conversations/{c}", json={"title": "T" * 10_000})
     row = tc.get(f"/api/conversations/{c}").json()
     assert len(row["title"]) <= 200
+
+
+def test_export_markdown_and_html(tc):
+    cid = _create(tc, "Export me")
+    tc.post(f"/api/conversations/{cid}/turns", json={
+        "question": "What was Q3 revenue?",
+        "state": "ANSWERABLE",
+        "answer": "4.2 million [E:abc].",
+        "citations_json": '[{"evidence_id":"abc","title":"Q3 Report.txt","page":3,'
+                          '"quote":"Q3 revenue was 4.2 million","revision_date":null}]',
+    })
+    r = tc.get(f"/api/conversations/{cid}/export")
+    assert r.status_code == 200
+    md = r.json()
+    assert md["format"] == "md"
+    assert "## Q: What was Q3 revenue?" in md["content"]
+    assert "4.2 million" in md["content"]
+    assert "Q3 Report.txt" in md["content"]
+    assert '"Q3 revenue was 4.2 million"' in md["content"]
+
+    r = tc.get(f"/api/conversations/{cid}/export?fmt=html")
+    html = r.json()
+    assert html["format"] == "html"
+    assert "<!doctype html>" in html["content"]
+    assert "4.2 million" in html["content"]
+    # self-contained: no external asset links
+    assert "http://" not in html["content"].replace("http://www.w3.org", "")
+    assert "src=" not in html["content"]
+
+
+def test_export_withheld_answers_marked_honestly(tc):
+    """An INSUFFICIENT turn exports as its state, not a fabricated answer."""
+    cid = _create(tc)
+    tc.post(f"/api/conversations/{cid}/turns", json={
+        "question": "something unanswerable",
+        "state": "INSUFFICIENT", "answer": "",
+    })
+    md = tc.get(f"/api/conversations/{cid}/export").json()["content"]
+    assert "INSUFFICIENT" in md
+    assert "withheld" in md
+
+
+def test_export_missing_conversation_404s(tc):
+    assert tc.get("/api/conversations/999/export").status_code == 404

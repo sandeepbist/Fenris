@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowUp, ChevronDown, Pin, Quote, RotateCcw, Square, Trash2 } from "lucide-react";
+import { ArrowUp, ChevronDown, Download, Pin, Quote, RotateCcw, Square, Trash2 } from "lucide-react";
 import { api, askStream, SetupNeeded, type AskResult, type Citation, type ConversationRow } from "@/lib/api";
 import { SourceViewer } from "@/components/source-viewer";
 import { Badge, Button } from "@/components/ui";
@@ -354,6 +354,7 @@ export function ChatPage() {
                   pinned={c.pinned}
                   onDone={() => void refreshConversations()}
                 />
+                <ExportButton cid={c.id} title={c.title} />
                 <button
                   className="rounded p-0.5 text-text-faint hover:text-state-error"
                   onClick={(e) => {
@@ -499,6 +500,30 @@ function PinButton({ cid, pinned, onDone }: { cid: number; pinned: boolean; onDo
       }}
     >
       <Pin size={11} />
+    </button>
+  );
+}
+
+function ExportButton({ cid, title }: { cid: number; title: string }) {
+  const download = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    void api.exportConversation(cid).then(({ content, filename }) => {
+      const blob = new Blob([content], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      void title;
+    });
+  };
+  return (
+    <button
+      className="rounded p-0.5 text-text-faint hover:text-accent"
+      onClick={download}
+    >
+      <Download size={11} />
     </button>
   );
 }
