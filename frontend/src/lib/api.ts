@@ -118,6 +118,7 @@ export interface AskResult {
   missing_evidence: string[];
   unverifiable_claims: string[];
   claims_conflict: boolean;
+  engine?: string;
 }
 
 export interface EvalRun {
@@ -152,6 +153,7 @@ export interface StreamEvent {
   text?: string;
   detail?: string;
   // done events carry the full AskResult fields
+  engine?: string;
   state?: AnswerState;
   answer?: string;
   citations?: Citation[];
@@ -170,6 +172,7 @@ export function askStream(
   rerank = true,
   scope: string[] = [],
   strict = false,
+  local = false,
 ): { events: AsyncIterable<StreamEvent>; stop: () => void } {
   const controller = new AbortController();
   const decoder = new TextDecoder();
@@ -179,7 +182,7 @@ export function askStream(
     const res = await fetch("/api/ask/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, rerank, scope, strict }),
+      body: JSON.stringify({ question, rerank, scope, strict, local }),
       signal: controller.signal,
     });
     if (!res.ok || !res.body) {

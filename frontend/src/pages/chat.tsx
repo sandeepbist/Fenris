@@ -117,6 +117,9 @@ function AssistantTurn({
 
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone={STATE_TONE[r.state] ?? "insufficient"}>{r.state}</Badge>
+        {r.engine && r.engine !== "gemini" && (
+          <Badge tone="insufficient">engine: {r.engine}</Badge>
+        )}
         {r.claims_conflict && <Badge tone="conflicting">CONFLICT</Badge>}
         {r.unverifiable_claims.length > 0 && (
           <Badge tone="stale">{r.unverifiable_claims.length} UNVERIFIED</Badge>
@@ -166,6 +169,7 @@ export function ChatPage() {
   const [scopeEditing, setScopeEditing] = useState(false);
   const [scopeDraft, setScopeDraft] = useState("");
   const [strict, setStrict] = useState(false);
+  const [offline, setOffline] = useState(false);
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -249,7 +253,7 @@ export function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 
     const cid = await ensureConversation();
-    const { events, stop } = askStream(question, true, scope, strict);
+    const { events, stop } = askStream(question, true, scope, strict, offline);
     stopRef.current = stop;
     let assembled = "";
     let finalResult: AskResult | null = null;
@@ -268,6 +272,7 @@ export function ChatPage() {
             unverifiable_claims: ev.unverifiable_claims ?? [],
             claims_conflict: ev.claims_conflict ?? false,
           };
+          if (ev.engine) result.engine = ev.engine;
           finalResult = result;
           setTurns((t) => [...t, { kind: "assistant", result }]);
         } else if (ev.type === "error") {
@@ -496,6 +501,18 @@ export function ChatPage() {
             title="Strict: every sentence must be cited evidence - no background knowledge"
           >
             strict {strict ? "on" : "off"}
+          </button>
+          <button
+            onClick={() => setOffline((v) => !v)}
+            className={
+              "mono rounded-full border px-2 py-0.5 text-[10px] transition-colors " +
+              (offline
+                ? "border-accent/40 bg-accent-dim text-accent"
+                : "border-border text-text-muted hover:text-text")
+            }
+            title="Answer offline with local models when available; falls back to Gemini"
+          >
+            offline {offline ? "on" : "off"}
           </button>
         </div>
         <div className="flex items-end gap-2 rounded-[--radius] border border-border bg-bg-raised p-2 focus-within:border-accent/50">

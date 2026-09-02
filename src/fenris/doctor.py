@@ -127,6 +127,24 @@ def _check_disk() -> dict:
     return {"name": "disk space", "ok": True, "detail": f"{gb:.0f} GB free"}
 
 
+def _check_local_models() -> dict:
+    """Optional capability: never a failure, always informative."""
+    from fenris.local_models import local_available
+
+    report = local_available()
+    parts = []
+    if report["embedder"]:
+        parts.append("embeddings ok")
+    if report["generator"]:
+        parts.append("answers ok")
+    if parts:
+        return {"name": "local models (optional)", "ok": True,
+                "detail": "offline mode available: " + ", ".join(parts)}
+    return {"name": "local models (optional)", "ok": True,
+            "detail": "not installed - online-only "
+                      "(pip install fastembed llama-cpp-python + model weights)"}
+
+
 _CHECKS = [
     _check_data_dir,
     _check_schema,
@@ -135,6 +153,7 @@ _CHECKS = [
     _check_drive_auth,
     _check_index,
     _check_disk,
+    _check_local_models,
 ]
 
 

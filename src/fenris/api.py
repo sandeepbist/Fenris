@@ -197,6 +197,9 @@ class AskRequest(BaseModel):
     # Strict mode: evidence-only answering - the prompt forbids any
     # external-knowledge sentence, making the honest-answers ladder tighter.
     strict: bool = False
+    # Prefer the local model stack (offline mode). Falls back to Gemini
+    # when the local stack is unusable.
+    local: bool = False
 
     # A question is a question, not a document. Caps hostile payloads
     # before they touch retrieval, embedding, or the model (security
@@ -215,13 +218,25 @@ def _drive_client():
     return DriveClient(service)
 
 
-def _ask_stack(conn):
-    """Shared ask wiring: embedder + search_fn + generator (or None).
+def _ask_stack(conn, prefer_local: bool = False):
+    """Shared ask wiring: embedder + generator (or None), with local fallback.
 
-    Failure modes here are 'no API key configured' / 'SDK import
-    broken' / 'client construction refused' - any of which means the
-    UI must show a setup hint, not a traceback.
+    Priority: request preference, then Gemini, then the local stack as
+    fallback when Gemini is unusable. Returning (None, None) means the
+    UI shows the setup hint - but a usable local stack never returns
+    None, so offline machines still answer.
+
+    Embedding spaces: the local embedder emits 1024-dim vectors, a
+    DIFFERENT space than Gemini's 1536. The fallback therefore wires
+    the local GENERATOR unconditionally (search degrades gracefully
+    to BM25 without a matching embedder) but the local EMBEDDER only
+    after a successful probe - corpus re-indexing stays a separate,
+    explicit act recorded per source via the identity key.
     """
+    if prefer_local:
+        stack = _local_stack_if_available()
+        if stack is not None:
+            return stack
     try:
         from google import genai
 
@@ -233,7 +248,35 @@ def _ask_stack(conn):
         generator = GeminiGenerator()
         return embedder, generator
     except (ImportError, ValueError, RuntimeError, OSError):
-        return None, None
+        pass
+    stack = _local_stack_if_available()
+    return stack if stack is not None else (None, None)
+
+
+def _local_stack_if_available():
+    """(embedder|None, generator) when the local stack is usable, else None."""
+    from fenris.local_models import (
+        LocalEmbedder,
+        LocalGenerator,
+        LocalModelError,
+        local_available,
+    )
+
+    report = local_available()
+    if not report["generator"]:
+        return None
+    embedder = None
+    if report["embedder"]:
+        try:
+            candidate = LocalEmbedder()
+            candidate._ensure_model()
+            embedder = candidate
+        except LocalModelError:
+            embedder = None
+    try:
+        return embedder, LocalGenerator()
+    except LocalModelError:
+        return None
 
 
 @app.post("/api/ask")
@@ -244,7 +287,7 @@ def ask(req: AskRequest) -> dict:
 
     conn = _db()
     try:
-        embedder, generator = _ask_stack(conn)
+        embedder, generator = _ask_stack(conn, prefer_local=req.local)
         if generator is None:
             raise HTTPException(
                 status_code=503,
@@ -257,14 +300,15 @@ def ask(req: AskRequest) -> dict:
             return search_mod(conn, q, qvec, reranker=reranker, scope=req.scope)
 
         packet = ask_service(conn, req.question, None, generator=generator, search_fn=search_fn, strict=req.strict)
-        return _ask_payload(packet)
+        return _ask_payload(packet, engine=getattr(generator, "name", "gemini"))
     finally:
         conn.close()
 
 
-def _ask_payload(packet) -> dict:
+def _ask_payload(packet, engine: str = "gemini") -> dict:
     """The wire shape shared by /api/ask and the stream's final event."""
     return {
+        "engine": engine,
         "state": packet.state,
         "answer": packet.answer,
         "citations": [
@@ -301,7 +345,7 @@ def ask_stream(req: AskRequest):
 
     def gen():
         try:
-            embedder, generator = _ask_stack(conn)
+            embedder, generator = _ask_stack(conn, prefer_local=req.local)
             if generator is None:
                 yield _sse({"type": "error", "detail": "Gemini API unavailable. Set GOOGLE_API_KEY."})
                 return
@@ -318,7 +362,8 @@ def ask_stream(req: AskRequest):
                 if isinstance(item, str):
                     yield _sse({"type": "delta", "text": item})
                 else:
-                    payload = _ask_payload(item)
+                    payload = _ask_payload(
+                        item, engine=getattr(generator, "name", "gemini"))
                     payload["type"] = "done"
                     yield _sse(payload)
         finally:

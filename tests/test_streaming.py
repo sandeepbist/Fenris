@@ -40,7 +40,7 @@ def client(tmp_path, monkeypatch):
     return TestClient(app)
 
 
-def _fake_stack(conn):
+def _fake_stack(conn, prefer_local: bool = False):
     """Offline ask stack: a scripted FakeGenerator with citation-safe output."""
     from fenris.generate.generator import FakeGenerator
     from fenris.ingest.embed import FakeEmbedder
