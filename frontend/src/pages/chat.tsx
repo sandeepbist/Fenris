@@ -558,7 +558,7 @@ export function ChatPage() {
       </div>
 
       {viewerChunk !== null && (
-        <SourceViewer chunkId={viewerChunk} onClose={() => setViewerChunk(null)} />
+        <SourceViewer chunkId={viewerChunk} onClose={() => setViewerChunk(null)} onOpenChunk={(cid) => setViewerChunk(cid)} />
       )}
     </div>
   );

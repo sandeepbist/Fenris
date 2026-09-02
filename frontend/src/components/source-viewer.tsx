@@ -10,14 +10,17 @@ import { X } from "lucide-react";
 import { api, type SourceView } from "@/lib/api";
 import { Badge, SkeletonRow } from "@/components/ui";
 import { RevisionHistory } from "@/components/revision-history";
+import { RelatedFiles } from "@/components/related-files";
 import { cn } from "@/lib/utils";
 
 export function SourceViewer({
   chunkId,
   onClose,
+  onOpenChunk,
 }: {
   chunkId: number;
   onClose: () => void;
+  onOpenChunk?: (chunkId: number) => void;
 }) {
   const [view, setView] = useState<SourceView | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -111,6 +114,13 @@ export function SourceViewer({
 
         {view && (
           <RevisionHistory driveId={view.drive_id} fileId={view.file_id} />
+        )}
+        {view && onOpenChunk && (
+          <RelatedFiles
+            driveId={view.drive_id}
+            fileId={view.file_id}
+            onOpenChunk={onOpenChunk}
+          />
         )}
       </div>
     </div>

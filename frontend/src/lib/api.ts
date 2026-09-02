@@ -302,6 +302,9 @@ export const api = {
   fileRevisions: (driveId: string, fileId: string) =>
     req<{ revisions: RevisionRow[] }>(
       `/api/files/${driveId}/${fileId}/revisions`),
+  relatedFiles: (driveId: string, fileId: string) =>
+    req<{ related: { file_id: string; title: string; reason: string; score: number }[] }>(
+      `/api/files/${driveId}/${fileId}/related`),
   revisionDiff: (driveId: string, fileId: string, fromId: number, toId: number) =>
     req<RevisionDiffPayload>(
       `/api/files/${driveId}/${fileId}/diff?from_id=${fromId}&to_id=${toId}`),

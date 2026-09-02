@@ -788,3 +788,23 @@ def revision_diff_api(drive_id: str, file_id: str,
         }
     finally:
         conn.close()
+
+
+@app.get("/api/files/{drive_id}/{file_id}/related")
+def related_files_api(drive_id: str, file_id: str) -> dict:
+    """Neighbors of one file: co-cited + vector-similar, rank-fused.
+
+    Computed from stored projections and answer history - offline.
+    """
+    from fenris.related import related_files
+
+    conn = _db()
+    try:
+        related = related_files(conn, file_id)
+        return {"related": [
+            {"file_id": r.file_id, "title": r.title,
+             "reason": r.reason, "score": r.score}
+            for r in related
+        ]}
+    finally:
+        conn.close()
