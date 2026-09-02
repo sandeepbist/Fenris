@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowUp, ChevronDown, Pin, Quote, RotateCcw, Square, Trash2 } from "lucide-react";
 import { api, askStream, SetupNeeded, type AskResult, type Citation, type ConversationRow } from "@/lib/api";
@@ -174,6 +175,18 @@ export function ChatPage() {
   useEffect(() => {
     void refreshConversations();
   }, [refreshConversations]);
+
+  // onboarding handoff: /chat?q=... pre-fills the composer once per mount
+  const [searchParams] = useSearchParams();
+  const handoff = searchParams.get("q");
+  const handoffUsed = useRef(false);
+  useEffect(() => {
+    if (handoff && !handoffUsed.current && turns.length === 0) {
+      handoffUsed.current = true;
+      setInput(handoff);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handoff]);
 
   const openConversation = useCallback(async (cid: number) => {
     if (busy) return;

@@ -27,6 +27,7 @@ import {
   SkeletonRow,
 } from "@/components/ui";
 import { SetupNeededBanner, LoadError } from "@/components/setup-needed";
+import { Onboarding } from "@/components/onboarding";
 
 type Phase =
   | { kind: "loading" }
@@ -129,32 +130,7 @@ export function DashboardPage() {
     !health.has_db || health.index.drive_files === 0;
 
   if (firstRun) {
-    return (
-      <div className="mx-auto max-w-3xl space-y-4 p-6">
-        <h1 className="text-lg font-medium">Dashboard</h1>
-        <Card className="border-dashed p-10 text-center">
-          <p className="text-base font-medium">Nothing indexed yet</p>
-          <p className="mx-auto mt-2 max-w-sm text-sm text-text-muted">
-            Connect your Drive once (<span className="mono text-xs">fenris drive auth</span>),
-            then run the first sync. Your files stay on your Drive —
-            Fenris only reads.
-          </p>
-          <div className="mt-6 flex justify-center gap-2">
-            <Button variant="primary" onClick={() => runSync(false)} disabled={syncing}>
-              {syncing ? "syncing…" : "Sync now"}
-            </Button>
-            <Button variant="ghost" onClick={() => void load()}>
-              <RefreshCw size={14} /> Refresh
-            </Button>
-          </div>
-          {syncSetup && (
-            <div className="mt-4 text-left">
-              <SetupNeededBanner error={syncSetup} />
-            </div>
-          )}
-        </Card>
-      </div>
-    );
+    return <Onboarding onDone={() => void load()} />;
   }
 
   const cursorTone =
