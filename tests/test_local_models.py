@@ -86,8 +86,8 @@ class TestLocalGenerator:
         assert "llama-cpp-python" in str(exc.value)
 
     def test_missing_weights_raises_with_env_fix(self, monkeypatch):
-        import types
         import sys
+        import types
 
         fake = types.ModuleType("llama_cpp")
         fake.Llama = lambda **kw: None

@@ -77,7 +77,7 @@ class LocalEmbedder:
             self._model = TextEmbedding(
                 model_name=self._model_name, cache_dir=self._cache
             )
-        except Exception as e:  # noqa: BLE001 - fastembed raises varied types
+        except Exception as e:
             raise LocalModelError(
                 f"could not load {self._model_name}: {e}\\n"
                 "Local embeddings require the model weights (first use "
