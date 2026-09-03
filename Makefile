@@ -6,15 +6,16 @@ PIP := .venv/bin/pip
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup install test eval lint clean api ui ui-dev ui-build
+.PHONY: help setup install install-full test eval lint clean api ui ui-dev ui-build
 
 help:
 	@echo "fenris targets:"
-	@echo "  make setup  - create venv + install deps (editable, with dev)"
-	@echo "  make test   - run the test suite"
-	@echo "  make lint   - ruff check"
-	@echo "  make ui     - build the frontend (bun) + serve EVERYTHING from the API"
-	@echo "  make ui-dev - frontend dev server on :5173 with hot reload"
+	@echo "  make setup        - create venv + install deps (editable, with dev)"
+	@echo "  make install-full - slim setup PLUS torch (PDFs + images parse)"
+	@echo "  make test         - run the test suite"
+	@echo "  make lint         - ruff check"
+	@echo "  make ui           - build the frontend (bun) + serve EVERYTHING from the API"
+	@echo "  make ui-dev       - frontend dev server on :5173 with hot reload"
 
 setup: install
 
@@ -22,6 +23,15 @@ install:
 	python3 -m venv .venv
 	$(PIP) install -e ".[dev]"
 	$(MAKE) slim
+
+# Full parsing tier: torch-backed Docling layout models. ~1.2 GB beyond
+# slim; images route direct (OCR) and PDFs parse with layout models.
+# `fenris doctor` reports the active tier.
+install-full:
+	python3 -m venv .venv
+	$(PIP) install -e ".[dev]"
+	$(PIP) install torch --index-url https://download.pytorch.org/whl/cpu
+	@echo "full parsing tier installed - run \`fenris doctor\` to confirm"
 
 # docling (full) drags in torch + CUDA wheels (~4.5 GB); we run CPU-only.
 # See the NOTE in pyproject.toml.

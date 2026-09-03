@@ -158,12 +158,19 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
 
         top_score = kept[0].score if kept else 0.0
         rare = verify_mod._rare_terms_for(conn, query)
+        # The EXACT route skips reranking by design (MVP s.6), so its top
+        # score is on the RRF scale - incomparable with the FlashRank
+        # floor. The ladder's floor test only binds on reranker-scale
+        # passes (found by the journey suite: an exact full-phrase match
+        # was being downgraded to INSUFFICIENT by the scale mismatch).
+        rerank_scale = trace["route_id"] != "EXACT"
 
         # ------------------------------------------------------------------ #
         # 3. the state ladder on the first pass
         # ------------------------------------------------------------------ #
         state = verify_mod.resolve_state(verification, kept, top_score, floor,
-                                         rare_terms=rare)
+                                         rare_terms=rare,
+                                         rerank_scale=rerank_scale)
         trace["state_history"].append(state)
         _stage("ladder", state=state, top_score=top_score, floor=floor)
 
@@ -203,7 +210,8 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
                         agent_mod.STOP_OPEN_LIMIT)
                     state = verify_mod.resolve_state(
                         verification, evidence, top_score, floor,
-                        budget_exhausted=budget_exhausted, rare_terms=rare)
+                        budget_exhausted=budget_exhausted, rare_terms=rare,
+                        rerank_scale=rerank_scale)
                     trace["state_history"].append(state)
                     _stage("agentic_ladder", state=state,
                            stop_reason=loop.stop_reason)
@@ -254,13 +262,15 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
         if trace.get("agentic") and trace["agentic"].get("stop_reason") == "RESOLVED":
             top_score = max((ev.score for ev in kept), default=0.0)
             state = verify_mod.resolve_state(verification, kept, top_score,
-                                             floor, rare_terms=rare)
+                                             floor, rare_terms=rare,
+                                             rerank_scale=rerank_scale)
             if not trace["state_history"] or trace["state_history"][-1] != state:
                 trace["state_history"].append(state)
             _stage("agentic_resolved", state=state, top_score=top_score)
 
         state = verify_mod.resolve_state(verification, kept, top_score, floor,
-                                         rare_terms=rare)
+                                         rare_terms=rare,
+                                         rerank_scale=rerank_scale)
         if not trace["state_history"] or trace["state_history"][-1] != state:
             trace["state_history"].append(state)
 
@@ -402,7 +412,8 @@ def ask_stream(conn: sqlite3.Connection, query: str, qvec, *, generator,
         _stage("verify", kept=len(kept))
 
         state = verify_mod.resolve_state(verification, kept, top_score, floor,
-                                         rare_terms=rare)
+                                         rare_terms=rare,
+                                         rerank_scale=trace["route_id"] != "EXACT")
         trace["state_history"].append(state)
 
         if verification.has_stale and not verification.stale_persistent:
@@ -419,7 +430,8 @@ def ask_stream(conn: sqlite3.Connection, query: str, qvec, *, generator,
             top_score = kept[0].score if kept else 0.0
             _stage("stale_recheck", stale_persistent=verification.stale_persistent)
             state = verify_mod.resolve_state(verification, kept, top_score,
-                                             floor, rare_terms=rare)
+                                             floor, rare_terms=rare,
+                                             rerank_scale=trace["route_id"] != "EXACT")
 
         prompt = prompts.assemble_prompt(query, kept, strict=strict)
         _stage("prompt", evidence_count=len(kept))

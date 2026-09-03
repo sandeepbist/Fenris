@@ -187,11 +187,44 @@ class TestRouting:
         d = router_mod.route(MIME_GSHEET, True, False)
         assert d.target_mime == MIME_XLSX  # not text/csv
 
-    def test_images_ocr_deferred(self):
+    def test_images_tier_routing(self):
+        """Images follow the installed parsing tier: slim -> recorded skip
+        (ocr_deferred_v1); full (torch) -> DIRECT, parsed with OCR."""
         for mime in ("image/png", "image/jpeg", "image/tiff"):
             d = router_mod.route(mime, False, False)
-            assert d.route == Route.SKIP
-            assert d.reason == SkipReason.OCR_DEFERRED
+            if router_mod.deep_models_available():
+                assert d.route == Route.DIRECT
+                assert d.action == Action.PARSE
+                assert d.target_mime == mime
+            else:
+                assert d.route == Route.SKIP
+                assert d.reason == SkipReason.OCR_DEFERRED
+
+    def test_deep_model_env_override(self, monkeypatch):
+        """FENRIS_DEEP_MODELS flips the tier without installing torch -
+        the full-tier routing is testable on the slim CI venv."""
+        monkeypatch.setenv("FENRIS_DEEP_MODELS", "1")
+        router_mod.reset_deep_models_cache()
+        try:
+            d = router_mod.route("image/png", False, False)
+            assert d.route == Route.DIRECT
+            assert d.target_mime == "image/png"
+        finally:
+            monkeypatch.delenv("FENRIS_DEEP_MODELS")
+            router_mod.reset_deep_models_cache()
+
+    def test_tier_probe_cached(self, monkeypatch):
+        """The torch probe runs once per process (cheap after the first call)."""
+        router_mod.reset_deep_models_cache()
+        monkeypatch.setenv("FENRIS_DEEP_MODELS", "0")
+        try:
+            first = router_mod.deep_models_available()
+            monkeypatch.setenv("FENRIS_DEEP_MODELS", "1")
+            second = router_mod.deep_models_available()  # cached, env ignored
+            assert first is False and second is False
+        finally:
+            monkeypatch.delenv("FENRIS_DEEP_MODELS")
+            router_mod.reset_deep_models_cache()
 
     def test_skip_reasons(self):
         cases = {

@@ -145,6 +145,21 @@ def _check_local_models() -> dict:
                       "(pip install fastembed llama-cpp-python + model weights)"}
 
 
+def _check_parsing_tier() -> dict:
+    """Which parsing tier is installed. Informative, never a failure:
+    the slim tier is the shipped default (PDFs skip with a recorded
+    reason); the full tier adds torch-backed layout/OCR for PDFs and
+    images."""
+    from fenris.ingest.router import deep_models_available
+
+    if deep_models_available():
+        return {"name": "parsing tier", "ok": True,
+                "detail": "full - PDFs and images parse (torch layout models)"}
+    return {"name": "parsing tier", "ok": True,
+            "detail": "slim - PDFs skip (deep_model_unavailable), images skip "
+                      "(ocr_deferred_v1); install torch for the full tier"}
+
+
 _CHECKS = [
     _check_data_dir,
     _check_schema,
@@ -154,6 +169,7 @@ _CHECKS = [
     _check_index,
     _check_disk,
     _check_local_models,
+    _check_parsing_tier,
 ]
 
 

@@ -3,7 +3,8 @@
 Every Drive file lands in exactly one of:
 
 - ``direct``    - a binary Docling can parse in place (pdf, docx, xlsx, pptx,
-                  txt/md, html, epub).
+                  txt/md, html, epub; images too when the deep-model tier
+                  is installed).
 - ``export``    - a Google Workspace native that must go through
                   ``files.export`` to an OOXML target (Docs->docx,
                   Sheets->xlsx, Slides->pptx) before Docling sees it.
@@ -13,15 +14,23 @@ Every Drive file lands in exactly one of:
                   Recorded as ``status='skipped'`` with a machine-readable
                   reason in ``error``; excluded from retry logic.
 
-Images (PNG/JPEG/TIFF) are OCR candidates and default OFF in v1 (open
-decision #2): they route to ``skipped`` with reason ``ocr_deferred_v1``
-rather than being silently dropped.
+The parsing TIERS (probed once, cached; FENRIS_DEEP_MODELS=0/1 overrides):
 
-``route()`` is pure: same inputs, same decision, no IO, no clock.
+- slim (default): no torch. PDFs route direct and the PARSER returns the
+  designed ``deep_model_unavailable`` skip; images route skipped with
+  ``ocr_deferred_v1``.
+- full: torch + docling layout models installed. Images route direct
+  (OCR + layout over PNG/JPEG/TIFF/WebP/BMP/GIF); PDFs parse with the
+  layout models.
+
+``route()`` itself stays pure: same inputs + same tier, same decision,
+no IO, no clock (the tier probe is cached module state, overridable for
+tests).
 """
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 
@@ -55,6 +64,40 @@ class Route:
     EXPORT = "export"
     SHORTCUT = "shortcut"
     SKIP = "skip"
+
+
+# --- parsing tier (deep models: torch + docling layout) ------------------------
+
+_deep_models_cache: bool | None = None
+
+
+def deep_models_available() -> bool:
+    """Is the deep-model parsing tier installed (torch importable)?
+
+    Cached module state: the probe runs once per process. Tests override
+    with FENRIS_DEEP_MODELS=0/1 (no torch install needed to exercise the
+    full-tier routing), or by resetting ``router._deep_models_cache``.
+    """
+    global _deep_models_cache
+    if _deep_models_cache is not None:
+        return _deep_models_cache
+    override = os.environ.get("FENRIS_DEEP_MODELS")
+    if override is not None:
+        _deep_models_cache = override not in ("0", "false", "no")
+        return _deep_models_cache
+    try:
+        import torch  # noqa: F401
+
+        _deep_models_cache = True
+    except Exception:  # noqa: BLE001 - any import failure means slim
+        _deep_models_cache = False
+    return _deep_models_cache
+
+
+def reset_deep_models_cache() -> None:
+    """Test seam: forget the cached tier (next call re-probes)."""
+    global _deep_models_cache
+    _deep_models_cache = None
 
 
 # --- MIME constants (kept here so this module owns its routing world) --------
@@ -276,8 +319,17 @@ def route(mime_type: str, is_workspace: bool, is_shortcut: bool) -> RouteDecisio
             is_workspace=False,
         )
 
-    # OCR candidates: deferred out of v1 by decision (never silently dropped).
+    # OCR candidates: routed DIRECT when the deep-model tier is installed
+    # (torch + docling layout models), skipped with the recorded reason
+    # when it is not - never silently dropped either way.
     if mime in OCR_DEFERRED_MIMES:
+        if deep_models_available():
+            return RouteDecision(
+                route=Route.DIRECT,
+                action=Action.PARSE,
+                target_mime=mime,
+                is_workspace=False,
+            )
         return RouteDecision(
             route=Route.SKIP,
             action=Action.SKIP,

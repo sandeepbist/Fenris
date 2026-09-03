@@ -329,7 +329,8 @@ def resolve_state(verification: VerificationResult,
                   top_rerank_score: float,
                   floor: float,
                   budget_exhausted: bool = False,
-                  rare_terms: set[str] | None = None) -> AnswerState:
+                  rare_terms: set[str] | None = None,
+                  rerank_scale: bool = True) -> AnswerState:
     """Apply the strict ladder to one verified pass. Pure, never raises.
 
     Ladder order (STRICT, first match wins):
@@ -341,8 +342,15 @@ def resolve_state(verification: VerificationResult,
                       NOT a final state - the caller refreshes and retries
                       once before this fires.)
     3. INSUFFICIENT - no evidence after filtering (covers the
-                      every-item-dropped case), OR ``top_rerank_score`` below
-                      ``floor``, OR ``budget_exhausted``.
+                      every-item-dropped case), OR ``budget_exhausted``, OR
+                      ``top_rerank_score`` below ``floor`` **when the score
+                      is on the reranker's scale** (``rerank_scale=True``).
+                      The EXACT route skips reranking by design, so its top
+                      score is on the RRF scale (~1/61) - incomparable with
+                      the FlashRank-calibrated floor; passing
+                      ``rerank_scale=False`` for that pass exempts it from
+                      the floor test (an exact full-phrase match is the
+                      strongest relevance signal the engine has).
     4. CONFLICTING  - :func:`conflict_precheck` fires on the top two.
     5. ANSWERABLE   - otherwise.
 
@@ -354,7 +362,7 @@ def resolve_state(verification: VerificationResult,
         return STALE
     if not evidence_after_filter:
         return INSUFFICIENT
-    if top_rerank_score < floor:
+    if rerank_scale and top_rerank_score < floor:
         return INSUFFICIENT
     if budget_exhausted:
         return INSUFFICIENT

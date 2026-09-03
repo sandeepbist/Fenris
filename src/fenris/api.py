@@ -188,16 +188,19 @@ class SyncRequest(BaseModel):
 
 @app.post("/api/sync")
 def sync(req: SyncRequest) -> dict:
+    from fastapi import HTTPException as _HTTPError
+
     from fenris.sync.service import full_resync, sync_all
 
     conn = _db()
     try:
-        client = _drive_client(vault=req.vault)
         if req.vault and req.vault != "mydrive":
             from fenris.vaults import vault_exists
 
             if not vault_exists(conn, req.vault):
-                raise HTTPException(status_code=404, detail=f"unknown vault: {req.vault}")
+                # an unknown vault is an honest 404, not a setup 503
+                raise _HTTPError(status_code=404, detail=f"unknown vault: {req.vault}")
+        client = _drive_client(vault=req.vault)
         report = full_resync(conn, client, drive_id=req.vault or "mydrive") if req.full else sync_all(conn, client, drive_id=req.vault or "mydrive")
         return {
             "vault": req.vault or "mydrive",
@@ -209,6 +212,8 @@ def sync(req: SyncRequest) -> dict:
             "resync_triggered": report.resync_triggered,
             "errors": report.errors[:20],
         }
+    except _HTTPError:
+        raise  # the 404 above is an honest answer, not a setup problem
     except Exception as e:
         # Not authenticated / no keyring backend: the UI shows a setup hint.
         raise HTTPException(status_code=503, detail=str(e)) from e

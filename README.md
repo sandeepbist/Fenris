@@ -143,7 +143,7 @@ evaluation suite — is in **[docs/architecture.md](docs/architecture.md)**.
 | DOCX · XLSX · PPTX · TXT · MD · HTML · EPUB | Parsed locally with Docling |
 | Google Docs · Sheets · Slides | Exported, hash-verified, then parsed |
 | Tables (in any format) | Kept as structured records with cell-level references |
-| PDF · images | Skipped in the CPU-slim build — see [limitations](#honest-limitations) |
+| PDF · images | Tiered: **full tier** (with `make install-full`, torch layout models) parses them; **slim tier** (default) skips them with the reason recorded, visible in the UI — see [limitations](#honest-limitations) |
 | Audio · video · archives | Skipped with the reason recorded, visible in the UI |
 
 ---
@@ -153,9 +153,12 @@ evaluation suite — is in **[docs/architecture.md](docs/architecture.md)**.
 Stated plainly, because a tool that hides its gaps invites you to trust it
 anyway.
 
-- **PDFs and images are skipped by default.** Docling's layout models pull a
-  ~1.2 GB PyTorch install; this repo ships CPU-slim instead. Install `torch`
-  and re-run sync to enable them. Skipped files are recorded with reasons.
+- **PDFs and images are tiered, slim by default.** Docling's layout
+  models pull a ~1.2 GB PyTorch install; the default build ships slim
+  and skips those formats with per-file reasons (visible in Sources).
+  `make install-full` adds the tier — PDFs then parse with layout
+  models and images go through OCR, both cited like any other source.
+  `fenris doctor` reports which tier is active.
 - **First sync takes real time.** Downloads are paced against Drive's quota
   (~600/min). Hundreds of files is minutes; tens of thousands is hours — by
   design, because quota violations break syncs.
