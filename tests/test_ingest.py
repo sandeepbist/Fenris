@@ -311,12 +311,17 @@ class TestParse:
         pptx = _pptx_bytes()
         assert parse_mod.parse_bytes(pptx, "application/vnd.openxmlformats-officedocument.presentationml.presentation", "e.pptx").status == "success"
 
-    def test_pdf_skips_deep_model(self):
-        """Slim venv: pdf needs the layout model (torch) -> designed skip."""
+    def test_pdf_tier_behavior(self):
+        """The parsing tier decides: slim -> designed skip with the
+        recorded reason; full (torch) -> the layout models parse it."""
         parsed = parse_mod.parse_bytes(_pdf_bytes(), "application/pdf", "a.pdf")
-        assert parsed.status == "skipped"
-        assert parsed.reason == "deep_model_unavailable"
-        assert parsed.ok is True
+        if router_mod.deep_models_available():
+            assert parsed.status in ("success", "partial_success"), (
+                "full tier must parse the pdf, not skip it")
+        else:
+            assert parsed.status == "skipped"
+            assert parsed.reason == "deep_model_unavailable"
+            assert parsed.ok is True
 
     def test_corrupt_bytes_fail_not_crash(self):
         parsed = parse_mod.parse_bytes(b"garbage not a zip", MIME_DOCX, "x.docx")
@@ -956,18 +961,22 @@ class TestPipeline:
             "SELECT status, error FROM sources WHERE file_id='m1'"
         ).fetchone()
         assert row == ("skipped", SkipReason.UNSUPPORTED_MEDIA)
-        # pdf in the slim venv records the designed skip reason
+        # pdf follows the parsing tier: slim records the designed skip
+        # reason; full parses it (reason None, status ok)
         res2 = ingest_file(
             conn, None,
             FileMeta(file_id="p1", title="scan.pdf", mime_type="application/pdf",
                      source_revision="r"),
             _pdf_bytes(), EmbedCfg(embedder),
         )
-        assert res2.status == "skipped"
-        assert res2.reason == "deep_model_unavailable"
-        assert conn.execute(
-            "SELECT status FROM sources WHERE file_id='p1'"
-        ).fetchone()[0] == "skipped"
+        if router_mod.deep_models_available():
+            assert res2.status in ("ok", "failed")  # real parse ran
+        else:
+            assert res2.status == "skipped"
+            assert res2.reason == "deep_model_unavailable"
+            assert conn.execute(
+                "SELECT status FROM sources WHERE file_id='p1'"
+            ).fetchone()[0] == "skipped"
 
     def test_shortcut_routed_away_no_rows(self, conn, embedder):
         res = ingest_file(

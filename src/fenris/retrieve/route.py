@@ -36,6 +36,33 @@ RARE_DF_THRESHOLD = 3
 # suite. Lives here so routing policy stays in one versioned place.
 RERANK_FLOOR = 0.3
 
+# Per-reranker floors (2026-09 retrieval round): score distributions differ
+# across rerankers, so each calibrated reranker owns its floor. An entry with
+# calibrated=False resolves to the FlashRank floor (the only calibrated one)
+# and must NEVER back a default until its golden-suite sweep runs. The
+# (floor, calibrated) contract keeps an uncalibrated floor observable, not
+# silent. No reranker change ever ships without its floor entry.
+RERANK_FLOORS: dict[str, tuple[float, bool]] = {
+    "flashrank": (0.3, True),     # calibrated on the golden suite (M6)
+    "modernbert": (0.3, False),    # provisional until the floor sweep runs
+    "noop": (0.3, True),          # NoopReranker scores 1/rank; the floor is
+                                  # bypassed for it by construction
+}
+
+
+def floor_for(reranker_name: str | None) -> tuple[float, bool]:
+    """(floor, calibrated) for a reranker name; unknown -> FlashRank's.
+
+    Calibrated=False means the value is the conservative FlashRank
+    floor, NOT a measurement of this reranker's distribution - trace it
+    (query.py records ``trace["floor_calibrated"]``) and run the sweep
+    before trusting it for verdicts.
+    """
+    entry = RERANK_FLOORS.get((reranker_name or "").lower())
+    if entry is None:
+        return (RERANK_FLOOR, False)
+    return entry
+
 # comparative lexemes that, combined with numeric/date tokens, signal TABLE
 TABLE_LEXEMES = (
     "above", "below", "over", "under", "greater", "less", "more than", "less than",

@@ -600,6 +600,11 @@ def test_runner_oracle_full_suite_numbers(conn, cases):
 
     for slice_name, s in result.slices.items():
         for m in ALL_METRIC_NAMES:
+            if m == "entailment_rate":
+                # checker-gated metric: absent without a checker (the
+                # aggregation skips missing values, never zeroes them)
+                assert m not in s.metrics
+                continue
             if slice_name == "unanswerable" and m in (
                     "recall@5", "recall@20", "mrr", "ndcg@10", "span_recall"):
                 assert s.metrics[m] == 0.0  # IR metrics defined 0 for these

@@ -80,6 +80,26 @@ def _as_evidence_list(result) -> list[Evidence]:
     return []
 
 
+def _resolve_groundedness_checker():
+    """The configured NLI checker when its weights are fetched, else None.
+
+    Mirrors resolve_reranker: FENRIS_GROUNDEDNESS=on + fetched weights
+    -> NliGroundednessChecker; anything less -> None (the gate no-ops,
+    never blocks an answer).
+    """
+    from fenris.config import groundedness_mode
+
+    if groundedness_mode() != "on":
+        return None
+    from fenris import models as models_mod
+
+    if not models_mod.available("nli-deberta-small"):
+        return None
+    from fenris.generate.groundedness import NliGroundednessChecker
+
+    return NliGroundednessChecker()
+
+
 def _trace_route(result) -> str | None:
     decision = getattr(result, "route_decision", None)
     return getattr(decision, "route_id", None) if decision is not None else None
@@ -139,6 +159,14 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
         result = search_fn(query)
         evidence = _as_evidence_list(result)
         trace["route_id"] = _trace_route(result)
+        # per-reranker floor (query.py records the applied value + its
+        # calibration state); the explicit floor= argument still wins
+        trace["rerank_floor"] = getattr(result, "trace", {}).get("rerank_floor", floor)
+        trace["floor_calibrated"] = getattr(result, "trace", {}).get("floor_calibrated", True)
+        if floor is None or floor == RERANK_FLOOR:
+            applied = trace["rerank_floor"]
+            if isinstance(applied, (int, float)) and applied > 0:
+                floor = float(applied)
         if trace["route_id"] is None:
             decision = getattr(result, "route_decision", None)
             trace["policy_version"] = getattr(decision, "policy_version", None)
@@ -332,6 +360,42 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
             rendered.answer_text = ""
             if rendered.unverifiable_claims:
                 rendered.unverifiable_claims = []
+
+        # 9b. NLI groundedness gate (R4, dark by default): drop sentences
+        # the cited evidence does not entail, then filter citations to the
+        # surviving text. DOWNGRADE-ONLY: all-dropped lowers ANSWERABLE to
+        # INSUFFICIENT; the gate can never add text, citations, or a state.
+        from fenris.config import (
+            GROUNDEDNESS_THRESHOLD,
+            SURVIVING_SENTENCE_FLOOR,
+            groundedness_mode,
+        )
+
+        if groundedness_mode() == "on":
+            checker = _resolve_groundedness_checker()
+            if checker is not None:
+                from fenris.generate.groundedness import apply_groundedness
+
+                g = apply_groundedness(
+                    rendered.answer_text, kept, checker,
+                    GROUNDEDNESS_THRESHOLD, SURVIVING_SENTENCE_FLOOR)
+                rendered.answer_text = g.surviving_text
+                import re as _gre
+
+                surviving_ids = set(_gre.findall(r"\[E:([0-9a-zA-Z]+)\]", g.surviving_text))
+                if surviving_ids:
+                    rendered.citations = [c for c in rendered.citations
+                                          if getattr(c, "evidence_id", None) in surviving_ids]
+                trace["groundedness"] = {
+                    "model": getattr(checker, "name", "unknown"),
+                    "threshold": GROUNDEDNESS_THRESHOLD,
+                    "dropped": [s[:120] for s in g.dropped_sentences],
+                    "scores": g.per_sentence,
+                }
+                if g.all_dropped and final_state == ANSWERABLE:
+                    final_state = INSUFFICIENT
+                    rendered.answer_text = ""
+                    trace["state_history"].append("groundedness_insufficient")
         trace["state_history"].append(final_state)
 
         return AnswerPacket(
@@ -402,6 +466,13 @@ def ask_stream(conn: sqlite3.Connection, query: str, qvec, *, generator,
         result = search_fn(query)
         evidence = _as_evidence_list(result)
         trace["route_id"] = _trace_route(result)
+        # per-reranker floor flows in via the retrieval trace (ask path)
+        trace["rerank_floor"] = getattr(result, "trace", {}).get("rerank_floor", floor)
+        trace["floor_calibrated"] = getattr(result, "trace", {}).get("floor_calibrated", True)
+        if floor is None or floor == RERANK_FLOOR:
+            applied = trace["rerank_floor"]
+            if isinstance(applied, (int, float)) and applied > 0:
+                floor = float(applied)
         _stage("search", evidence_count=len(evidence))
 
         verification = verify_mod.verify_sources(
@@ -498,6 +569,28 @@ def ask_stream(conn: sqlite3.Connection, query: str, qvec, *, generator,
             rendered.answer_text = ""
             if rendered.unverifiable_claims:
                 rendered.unverifiable_claims = []
+
+        # NLI groundedness in the STREAM path: report-only (text already
+        # yielded cannot be un-yielded); the scores reach the trace so the
+        # done packet and evals carry the signal. Stripping is ask-path-only.
+        from fenris.config import groundedness_mode
+
+        if groundedness_mode() == "on":
+            checker = _resolve_groundedness_checker()
+            if checker is not None:
+                from fenris.config import GROUNDEDNESS_THRESHOLD, SURVIVING_SENTENCE_FLOOR
+                from fenris.generate.groundedness import apply_groundedness
+
+                g = apply_groundedness(
+                    rendered.answer_text, kept, checker,
+                    GROUNDEDNESS_THRESHOLD, SURVIVING_SENTENCE_FLOOR)
+                trace["groundedness"] = {
+                    "model": getattr(checker, "name", "unknown"),
+                    "threshold": GROUNDEDNESS_THRESHOLD,
+                    "dropped": [s[:120] for s in g.dropped_sentences],
+                    "scores": g.per_sentence,
+                    "mode": "report-only",
+                }
         trace["state_history"].append(final_state)
 
         yield AnswerPacket(

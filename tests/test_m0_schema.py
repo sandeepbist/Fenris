@@ -55,7 +55,7 @@ def test_schema_applies_and_is_idempotent(cfg):
         from fenris.schema import apply_schema
 
         apply_schema(conn)
-        assert conn.execute("SELECT version FROM schema_version").fetchone()[0] == 1
+        assert conn.execute("SELECT version FROM schema_version").fetchone()[0] == 2
     finally:
         conn.close()
 

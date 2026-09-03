@@ -50,6 +50,12 @@ def env(tmp_path, monkeypatch):
     """A fresh install: empty DB, no vaults, fakes wired at the seams."""
     home = tmp_path / "home"
     monkeypatch.setenv("FENRIS_HOME", str(home))
+    # the API lifespan starts the digest-scheduler daemon; in tests its
+    # 30s ticks land mid-journey on this very DB (fresh connections from
+    # a second thread, schema-ensure writes interleaving the journey's
+    # sync transactions) - the intermittent journeys flake. Off here:
+    # the scheduler loop itself is not under test (run_due is, directly).
+    monkeypatch.setenv("FENRIS_DIGEST_SCHEDULER", "0")
     cfg = FenrisConfig(data_dir=home)
     cfg.ensure_dirs()
 

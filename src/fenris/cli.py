@@ -86,17 +86,10 @@ def _make_embedder():
 def _make_search_fn(conn, embedder, use_reranker: bool = True):
     """Partially-apply the retrieval stack for ask()/eval."""
     from fenris.retrieve import search
-    from fenris.retrieve.rerank import FlashRankReranker, NoopReranker
-
-    reranker = NoopReranker()
-    if use_reranker:
-        try:
-            reranker = FlashRankReranker()  # lazy model load; may download once
-        except (OSError, ValueError, RuntimeError):
-            # missing model/cache/network: degrade to the identity reranker
-            reranker = NoopReranker()
+    from fenris.retrieve.rerank import NoopReranker, resolve_reranker
 
     def search_fn(query: str):
+        reranker = resolve_reranker()[0] if use_reranker else NoopReranker()
         qvec = embedder.embed_documents([f"task: search result | query: {query}"])[0]
         return search(conn, query, qvec, reranker=reranker)
 
@@ -144,9 +137,14 @@ def ask(
 
         def search_fn(q: str):
             from fenris.retrieve import search
-            from fenris.retrieve.rerank import FlashRankReranker, NoopReranker
+            from fenris.retrieve.rerank import NoopReranker, resolve_reranker
 
-            reranker = NoopReranker() if (no_rerank or offline) else FlashRankReranker()
+            if no_rerank or offline:
+                reranker = NoopReranker()
+            else:
+                reranker, reason = resolve_reranker()
+                if "unavailable" in reason or "unknown" in reason:
+                    typer.echo(f"reranker: {reason}", err=True)
             if embedder is None:
                 # offline: retrieval without a query vector (BM25-only)
                 return search(conn, q, None, reranker=reranker, vaults=vaults)
@@ -280,6 +278,46 @@ def vault_rm(vault_id: str) -> None:
         raise typer.Exit(code=2)
     finally:
         conn.close()
+
+
+# ---- fetched-weights registry (2026-09 retrieval round) -------------------------
+
+models_app = typer.Typer(help="Fetched model weights: list, status, fetch.",
+                         no_args_is_help=True)
+app.add_typer(models_app, name="models")
+
+
+@models_app.command("ls")
+def models_ls() -> None:
+    """List the weight registry with local availability."""
+    from fenris import models as models_mod
+
+    for name, entry in models_mod.MODELS.items():
+        state = "fetched" if models_mod.available(name) else "not fetched"
+        size = entry["size_bytes"] // (1024 * 1024)
+        typer.echo(f"[{name}] {state} - {entry['what']} (~{size} MB)")
+    typer.echo("fetch with: fenris models fetch <name> (explicit, verified)")
+
+
+@models_app.command("fetch")
+def models_fetch(name: str) -> None:
+    """Fetch + verify (sha256 + smoke test) one model's weights."""
+    import shutil
+
+    from fenris import models as models_mod
+
+    free = shutil.disk_usage(".").free
+    entry = models_mod.MODELS.get(name)
+    need = (entry["size_bytes"] if entry else 0) + models_mod.FETCH_FREE_BYTES
+    if free < need:
+        typer.echo(f"not enough free space (~{need // (1024*1024)} MB needed)")
+        raise typer.Exit(code=1)
+    try:
+        path = models_mod.fetch(name)
+    except (ValueError, OSError) as e:
+        typer.echo(str(e))
+        raise typer.Exit(code=2)
+    typer.echo(f"fetched + verified: {name} -> {path}")
 
 
 def main() -> None:

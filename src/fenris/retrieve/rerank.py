@@ -112,10 +112,119 @@ class FlashRankReranker:
         scored = [(int(r["id"]), float(r["score"])) for r in results]
         if not scored:
             return []
-        raw = [s for _cid, s in scored]
-        lo, hi = min(raw), max(raw)
-        if hi - lo < 1e-12:
-            normalized = [(cid, 1.0) for cid, _s in scored]
-        else:
-            normalized = [(cid, (s - lo) / (hi - lo)) for cid, s in scored]
-        return normalized
+        return _normalize_batch(scored)
+
+
+def _normalize_batch(scored: list[tuple[int, float]]) -> list[tuple[int, float]]:
+    """Min-max normalize [0,1] so floors stay comparable across batch
+    shapes; an all-equal batch scores 1.0 for every candidate (the
+    batch said they are all the same - not that all are terrible)."""
+    raw = [s for _cid, s in scored]
+    lo, hi = min(raw), max(raw)
+    if hi - lo < 1e-12:
+        return [(cid, 1.0) for cid, _s in scored]
+    return [(cid, (s - lo) / (hi - lo)) for cid, s in scored]
+
+
+class ModernBertReranker:
+    """gte-reranker-modernbert-base int8 ONNX (2026-09 retrieval round).
+
+    The encoder-class CPU upgrade over FlashRank's 2021 MiniLM (BEIR
+    56.19 vs the v1-era large at 49.32; 149M params, 8k pair context,
+    Apache-2.0). Weights arrive ONLY via `fenris models fetch
+    modernbert-rerank` (pinned sha256 + smoke test) - this class never
+    downloads. Score convention matches FlashRank exactly (sigmoid to
+    [0,1], then the shared min-max batch normalization), so per-
+    reranker floors stay the only calibration surface.
+
+    Lazy session: nothing loads at import time. ``_weights_dir`` is the
+    test/models seam (fetch's smoke test passes the fetched dir).
+    """
+
+    name = "modernbert"
+
+    def __init__(self, *, _weights_dir=None):
+        self._session = None
+        self._tokenizer = None
+        self._weights_dir = _weights_dir
+
+    def _ensure_session(self):
+        if self._session is None:
+            import onnxruntime as ort
+            from tokenizers import Tokenizer
+
+            from fenris import models as models_mod
+
+            base = self._weights_dir or models_mod.locate("modernbert-rerank")
+            if base is None:
+                raise FileNotFoundError(
+                    "modernbert reranker weights not fetched - run "
+                    "`fenris models fetch modernbert-rerank` (explicit "
+                    "download, pinned sha256 + smoke test)"
+                )
+            self._session = ort.InferenceSession(
+                str(base / "model.onnx"),
+                providers=["CPUExecutionProvider"],
+            )
+            self._tokenizer = Tokenizer.from_file(str(base / "tokenizer.json"))
+
+    def _score_pairs(self, query: str, texts: list[str]) -> list[float]:
+        import numpy as np
+
+        scores: list[float] = []
+        for text in texts:
+            # cross-encoder input: the (query, passage) pair
+            enc = self._tokenizer.encode(query, text)
+            ids = np.array([enc.ids], dtype=np.int64)
+            mask = np.array([enc.attention_mask], dtype=np.int64)
+            logits = self._session.run(None, {
+                "input_ids": ids, "attention_mask": mask,
+            })[0]
+            # single-logit relevance head -> sigmoid to [0, 1]
+            logit = float(np.asarray(logits).reshape(-1)[0])
+            scores.append(1.0 / (1.0 + np.exp(-logit)))
+        return scores
+
+    def register_texts(self, texts: dict[int, str]) -> None:
+        self._texts = dict(texts)
+
+    def rerank(self, query: str, candidates: Sequence[tuple]) -> list[tuple[int, float]]:
+        if not candidates:
+            return []
+        ids, passages = [], []
+        for cand in candidates:
+            chunk_id = int(cand[0])
+            text = self._texts.get(chunk_id)
+            if text and text.strip():
+                ids.append(chunk_id)
+                passages.append(text)
+        if not passages:
+            return []
+        self._ensure_session()
+        scored = list(zip(ids, self._score_pairs(query, passages)))
+        if not scored:
+            return []
+        return _normalize_batch(scored)
+
+
+def resolve_reranker(use_flashrank: bool = True):
+    """The configured reranker, with the local fallback ladder.
+
+    FENRIS_RERANKER=modernbert opts into the encoder upgrade when its
+    weights are fetched; anything unfetchable degrades to FlashRank, then
+    Noop (the CLI's existing ladder). The reason is returned for traces
+    and doctor output - a silent no-op flag is the failure this prevents.
+    """
+    from fenris import models as models_mod
+    from fenris.config import reranker_choice
+
+    choice = reranker_choice().strip().lower()
+    if choice == "modernbert":
+        if models_mod.available("modernbert-rerank"):
+            return ModernBertReranker(), "modernbert"
+        return FlashRankReranker(), "modernbert-unavailable-flashrank"
+    if choice not in ("flashrank", ""):
+        return FlashRankReranker(), f"unknown-{choice}-flashrank"
+    if use_flashrank:
+        return FlashRankReranker(), "flashrank"
+    return NoopReranker(), "noop"

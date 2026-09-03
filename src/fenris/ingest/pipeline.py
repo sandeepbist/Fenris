@@ -82,6 +82,14 @@ class IngestResult:
     chunks_deduped: int = 0        # reused stored embeddings
 
 
+def _body_hash(body_text: str) -> str:
+    """sha256(body) - the cross-folder dedup key (text_hash correctly
+    includes the header, so folder-differing duplicates never collide)."""
+    h = hashlib.sha256()
+    h.update((body_text or "").encode("utf-8"))
+    return h.hexdigest()
+
+
 def _now_iso() -> str:
     """UTC index-time stamp (the sources.created_at digest/ordering column)."""
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -99,6 +107,16 @@ def _json_pages(pages: tuple[int, ...]) -> str:
     return json.dumps(list(pages))
 
 
+def _chunker_identity() -> str:
+    """The effective chunker version: byte-identical to CHUNKER_FULL_VERSION
+    in deterministic mode (zero churn); +ctx-llm-v1 in llm mode (R3), so a
+    mode switch re-represents instead of mixing vector spaces."""
+    from fenris.config import contextual_headers_mode
+    from fenris.ingest.contextualize import chunker_identity
+
+    return chunker_identity(CHUNKER_FULL_VERSION, contextual_headers_mode())
+
+
 def _representation_key(meta: FileMeta, target_mime: str, model_id: str) -> tuple:
     """The sources UNIQUE-constraint tuple: identity, never Drive's version."""
     return (
@@ -107,7 +125,7 @@ def _representation_key(meta: FileMeta, target_mime: str, model_id: str) -> tupl
         meta.source_revision,
         target_mime,
         PARSER_VERSION,
-        CHUNKER_FULL_VERSION,
+        _chunker_identity(),
         model_id,
     )
 
@@ -123,7 +141,14 @@ def _existing_source_row(conn, meta: FileMeta, target_mime: str, model_id: str):
 
 
 def _existing_hash_map(conn, hashes: list[str]) -> dict[str, bytes]:
-    """Stored embeddings for chunk texts seen before (any source)."""
+    """Stored embeddings for chunk texts seen before — same contextual MODE
+    only (R3: an llm-mode payload differs per document even for identical
+    bodies, so a deterministic-era vector must never back an llm-mode embed).
+    The join follows this file's own existing convention."""
+    from fenris.config import contextual_headers_mode
+    from fenris.ingest.contextualize import chunker_identity
+
+    mode_version = chunker_identity(CHUNKER_FULL_VERSION, contextual_headers_mode())
     out: dict[str, bytes] = {}
     for start in range(0, len(hashes), 500):
         batch = hashes[start : start + 500]
@@ -131,8 +156,9 @@ def _existing_hash_map(conn, hashes: list[str]) -> dict[str, bytes]:
         rows = conn.execute(
             f"""SELECT c.text_hash, v.embedding
                   FROM chunks c JOIN chunks_vec v ON v.chunk_id = c.chunk_id
-                 WHERE c.text_hash IN ({placeholders})""",
-            batch,
+                  JOIN sources s ON s.id = c.source_id
+                 WHERE c.text_hash IN ({placeholders}) AND s.chunker_version = ?""",
+            [*batch, mode_version],
         ).fetchall()
         for text_hash, embedding in rows:
             out[text_hash] = embedding
@@ -424,7 +450,9 @@ def ingest_file(
                 "record": record,
                 "header": header,
                 "text_hash": _text_hash(header, record.body_text),
+                "body_hash": _body_hash(record.body_text),
                 "flagged": flagged,
+                "context": None,  # R3 contextual mode fills this; default off
             }
         )
     table_blocks: list[dict] = []
@@ -456,7 +484,30 @@ def ingest_file(
         else:
             item["_table_block_index"] = table_blocks.index(item)
 
+    # -- contextual chunk headers (R3, dark by default) ------------------------
+    # Only body children, only in llm mode with a generator wired; the
+    # context flows into the embed payload and chunks.context_text ONLY
+    # (never body_text/header_text/spans — the citation frame is frozen).
+    from fenris.config import contextual_headers_mode
+
+    if contextual_headers_mode() == "llm" and hasattr(cfg, "context_generator"):
+        from fenris.ingest.contextualize import contextualize
+
+        try:
+            contexts = contextualize(
+                conn, parsed.body_text, prepared,
+                cfg.context_generator.generate_raw,
+                getattr(cfg.context_generator, "model_id", "unknown"),
+            )
+            for idx2, ctx in contexts.items():
+                prepared[idx2]["context"] = ctx
+        except Exception:  # noqa: BLE001 - the feature degrades, ingest never fails
+            contexts = {}
+
     # -- embed (outside any transaction; hash dedup reuses stored vectors) ----
+    # Within-batch reuse keys on the ACTUAL embed payload (the _embed_hash
+    # seam): under llm mode, two chunks with identical text_hash can carry
+    # different contexts, so their vectors must never be conflated.
     stored = (
         _existing_hash_map(conn, [item["text_hash"] for item in embeddable])
         if embeddable
@@ -465,9 +516,24 @@ def ingest_file(
     need: list[dict] = [
         item for item in embeddable if item["text_hash"] not in stored
     ]
-    texts = [_embed_text(item) for item in need]
+    by_payload: dict[str, bytes] = {}
+    need_unique: list[dict] = []
+    for item in need:
+        payload_hash = hashlib.sha256(_embed_text(item).encode("utf-8")).hexdigest()
+        if payload_hash in by_payload:
+            item["_reuse_payload_hash"] = payload_hash
+            continue
+        need_unique.append(item)
+    texts = [_embed_text(item) for item in need_unique]
     new_vectors = embedder.embed_documents(texts) if texts else []
-    vec_by_hash = {item["text_hash"]: vec for item, vec in zip(need, new_vectors)}
+    for item, vec in zip(need_unique, new_vectors):
+        payload_hash = hashlib.sha256(_embed_text(item).encode("utf-8")).hexdigest()
+        by_payload[payload_hash] = vec
+    vec_by_hash = {item["text_hash"]: vec for item, vec in zip(need_unique, new_vectors)}
+    for item in need:
+        reuse = item.get("_reuse_payload_hash")
+        if reuse is not None and item["text_hash"] not in vec_by_hash:
+            vec_by_hash[item["text_hash"]] = by_payload[reuse]
 
     # -- ONE transaction: writes only ----------------------------------------
     with conn:
@@ -506,8 +572,8 @@ def ingest_file(
             cur = conn.execute(
                 """INSERT INTO chunks(source_id, ordinal, parent_chunk_id, page_nos,
                      section_path, header_text, body_text, char_start, char_end,
-                     text_hash, is_table, table_id, row_range, flagged, token_count)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                     text_hash, body_hash, context_text, is_table, table_id, row_range, flagged, token_count)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     source_id,
                     record.ordinal,
@@ -521,6 +587,8 @@ def ingest_file(
                     record.char_start,
                     record.char_end,
                     item["text_hash"],
+                    item.get("body_hash"),
+                    item.get("context"),
                     0,
                     None,
                     None,
@@ -553,8 +621,8 @@ def ingest_file(
             cur = conn.execute(
                 """INSERT INTO chunks(source_id, ordinal, parent_chunk_id, page_nos,
                      section_path, header_text, body_text, char_start, char_end,
-                     text_hash, is_table, table_id, row_range, flagged, token_count)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                     text_hash, body_hash, is_table, table_id, row_range, flagged, token_count)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     source_id,
                     base_ordinal + t_block_idx,
@@ -566,6 +634,7 @@ def ingest_file(
                     0,
                     len(block.text),
                     item["text_hash"],
+                    None,  # tables never dedup: a table hit cites table_id+range
                     1,
                     table_id,
                     f"rows {block.start_row + 1}-{block.end_row}",
@@ -606,9 +675,15 @@ def ingest_file(
 
 
 def _embed_text(item: dict) -> str:
-    """The text sent to the embedder: header + body (~600 tokens)."""
+    """The text sent to the embedder: header + body (~600 tokens); under
+    contextual mode the LLM context sits between them (R3) — the context
+    improves retrieval, never the citation frame."""
     body = item["record"].body_text if item["kind"] == "body" else item["block"].text
-    return f"{item['header']}\n{body}"
+    header = item["header"]
+    context = item.get("context")
+    if item["kind"] == "body" and context:
+        return f"{header}\n\n{context}\n\n{body}"
+    return f"{header}\n{body}"
 
 
 def _embeddable_chunk_id(

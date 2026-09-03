@@ -39,10 +39,13 @@ _scheduler_stop = threading.Event()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    import os
+
     from fenris.scheduler import start_digest_scheduler
 
     _scheduler_stop.clear()
-    start_digest_scheduler(_scheduler_stop)
+    if os.environ.get("FENRIS_DIGEST_SCHEDULER", "1") != "0":
+        start_digest_scheduler(_scheduler_stop)
     yield
     _scheduler_stop.set()
 
@@ -319,7 +322,7 @@ def _local_stack_if_available():
 def ask(req: AskRequest) -> dict:
     from fenris.generate.service import ask as ask_service
     from fenris.retrieve import search as search_mod
-    from fenris.retrieve.rerank import FlashRankReranker, NoopReranker
+    from fenris.retrieve.rerank import NoopReranker, resolve_reranker
 
     conn = _db()
     try:
@@ -332,7 +335,7 @@ def ask(req: AskRequest) -> dict:
 
         def search_fn(q: str):
             qvec = embedder.embed_documents([f"task: search result | query: {q}"])[0]
-            reranker = FlashRankReranker() if req.rerank else NoopReranker()
+            reranker = resolve_reranker()[0] if req.rerank else NoopReranker()
             return search_mod(conn, q, qvec, reranker=reranker, scope=req.scope, vaults=req.vaults)
 
         packet = ask_service(conn, req.question, None, generator=generator, search_fn=search_fn, strict=req.strict)
@@ -375,7 +378,7 @@ def ask_stream(req: AskRequest):
 
     from fenris.generate.service import ask_stream as ask_service_stream
     from fenris.retrieve import search as search_mod
-    from fenris.retrieve.rerank import FlashRankReranker, NoopReranker
+    from fenris.retrieve.rerank import NoopReranker, resolve_reranker
 
     conn = _db()
 
@@ -388,7 +391,7 @@ def ask_stream(req: AskRequest):
 
             def search_fn(q: str):
                 qvec = embedder.embed_documents([f"task: search result | query: {q}"])[0]
-                reranker = FlashRankReranker() if req.rerank else NoopReranker()
+                reranker = resolve_reranker()[0] if req.rerank else NoopReranker()
                 return search_mod(conn, q, qvec, reranker=reranker, scope=req.scope, vaults=req.vaults)
 
             for item in ask_service_stream(

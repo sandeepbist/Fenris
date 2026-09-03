@@ -160,6 +160,24 @@ def _check_parsing_tier() -> dict:
                       "(ocr_deferred_v1); install torch for the full tier"}
 
 
+def _check_optional_weights() -> dict:
+    """Fetched optional weights (reranker upgrade, NLI gate). Informative:
+    absent weights simply mean the upgrade features stay dark."""
+    from fenris import models as models_mod
+
+    parts = []
+    if models_mod.available("modernbert-rerank"):
+        parts.append("modernbert rerank: fetched")
+    if models_mod.available("nli-deberta-small"):
+        parts.append("NLI groundedness: fetched")
+    if parts:
+        return {"name": "optional weights", "ok": True,
+                "detail": "; ".join(parts)}
+    return {"name": "optional weights", "ok": True,
+            "detail": "none fetched - upgrades stay on defaults "
+                      "(fenris models ls lists them)"}
+
+
 _CHECKS = [
     _check_data_dir,
     _check_schema,
@@ -170,6 +188,7 @@ _CHECKS = [
     _check_disk,
     _check_local_models,
     _check_parsing_tier,
+    _check_optional_weights,
 ]
 
 

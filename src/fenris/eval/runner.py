@@ -117,6 +117,25 @@ def _observed_state(case: EvalCase, retrieved: list[RetrievedDoc]) -> str:
     return "ANSWERED" if retrieved else "INSUFFICIENT"
 
 
+def entailment_rate_for_case(case: EvalCase, checker) -> float | None:
+    """Mean per-sentence NLI entailment of the case's golden answer against
+    its retrieved evidence union. None when the case yields nothing to score
+    (no answer text or no evidence) — recorded as absent, never zero."""
+    answer = getattr(case, "golden_answer", None) or ""
+    evidence = getattr(case, "evidence_texts", None) or []
+    if not answer or not evidence:
+        return None
+    from fenris.generate.groundedness import apply_groundedness
+
+    result = apply_groundedness(
+        answer, [], checker, threshold=0.0, surviving_floor=0)
+    # with no cited ids, every sentence scores against the fallback premise
+    if not result.per_sentence:
+        return None
+    kept = [p["score"] for p in result.per_sentence]
+    return sum(kept) / len(kept) if kept else None
+
+
 def run_suite(
     conn: sqlite3.Connection,
     cases: list[EvalCase],
@@ -124,12 +143,17 @@ def run_suite(
     flag_config: dict | None = None,
     manifest_spans: dict[str, list[AnswerSpan]] | None = None,
     git_sha: str | None = None,
+    groundedness_checker=None,
 ) -> RunResult:
     """Run all cases through the injected retriever; persist + report.
 
     - retrieve_fn: callable(question: str) -> list[RetrievedDoc]
     - flag_config: JSON-serializable dict stored on the run row (ablations)
     - manifest_spans: doc_id -> golden spans (optional; cases carry their own)
+    - groundedness_checker: optional NLI checker; when given, each case's
+      golden answer sentences are scored against their evidence unions and
+      the mean lands in metrics as ``entailment_rate`` (absent when None —
+      the aggregation skips missing values, so offline runs are unaffected).
 
     Writes one eval_runs row and one eval_case_results row per case through
     the real schema, then returns the RunResult with the markdown report.
@@ -137,6 +161,8 @@ def run_suite(
     INSUFFICIENT, metrics zeroed) - a crashing case never aborts the run.
     """
     flag_config = dict(flag_config or {})
+    if groundedness_checker is not None:
+        flag_config["groundedness"] = getattr(groundedness_checker, "name", "unknown")
     started_at = datetime.now(UTC).isoformat(timespec="seconds")
 
     case_results: list[CaseResult] = []
@@ -161,6 +187,10 @@ def run_suite(
         sc = state_correct_for_case(case, observed)
 
         metrics = {**ir, "span_recall": sr, "state_correct": sc}
+        if groundedness_checker is not None:
+            er = entailment_rate_for_case(case, groundedness_checker)
+            if er is not None:
+                metrics["entailment_rate"] = er
         case_metrics[case.id] = metrics
 
         cr = CaseResult(

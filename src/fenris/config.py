@@ -55,6 +55,40 @@ INJECTION_PATTERNS = (
     "reveal your instructions",
 )
 
+# --- retrieval-quality round (2026-09); env overrides ---------------------------
+# All feature flags are read AT CALL TIME (not import time) so tests can
+# monkeypatch the env per test and no module-reload hazards exist: a flag
+# flip is a live read, and every consumer imports the reader, never a
+# snapshot. Defaults unchanged when the env vars are absent.
+
+
+def reranker_choice() -> str:
+    """flashrank (default, calibrated) | modernbert (encoder upgrade;
+    requires `fenris models fetch modernbert-rerank`; floor provisional
+    until the golden-suite sweep runs)."""
+    return os.environ.get("FENRIS_RERANKER", "flashrank")
+
+
+def dedup_identical_bodies() -> bool:
+    """Byte-exact body dedup at the retrieval boundary (default ON)."""
+    return os.environ.get("FENRIS_DEDUP_BODIES", "1") == "1"
+
+
+def contextual_headers_mode() -> str:
+    """deterministic (default) | llm — the Anthropic-style chunk context
+    into the embed payload (dark until its eval gate)."""
+    return os.environ.get("FENRIS_CONTEXTUAL_HEADERS", "deterministic")
+
+
+def groundedness_mode() -> str:
+    """off (default) | on — the NLI downgrade-only gate (dark until its
+    eval gate; requires `fenris models fetch nli-deberta-small`)."""
+    return os.environ.get("FENRIS_GROUNDEDNESS", "off")
+
+
+GROUNDEDNESS_THRESHOLD = 0.5  # provisional; calibrated in the eval round
+SURVIVING_SENTENCE_FLOOR = 1
+
 
 def default_data_dir() -> Path:
     """XDG-conscious local data dir. FENRIS_HOME overrides for tests."""

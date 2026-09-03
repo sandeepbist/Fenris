@@ -194,7 +194,7 @@ def state_correct_for_case(case: EvalCase, actual_state: str | None) -> float:
 # Slice aggregation - never blended
 # ---------------------------------------------------------------------------
 
-ALL_METRIC_NAMES = IR_MEASURE_NAMES + ("span_recall", "state_correct")
+ALL_METRIC_NAMES = IR_MEASURE_NAMES + ("span_recall", "state_correct", "entailment_rate")
 
 
 @dataclass

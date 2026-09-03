@@ -10,6 +10,7 @@ import { CalendarClock, Mail, Trash2, Play } from "lucide-react";
 import {
   api,
   type DigestPayload,
+  type DigestRunInfo,
   type DigestScheduleRow,
 } from "@/lib/api";
 import { Badge, Button, Card, CardHeader, SkeletonRow } from "@/components/ui";
@@ -29,16 +30,19 @@ export function DigestCard({ onGenerated }: { onGenerated?: () => void }) {
   const [daily, setDaily] = useState(false);
   const [dow, setDow] = useState("mon");
   const [addError, setAddError] = useState<string | null>(null);
+  const [history, setHistory] = useState<DigestRunInfo[] | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [latest, scheds] = await Promise.all([
+      const [latest, scheds, runs] = await Promise.all([
         api.latestDigest(),
         api.digestSchedules(),
+        api.digestRuns(8),
       ]);
       setDigest(latest.digest);
       setSchedules(scheds.schedules);
+      setHistory(runs.runs);
     } catch {
       /* digest surfaces degrade silently: an unreachable engine shows
          skeletons, matching the dashboard's other cards */
@@ -272,6 +276,39 @@ export function DigestCard({ onGenerated }: { onGenerated?: () => void }) {
             )
           )}
         </div>
+      )}
+
+      {history !== null && history.length > 0 && (
+        <details className="border-t border-border-subtle">
+          <summary className="mono cursor-pointer select-none px-4 py-2 text-xs text-text-muted hover:bg-bg-overlay">
+            history ({history.length} runs)
+          </summary>
+          <div className="px-4 pb-3">
+            {history.map((r) => (
+              <button
+                key={r.id}
+                onClick={() =>
+                  r.counts &&
+                  setDigest({
+                    generated_at: r.generated_at,
+                    window_start: r.window_start,
+                    window_days: r.window_days,
+                    counts: r.counts,
+                    markdown: "",
+                  })
+                }
+                className="mono flex w-full items-center justify-between rounded-[--radius-sm] px-2 py-1.5 text-[10px] text-text-muted transition-colors hover:bg-bg-overlay hover:text-text"
+                title="show this run's counts in the card"
+              >
+                <span>{r.generated_at}</span>
+                <span>
+                  +{r.counts?.new ?? 0} · ~{r.counts?.updated ?? 0} ·
+                  −{r.counts?.removed ?? 0} · !{r.counts?.problems ?? 0}
+                </span>
+              </button>
+            ))}
+          </div>
+        </details>
       )}
     </Card>
   );

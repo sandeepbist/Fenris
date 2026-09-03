@@ -167,6 +167,28 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
     fused = _apply_scope(conn, fused, scope)
     fused = _apply_vaults(conn, fused, vaults)
 
+    # byte-exact body dedup (R2, default-on, kill switch FENRIS_DEDUP_BODIES=0):
+    # collapse byte-identical bodies AFTER scope/vault filters (a scoped
+    # query must keep its in-scope twin even when an out-of-scope original
+    # ranked higher) and BEFORE the pool (both route paths get lean lists,
+    # and the reranker scores distinct bodies). Tables are exempt.
+    from fenris.config import dedup_identical_bodies
+
+    if dedup_identical_bodies():
+        from fenris.retrieve.dedup import collapse_identical_bodies
+
+        fused, dedup_dropped = collapse_identical_bodies(conn, fused)
+    else:
+        dedup_dropped = 0
+
+    # per-reranker floor (route.py owns the map): the floor the ladder
+    # will compare against, plus whether it was actually CALIBRATED for
+    # this reranker - an uncalibrated floor is the FlashRank value held
+    # conservatively, and the trace says so.
+    floor_used, floor_calibrated = _route.floor_for(getattr(reranker, "name", None))
+    if not floor_calibrated:
+        floor_used = _route.RERANK_FLOOR  # conservative until the sweep runs
+
     trace: dict = {
         "query": query,
         "route_id": decision.route_id,
@@ -179,6 +201,9 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
         "rrf": [(cid, s) for cid, s in fused],
         "rerank": [],
         "reranker": getattr(reranker, "name", "unknown"),
+        "rerank_floor": floor_used,
+        "floor_calibrated": floor_calibrated,
+        "dedup_dropped": dedup_dropped,
         "k": 0,
         "agentic_trigger": None,
     }
@@ -206,10 +231,11 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
         ranked = reranker.rerank(query, pool)
         trace["rerank"] = [(cid, s) for cid, s in ranked]
         top_score = ranked[0][1] if ranked else 0.0
-        if decision.route_id == "NORMAL" and top_score < _route.RERANK_FLOOR:
-            # AGENTIC: top rerank score below the calibrated floor. Selection
-            # still proceeds (the caller decides whether to run the retry
-            # loop), but the decision and trace record the trigger.
+        if decision.route_id == "NORMAL" and top_score < floor_used:
+            # AGENTIC: top rerank score below the APPLIED per-reranker
+            # floor. Selection still proceeds (the caller decides whether
+            # to run the retry loop), but the decision and trace record
+            # the trigger.
             trace["agentic_trigger"] = "rerank_floor"
             signals = dict(decision.signals)
             signals["agentic_trigger"] = "rerank_floor"

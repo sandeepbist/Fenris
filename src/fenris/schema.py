@@ -15,7 +15,7 @@ changes.
 
 import sqlite3
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
@@ -87,6 +87,8 @@ CREATE TABLE IF NOT EXISTS chunks (
   char_start INTEGER,
   char_end INTEGER,                     -- offsets into body_text (citation frame)
   text_hash TEXT NOT NULL,              -- sha256(header+body)
+  body_hash TEXT,                       -- sha256(body): the cross-folder dedup key (v2)
+  context_text TEXT,                     -- LLM chunk context, embed/FTS payload only (v2, dark)
   is_table INTEGER NOT NULL DEFAULT 0,
   table_id INTEGER,
   row_range TEXT,
@@ -212,10 +214,19 @@ def apply_schema(conn) -> None:
         # vec0 not present yet - caller must load sqlite-vec first and then
         # call apply_vec0(); we do not silently skip the dense index.
         pass
+    # v1 -> v2 column ensure (body_hash, context_text): idempotent, so
+    # shared INSERTs never break a DB created with the old DDL.
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(chunks)", ()).fetchall()}
+    if "body_hash" not in cols:
+        conn.execute("ALTER TABLE chunks ADD COLUMN body_hash TEXT")
+    if "context_text" not in cols:
+        conn.execute("ALTER TABLE chunks ADD COLUMN context_text TEXT")
     row = conn.execute("SELECT version FROM schema_version").fetchone()
     if row is None:
         conn.execute("INSERT INTO schema_version(version) VALUES (?)", (SCHEMA_VERSION,))
-        conn.commit()
+    elif row[0] < SCHEMA_VERSION:
+        conn.execute("UPDATE schema_version SET version = ?", (SCHEMA_VERSION,))
+    conn.commit()
 
 
 def apply_vec0(conn) -> None:
