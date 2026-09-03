@@ -183,6 +183,7 @@ def sources(limit: int = 200, status_filter: str | None = None) -> dict:
 
 class SyncRequest(BaseModel):
     full: bool = False  # escape hatch -> full_resync
+    vault: str | None = None  # P2.5: vault id to sync (None = default)
 
 
 @app.post("/api/sync")
@@ -191,9 +192,15 @@ def sync(req: SyncRequest) -> dict:
 
     conn = _db()
     try:
-        client = _drive_client()
-        report = full_resync(conn, client) if req.full else sync_all(conn, client)
+        client = _drive_client(vault=req.vault)
+        if req.vault and req.vault != "mydrive":
+            from fenris.vaults import vault_exists
+
+            if not vault_exists(conn, req.vault):
+                raise HTTPException(status_code=404, detail=f"unknown vault: {req.vault}")
+        report = full_resync(conn, client, drive_id=req.vault or "mydrive") if req.full else sync_all(conn, client, drive_id=req.vault or "mydrive")
         return {
+            "vault": req.vault or "mydrive",
             "changes_processed": report.changes_processed,
             "content_reingests": report.content_reingests,
             "metadata_only": report.metadata_only,
@@ -221,6 +228,8 @@ class AskRequest(BaseModel):
     # Prefer the local model stack (offline mode). Falls back to Gemini
     # when the local stack is unusable.
     local: bool = False
+    # Vault namespaces to search (P2.5). Empty = all connected vaults.
+    vaults: list[str] = []
 
     # A question is a question, not a document. Caps hostile payloads
     # before they touch retrieval, embedding, or the model (security
@@ -228,13 +237,14 @@ class AskRequest(BaseModel):
     model_config = {"str_max_length": 10_000}
 
 
-def _drive_client():
+def _drive_client(vault: str | None = None):
     from googleapiclient.discovery import build
 
     from fenris.drive.auth import load_or_refresh
     from fenris.drive.client import DriveClient
+    from fenris.vaults import keyring_account_for
 
-    creds = load_or_refresh()
+    creds = load_or_refresh(keyring_account_for(vault or "mydrive"))
     service = build("drive", "v3", credentials=creds)
     return DriveClient(service)
 
@@ -318,7 +328,7 @@ def ask(req: AskRequest) -> dict:
         def search_fn(q: str):
             qvec = embedder.embed_documents([f"task: search result | query: {q}"])[0]
             reranker = FlashRankReranker() if req.rerank else NoopReranker()
-            return search_mod(conn, q, qvec, reranker=reranker, scope=req.scope)
+            return search_mod(conn, q, qvec, reranker=reranker, scope=req.scope, vaults=req.vaults)
 
         packet = ask_service(conn, req.question, None, generator=generator, search_fn=search_fn, strict=req.strict)
         return _ask_payload(packet, engine=getattr(generator, "name", "gemini"))
@@ -374,7 +384,7 @@ def ask_stream(req: AskRequest):
             def search_fn(q: str):
                 qvec = embedder.embed_documents([f"task: search result | query: {q}"])[0]
                 reranker = FlashRankReranker() if req.rerank else NoopReranker()
-                return search_mod(conn, q, qvec, reranker=reranker, scope=req.scope)
+                return search_mod(conn, q, qvec, reranker=reranker, scope=req.scope, vaults=req.vaults)
 
             for item in ask_service_stream(
                 conn, req.question, None, generator=generator, search_fn=search_fn,
@@ -632,6 +642,7 @@ class SearchRequest(BaseModel):
 
     query: str
     table_only: bool = False
+    vaults: list[str] = []  # P2.5: empty = all vaults
 
     model_config = {"str_max_length": 500}
 
@@ -642,7 +653,8 @@ def search(req: SearchRequest) -> dict:
 
     Lexical search (BM25) with snippet context per chunk - the 'where is
     that document' verb, distinct from ask's cited-answer verb. Results
-    group by file with the best-matching chunks first.
+    group by file with the best-matching chunks first. ``vaults``
+    restricts the search to specific vault namespaces.
     """
     from fenris.retrieve.bm25 import bm25_search
     from fenris.retrieve.evidence import build_evidence
@@ -657,6 +669,8 @@ def search(req: SearchRequest) -> dict:
         for chunk_id, score in hits[:60]:
             ev = build_evidence(conn, chunk_id, score)
             if ev is None:
+                continue
+            if req.vaults and ev.drive_id not in req.vaults:
                 continue
             results.append({
                 "chunk_id": ev.chunk_id,
@@ -1009,5 +1023,70 @@ def digest_run_due() -> dict:
     try:
         ran = run_due(conn)
         return {"ran": ran}
+    finally:
+        conn.close()
+
+
+# ---- multi-vault (P2.5) ---------------------------------------------------------
+
+
+class VaultRegisterRequest(BaseModel):
+    vault_id: str
+    name: str
+
+    model_config = {"str_max_length": 140}
+
+
+@app.get("/api/vaults")
+def vaults_list() -> dict:
+    """Connected vaults: registry rows + live token presence.
+
+    ``token_present`` reflects the OS keyring NOW - a vault whose grant
+    expired shows disconnected without touching Drive.
+    """
+    from fenris.drive.auth import token_present
+    from fenris.vaults import list_vaults
+
+    conn = _db()
+    try:
+        rows = [v.as_dict() for v in list_vaults(conn)]
+        for r in rows:
+            r["is_default"] = r["drive_id"] == "mydrive"
+            r["token_present"] = token_present(r["keyring_account"])
+        return {"vaults": rows}
+    finally:
+        conn.close()
+
+
+@app.post("/api/vaults")
+def vaults_register(req: VaultRegisterRequest) -> dict:
+    """Register a vault. The OAuth grant happens separately (drive auth
+    --vault <id>), because it needs a browser round-trip the API can't
+    host."""
+    from fenris.vaults import register_vault
+
+    conn = _db()
+    try:
+        register_vault(conn, req.vault_id, req.name)
+        return {"ok": True, "drive_id": req.vault_id}
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    finally:
+        conn.close()
+
+
+@app.delete("/api/vaults/{vault_id}")
+def vaults_remove(vault_id: str) -> dict:
+    """Remove a vault REGISTRATION (projection rows stay; disconnect
+    the keyring entry first via `fenris drive disconnect --vault`)."""
+    from fenris.vaults import remove_vault
+
+    conn = _db()
+    try:
+        if not remove_vault(conn, vault_id):
+            raise HTTPException(status_code=404, detail="no such vault")
+        return {"ok": True}
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     finally:
         conn.close()

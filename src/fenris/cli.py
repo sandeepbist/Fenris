@@ -108,10 +108,19 @@ def ask(
     question: str = typer.Argument(..., help="The question to answer from your Drive."),
     no_rerank: bool = typer.Option(False, "--no-rerank", help="Skip cross-encoder reranking."),
     offline: bool = typer.Option(False, "--offline", help="Offline: retrieval only, no generation API."),
+    vault: str = typer.Option(None, "--vault", help="Restrict the question to one vault (P2.5)."),
 ) -> None:
     """Answer a question over the indexed Drive, with cited evidence."""
     conn, _cfg = _open_db()
     try:
+        vaults = None
+        if vault:
+            from fenris.vaults import vault_exists
+
+            if not vault_exists(conn, vault.strip().lower()):
+                typer.echo(f"unknown vault: {vault}")
+                raise typer.Exit(code=2)
+            vaults = [vault.strip().lower()]
         if offline:
             from fenris.generate.generator import FakeGenerator
 
@@ -140,9 +149,9 @@ def ask(
             reranker = NoopReranker() if (no_rerank or offline) else FlashRankReranker()
             if embedder is None:
                 # offline: retrieval without a query vector (BM25-only)
-                return search(conn, q, None, reranker=reranker)
+                return search(conn, q, None, reranker=reranker, vaults=vaults)
             qvec = embedder.embed_documents([f"task: search result | query: {q}"])[0]
-            return search(conn, q, qvec, reranker=reranker)
+            return search(conn, q, qvec, reranker=reranker, vaults=vaults)
 
         from fenris.generate.service import ask as ask_service
 
@@ -231,6 +240,46 @@ try:
     app.add_typer(digest_app, name="digest")
 except ImportError:
     pass
+
+vault_app = typer.Typer(help="Manage vaults (P2.5): one Google account per namespace.",
+                       no_args_is_help=True)
+app.add_typer(vault_app, name="vault")
+
+
+@vault_app.command("ls")
+def vault_ls() -> None:
+    """List registered vaults with live keyring state."""
+    from fenris.drive.auth import token_present
+    from fenris.vaults import list_vaults
+
+    conn, _cfg = _open_db()
+    try:
+        rows = list_vaults(conn)
+        for v in rows:
+            state = "connected" if token_present(v.keyring_account) else "no token"
+            typer.echo(f"[{v.drive_id}] {v.name} - {state} (keyring account {v.keyring_account!r})")
+    finally:
+        conn.close()
+
+
+@vault_app.command("rm")
+def vault_rm(vault_id: str) -> None:
+    """Remove a vault REGISTRATION (projection rows stay; disconnect first)."""
+    from fenris.vaults import remove_vault
+
+    conn, _cfg = _open_db()
+    try:
+        if remove_vault(conn, vault_id.strip().lower()):
+            typer.echo(f"vault {vault_id} removed (indexed rows stay; "
+                       "revoke its grant via `fenris drive disconnect --vault`)")
+        else:
+            typer.echo(f"no such vault: {vault_id}")
+            raise typer.Exit(code=1)
+    except ValueError as e:
+        typer.echo(str(e))
+        raise typer.Exit(code=2)
+    finally:
+        conn.close()
 
 
 def main() -> None:

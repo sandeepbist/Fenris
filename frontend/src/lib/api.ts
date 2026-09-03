@@ -59,7 +59,8 @@ export interface Health {
 }
 
 export interface Status {
-  cursor: { page_token: string; status: string } | null;
+  cursor: { drive_id: string; page_token: string; status: string } | null;
+  cursors: { drive_id: string; page_token: string; status: string }[];
   last_drain_at: string | null;
   stale_sync: boolean;
   drive_files: number;
@@ -184,6 +185,7 @@ export function askStream(
   scope: string[] = [],
   strict = false,
   local = false,
+  vaults: string[] = [],
 ): { events: AsyncIterable<StreamEvent>; stop: () => void } {
   const controller = new AbortController();
   const decoder = new TextDecoder();
@@ -193,7 +195,7 @@ export function askStream(
     const res = await fetch("/api/ask/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, rerank, scope, strict, local }),
+      body: JSON.stringify({ question, rerank, scope, strict, local, vaults }),
       signal: controller.signal,
     });
     if (!res.ok || !res.body) {
@@ -333,6 +335,17 @@ export interface DigestScheduleRow {
   last_run_at: string | null;
 }
 
+// ---- vaults (P2.5) --------------------------------------------------------------
+
+export interface VaultRow {
+  drive_id: string;
+  name: string;
+  keyring_account: string;
+  created_at: string | null;
+  is_default: boolean;
+  token_present: boolean;
+}
+
 // ---- client ------------------------------------------------------------------
 
 export const api = {
@@ -418,8 +431,20 @@ export const api = {
   sources: (limit = 200) =>
     req<{ sources: SourceRow[]; count: number }>(`/api/sources?limit=${limit}`),
 
-  sync: (full = false) =>
-    req<SyncReport>("/api/sync", { method: "POST", body: JSON.stringify({ full }) }),
+  sync: (full = false, vault?: string) =>
+    req<SyncReport & { vault: string }>("/api/sync", {
+      method: "POST",
+      body: JSON.stringify({ full, vault: vault ?? null }),
+    }),
+
+  vaults: () => req<{ vaults: VaultRow[] }>("/api/vaults"),
+  registerVault: (vaultId: string, name: string) =>
+    req<{ ok: boolean; drive_id: string }>("/api/vaults", {
+      method: "POST",
+      body: JSON.stringify({ vault_id: vaultId, name }),
+    }),
+  removeVault: (vaultId: string) =>
+    req<{ ok: boolean }>(`/api/vaults/${vaultId}`, { method: "DELETE" }),
 
   ask: (question: string, rerank = true) =>
     req<AskResult>("/api/ask", {

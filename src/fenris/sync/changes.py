@@ -187,12 +187,16 @@ def _fetch_content(conn, client, drive_id: str, meta: dict) -> tuple[FileMeta, b
     return fm, data, "ok"
 
 
-def drain(conn: sqlite3.Connection, client, drive_id: str = DRIVE_ID_DEFAULT, *, cfg=None, pace_seconds: float | None = None) -> SyncReport:
+def drain(conn: sqlite3.Connection, client, drive_id: str = DRIVE_ID_DEFAULT, *, cfg=None, pace_seconds: float | None = None, api_drive_id: str | None = None) -> SyncReport:
     """Walk the change feed from the saved cursor to the present.
 
     Per page: classify -> stage network work outside the transaction ->
     one short commit {index writes + page token}. A crash between pages
     replays the same page idempotently because every write is keyed.
+
+    ``api_drive_id`` is Drive's driveId parameter (None = the
+    authenticated account's My Drive - every vault's case; see
+    enumerate_drive).
     """
     from fenris.sync.ingest_queue import IngestQueue
 
@@ -215,7 +219,7 @@ def drain(conn: sqlite3.Connection, client, drive_id: str = DRIVE_ID_DEFAULT, *,
     page_token: str | None = token
 
     while page_token is not None:
-        page = client.changes_list(page_token, drive_id if drive_id != DRIVE_ID_DEFAULT else None)
+        page = client.changes_list(page_token, api_drive_id)
         report.pages_drained += 1
 
         # --- classify + stage network work OUTSIDE the transaction -------

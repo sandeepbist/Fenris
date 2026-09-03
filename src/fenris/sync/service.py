@@ -16,6 +16,7 @@ def sync_all(
     drive_id: str = DRIVE_ID_DEFAULT,
     *,
     pace_seconds: float | None = None,
+    api_drive_id: str | None = None,
 ) -> SyncReport:
     """One sync pass: resync triggers -> enumerate if needed -> drain.
 
@@ -30,7 +31,7 @@ def sync_all(
     ).fetchone()
 
     if row is None or (not row[0] and not row[1]):
-        enum = enumerate_drive(conn, client, drive_id)
+        enum = enumerate_drive(conn, client, drive_id, api_drive_id=api_drive_id)
         report.resync_triggered = "initial_enumeration"
         # Re-ingest what enumeration saw: the pending_start token means the
         # change feed replays every file created BEFORE the token, so files
@@ -64,7 +65,7 @@ def sync_all(
                 report.errors.append(f"{meta.get('id')}: {e}")
                 continue
 
-    drain_report = drain(conn, client, drive_id, cfg=cfg, pace_seconds=pace_seconds)
+    drain_report = drain(conn, client, drive_id, cfg=cfg, pace_seconds=pace_seconds, api_drive_id=api_drive_id)
     if drain_report.resync_triggered and not report.resync_triggered:
         report.resync_triggered = drain_report.resync_triggered
     report.pages_drained = drain_report.pages_drained
@@ -80,7 +81,7 @@ def sync_all(
     return report
 
 
-def full_resync(conn: sqlite3.Connection, client, cfg=None, drive_id: str = DRIVE_ID_DEFAULT, *, pace_seconds: float | None = None) -> SyncReport:
+def full_resync(conn: sqlite3.Connection, client, cfg=None, drive_id: str = DRIVE_ID_DEFAULT, *, pace_seconds: float | None = None, api_drive_id: str | None = None) -> SyncReport:
     """The escape hatch: fresh token, re-enumerate, diff-reconcile.
 
     Files present locally but absent from a fresh enumeration are
@@ -112,18 +113,32 @@ def full_resync(conn: sqlite3.Connection, client, cfg=None, drive_id: str = DRIV
         conn.execute("ROLLBACK")
         raise
 
-    report = sync_all(conn, client, cfg, drive_id, pace_seconds=pace_seconds)
+    report = sync_all(conn, client, cfg, drive_id, pace_seconds=pace_seconds, api_drive_id=api_drive_id)
     report.resync_triggered = "full_resync"
     return report
 
 
 def sync_status(conn: sqlite3.Connection) -> dict[str, Any]:
-    """A snapshot for the CLI: cursor state, counts, staleness."""
+    """A snapshot for the CLI: cursor state, counts, staleness.
+
+    P2.5: every vault's cursor is reported (the default vault first);
+    the aggregate staleness flag is true when ANY indexed vault is
+    stale - a stale work vault makes answers stale, not just the
+    dashboard badge.
+    """
     from fenris.sync.staleness import is_stale_sync, last_drain_at
 
-    cursor = conn.execute(
-        "SELECT page_token, status, updated_at FROM sync_cursor WHERE drive_id = 'mydrive'"
-    ).fetchone()
+    rows = conn.execute(
+        "SELECT drive_id, page_token, status FROM sync_cursor ORDER BY drive_id",
+    ).fetchall()
+    cursors = [
+        {"drive_id": r[0], "page_token": r[1], "status": r[2]}
+        for r in rows
+    ]
+    stale = False
+    for c in cursors:
+        if is_stale_sync(conn, drive_id=c["drive_id"]):
+            stale = True
     counts: dict[str, int] = {}
     for key, sql in (
         ("drive_files", "SELECT count(*) FROM drive_files"),
@@ -133,8 +148,9 @@ def sync_status(conn: sqlite3.Connection) -> dict[str, Any]:
     ):
         counts[key] = conn.execute(sql).fetchone()[0]
     return {
-        "cursor": {"page_token": cursor[0], "status": cursor[1]} if cursor else None,
+        "cursor": cursors[0] if cursors else None,
+        "cursors": cursors,
         "last_drain_at": last_drain_at(conn),
-        "stale_sync": is_stale_sync(conn),
+        "stale_sync": stale,
         **counts,
     }

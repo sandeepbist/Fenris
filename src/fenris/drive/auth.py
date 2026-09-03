@@ -133,13 +133,15 @@ def run_auth_flow(
     port: int = 8080,
     open_browser: bool = True,
     timeout_seconds: int | None = None,
+    keyring_account: str = KEYRING_ACCOUNT,
 ) -> str:
     """Run the PKCE loopback OAuth flow; store and return the refresh token.
 
     Uses InstalledAppFlow.run_local_server (loopback redirect, PKCE S256 -
     the library autogenerates the code verifier). The refresh token is
     written to the OS keyring under (service "fenris", account
-    "drive-refresh") and also returned for callers that need it in-session.
+    "drive-refresh" - or "drive-refresh:<vault>" for additional vaults,
+    P2.5) and also returned for callers that need it in-session.
     """
     _require_keyring()
     config = _load_client_config(client_secrets)
@@ -161,17 +163,17 @@ def run_auth_flow(
             "previous grants at https://myaccount.google.com/permissions first - "
             "a re-consent after revocation is what forces a fresh refresh token."
         )
-    keyring.set_password(KEYRING_SERVICE, KEYRING_ACCOUNT, creds.refresh_token)
+    keyring.set_password(KEYRING_SERVICE, keyring_account, creds.refresh_token)
     return creds.refresh_token
 
 
-def token_present() -> bool:
+def token_present(keyring_account: str = KEYRING_ACCOUNT) -> bool:
     """Is a refresh token stored? (Never prints or returns the token.)"""
     try:
         _require_keyring()
     except KeyringUnavailableError:
         return False
-    return keyring.get_password(KEYRING_SERVICE, KEYRING_ACCOUNT) is not None
+    return keyring.get_password(KEYRING_SERVICE, keyring_account) is not None
 
 
 def build_credentials(refresh_token: str):
@@ -179,7 +181,7 @@ def build_credentials(refresh_token: str):
     return _credentials_from_refresh_token(refresh_token)
 
 
-def load_or_refresh():
+def load_or_refresh(keyring_account: str = KEYRING_ACCOUNT):
     """Return valid google credentials from the keyring, refreshing as needed.
 
     Raises AuthError when nothing is stored or the refresh is rejected (the
@@ -187,7 +189,7 @@ def load_or_refresh():
     silent failure would leave sync believing it is connected).
     """
     _require_keyring()
-    refresh_token = keyring.get_password(KEYRING_SERVICE, KEYRING_ACCOUNT)
+    refresh_token = keyring.get_password(KEYRING_SERVICE, keyring_account)
     if not refresh_token:
         raise AuthError(
             "No Drive credentials stored. Run `fenris drive auth` first."
@@ -206,7 +208,7 @@ def load_or_refresh():
     return creds
 
 
-def _delete_quietly(delete_password) -> None:
+def _delete_quietly(delete_password, account: str = KEYRING_ACCOUNT) -> None:
     """Best-effort keyring deletion.
 
     Used on the disconnect paths, where a failed delete must never abort the
@@ -217,13 +219,14 @@ def _delete_quietly(delete_password) -> None:
     revoke outcome (the security-relevant part) is reported separately.
     """
     try:
-        delete_password(KEYRING_SERVICE, KEYRING_ACCOUNT)
+        delete_password(KEYRING_SERVICE, account)
     except keyring.errors.KeyringError:
         pass
 
 
 def disconnect(
-    *, _opener=urllib.request.build_opener, _keyring_get=None, _keyring_delete=None
+    *, keyring_account: str = KEYRING_ACCOUNT,
+    _opener=urllib.request.build_opener, _keyring_get=None, _keyring_delete=None
 ) -> bool:
     """Revoke the stored grant for real and delete the keyring entry.
 
@@ -237,19 +240,21 @@ def disconnect(
     there was nothing to disconnect. Raises AuthError on transport failure
     (the keyring entry is still gone - disconnect is never half-done).
 
-    ``_opener`` / ``_keyring_get`` / ``_keyring_delete`` are test seams: the
-    offline suite injects a fake network POST and a fake keyring backend.
+    ``keyring_account`` selects the vault ("drive-refresh" default, or
+    "drive-refresh:<vault>" - P2.5). ``_opener`` / ``_keyring_get`` /
+    ``_keyring_delete`` are test seams: the offline suite injects a fake
+    network POST and a fake keyring backend.
     """
     get_pw = _keyring_get if _keyring_get is not None else keyring.get_password
     del_pw = _keyring_delete if _keyring_delete is not None else keyring.delete_password
     opener = _opener()
 
-    refresh_token = get_pw(KEYRING_SERVICE, KEYRING_ACCOUNT)
+    refresh_token = get_pw(KEYRING_SERVICE, keyring_account)
     if not refresh_token:
         # Nothing stored: the user is already disconnected locally. Google
         # may still hold a grant from an earlier install, but fenris has no
         # token to present - that is the documented manual-revocation path.
-        _delete_quietly(del_pw)
+        _delete_quietly(del_pw, keyring_account)
         return False
 
     revoked = False
@@ -275,7 +280,7 @@ def disconnect(
     finally:
         # Delete first even on the way out: a raised AuthError must not leave
         # the token in the keyring claiming to be connected.
-        _delete_quietly(del_pw)
+        _delete_quietly(del_pw, keyring_account)
     if not revoked:
         # Token is gone locally; the remote grant may or may not be dead.
         # Report, never swallow (the build plan: never silently).

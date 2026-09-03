@@ -77,13 +77,20 @@ def is_ingestable(meta: dict) -> bool:
     return decision.route not in (router_mod.Route.SKIP, router_mod.Route.SHORTCUT)
 
 
-def enumerate_drive(conn: sqlite3.Connection, client, drive_id: str = DRIVE_ID_DEFAULT) -> EnumerationReport:
+def enumerate_drive(conn: sqlite3.Connection, client, drive_id: str = DRIVE_ID_DEFAULT, *, api_drive_id: str | None = None) -> EnumerationReport:
     """Persist pending_start, then list the whole drive into drive_files.
 
     The start token is committed BEFORE the first list call - the
     transaction is tiny and contains exactly one write.
+
+    ``api_drive_id``: what to pass as Drive's driveId parameter. Every
+    vault - the default and any P2.5 addition - syncs its OWN My Drive
+    (each vault = one Google account), so the default here is None
+    (My Drive of whichever account the client is authenticated as).
+    The parameter exists only for a future shared-drive vault whose
+    projection namespace differs from its real Drive id.
     """
-    start_token = client.get_start_page_token(drive_id if drive_id != DRIVE_ID_DEFAULT else None)
+    start_token = client.get_start_page_token(api_drive_id)
 
     conn.execute("BEGIN")
     try:

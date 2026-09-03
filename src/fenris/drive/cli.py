@@ -61,35 +61,78 @@ def auth(
     no_browser: Annotated[
         bool, typer.Option("--no-browser", help="Print the auth URL instead of opening a browser.")
     ] = False,
+    vault: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option("--vault", help="Vault id to connect (P2.5): 'work' stores its token"
+                                      " under a separate keyring account. Default: the main Drive."),
+    ] = None,
 ) -> None:
     """Run the PKCE loopback OAuth flow and store the refresh token in the OS keyring."""
     secrets = client_secrets or DEFAULT_CLIENT_SECRETS
+    from fenris.vaults import DEFAULT_VAULT, keyring_account_for
+
+    vault_id = (vault or DEFAULT_VAULT).strip().lower()
+    account = keyring_account_for(vault_id)
+    if vault_id != DEFAULT_VAULT:
+        # register the vault so ls/pickers see it (idempotent)
+        from fenris.config import load_config
+        from fenris.db import connect
+        from fenris.vaults import register_vault
+
+        conn = connect(load_config().db_path)
+        try:
+            register_vault(conn, vault_id, vault_id)
+        except ValueError as e:
+            _die(str(e))
+        finally:
+            conn.close()
     try:
-        auth_mod.run_auth_flow(secrets, port=port, open_browser=not no_browser)
+        auth_mod.run_auth_flow(secrets, port=port, open_browser=not no_browser,
+                               keyring_account=account)
     except auth_mod.AuthError as e:
         _die(str(e))
-    _ok("Drive connected. Refresh token stored in the OS keyring "
-        f"(service {auth_mod.KEYRING_SERVICE!r}, account {auth_mod.KEYRING_ACCOUNT!r}).")
+    if vault_id != DEFAULT_VAULT:
+        _ok(f"Vault '{vault_id}' connected. Refresh token stored in the OS keyring "
+            f"(service {auth_mod.KEYRING_SERVICE!r}, account {account!r}).")
+    else:
+        _ok("Drive connected. Refresh token stored in the OS keyring "
+            f"(service {auth_mod.KEYRING_SERVICE!r}, account {auth_mod.KEYRING_ACCOUNT!r}).")
 
 
 @drive_app.command()
-def disconnect() -> None:
+def disconnect(
+    vault: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option("--vault", help="Vault id to disconnect (default: the main Drive)."),
+    ] = None,
+) -> None:
     """Revoke the Google grant and delete the stored token (never silent)."""
+    from fenris.vaults import DEFAULT_VAULT, keyring_account_for
+
+    account = keyring_account_for((vault or DEFAULT_VAULT).strip().lower())
     try:
-        revoked = auth_mod.disconnect()
+        revoked = auth_mod.disconnect(keyring_account=account)
     except auth_mod.AuthError as e:
         _die(str(e))
     if revoked:
-        _ok("Disconnected: grant revoked at Google and keyring entry deleted.")
+        _ok(f"Disconnected: grant revoked at Google and keyring entry {account!r} deleted.")
     else:
         typer.echo("Nothing to disconnect: no stored token found.")
 
 
 @drive_app.command()
-def status() -> None:
+def status(
+    vault: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option("--vault", help="Vault id to check (default: the main Drive)."),
+    ] = None,
+) -> None:
     """Show connection state and this session's Drive quota counters."""
-    if auth_mod.token_present():
-        typer.echo(f"token: present (keyring {auth_mod.KEYRING_SERVICE}/{auth_mod.KEYRING_ACCOUNT})")
+    from fenris.vaults import DEFAULT_VAULT, keyring_account_for
+
+    account = keyring_account_for((vault or DEFAULT_VAULT).strip().lower())
+    if auth_mod.token_present(account):
+        typer.echo(f"token: present (keyring {auth_mod.KEYRING_SERVICE}/{account})")
         typer.echo(f"scope: {auth_mod.DRIVE_SCOPE}")
     else:
         typer.echo("token: not found - run `fenris drive auth`")

@@ -48,10 +48,11 @@ def refresh_hints(conn: sqlite3.Connection, drive_id: str = "mydrive") -> int:
     return n
 
 
-def last_drain_at(conn: sqlite3.Connection) -> str | None:
+def last_drain_at(conn: sqlite3.Connection, drive_id: str = "mydrive") -> str | None:
     """ISO timestamp of the last successful cursor update."""
     row = conn.execute(
-        "SELECT updated_at FROM sync_cursor WHERE drive_id = 'mydrive'"
+        "SELECT updated_at FROM sync_cursor WHERE drive_id = ?",
+        (drive_id,),
     ).fetchone()
     return row[0] if row else None
 
@@ -59,13 +60,14 @@ def last_drain_at(conn: sqlite3.Connection) -> str | None:
 def is_stale_sync(
     conn: sqlite3.Connection,
     max_age_minutes: int = STALENESS_WINDOW_MINUTES,
+    drive_id: str = "mydrive",
 ) -> bool:
     """True when the last drain is older than the freshness window.
 
     An absent cursor (never synced / resync pending) is stale: the
     answer layer would rather admit staleness than assume freshness.
     """
-    stamp = last_drain_at(conn)
+    stamp = last_drain_at(conn, drive_id)
     if not stamp:
         return True
     try:

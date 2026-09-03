@@ -14,7 +14,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowUp, ChevronDown, Download, Pin, Quote, RotateCcw, Square, Trash2 } from "lucide-react";
-import { api, askStream, SetupNeeded, type AskResult, type Citation, type ConversationRow } from "@/lib/api";
+import { api, askStream, SetupNeeded, type AskResult, type Citation, type ConversationRow, type VaultRow } from "@/lib/api";
 import { SourceViewer } from "@/components/source-viewer";
 import { Badge, Button } from "@/components/ui";
 import { SetupNeededBanner } from "@/components/setup-needed";
@@ -173,6 +173,8 @@ export function ChatPage() {
   const [scopeDraft, setScopeDraft] = useState("");
   const [strict, setStrict] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [vaults, setVaults] = useState<VaultRow[]>([]);
+  const [askVaults, setAskVaults] = useState<string[]>([]);
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -186,6 +188,11 @@ export function ChatPage() {
   useEffect(() => {
     void refreshConversations();
   }, [refreshConversations]);
+
+  // vault registry: the picker renders only when a second vault exists
+  useEffect(() => {
+    api.vaults().then((r) => setVaults(r.vaults)).catch(() => undefined);
+  }, []);
 
   // onboarding handoff: /chat?q=... pre-fills the composer once per mount
   const [searchParams] = useSearchParams();
@@ -257,7 +264,7 @@ export function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 
     const cid = await ensureConversation();
-    const { events, stop } = askStream(question, true, scope, strict, offline);
+    const { events, stop } = askStream(question, true, scope, strict, offline, askVaults);
     stopRef.current = stop;
     let assembled = "";
     let finalResult: AskResult | null = null;
@@ -517,6 +524,41 @@ export function ChatPage() {
               placeholder="folder or file term, enter…"
               className="mono w-40 rounded-full border border-accent/40 bg-transparent px-2 py-0.5 text-[10px] text-text placeholder:text-text-faint focus:outline-none"
             />
+          )}
+          {vaults.length > 1 && (
+            <>
+              <span className="mono text-[10px] uppercase tracking-wider text-text-faint">
+                vault
+              </span>
+              {vaults.map((v) => {
+                const on = askVaults.includes(v.drive_id);
+                return (
+                  <button
+                    key={v.drive_id}
+                    onClick={() =>
+                      setAskVaults((cur) =>
+                        cur.includes(v.drive_id)
+                          ? cur.filter((x) => x !== v.drive_id)
+                          : [...cur, v.drive_id],
+                      )
+                    }
+                    className={
+                      "mono rounded-full border px-2 py-0.5 text-[10px] transition-colors " +
+                      (on
+                        ? "border-accent/40 bg-accent-dim text-accent"
+                        : "border-border text-text-muted hover:text-text")
+                    }
+                    title={
+                      v.token_present
+                        ? `restrict this question to vault '${v.drive_id}'`
+                        : "no token connected - answers will miss this vault"
+                    }
+                  >
+                    {v.name} {on ? "on" : ""}
+                  </button>
+                );
+              })}
+            </>
           )}
           <button
             onClick={() => setStrict((v) => !v)}

@@ -100,9 +100,35 @@ def _apply_scope(conn, candidates, scope: list[str] | None):
     return [(cid, s) for cid, s in candidates if cid in allowed]
 
 
+def _apply_vaults(conn, candidates, vaults: list[str] | None):
+    """Restrict candidates to the given vault namespaces (P2.5).
+
+    Empty list/None = all vaults. Mirrors _apply_scope: post-fusion, so
+    BM25 and KNN obey identically; an all-filtered corpus yields [] and
+    the honest INSUFFICIENT path takes over - asking in one vault can
+    never leak another vault's evidence.
+    """
+    if not vaults:
+        return candidates
+    ids = [cid for cid, _s in candidates]
+    if not ids:
+        return []
+    placeholders = ",".join("?" * len(ids))
+    try:
+        rows = conn.execute(
+            f"""SELECT c.chunk_id, s.drive_id
+                FROM chunks c JOIN sources s ON s.id = c.source_id
+                WHERE c.chunk_id IN ({placeholders})""", ids).fetchall()
+    except Exception:  # noqa: BLE001 - a vault filter must never break search
+        return candidates
+    allowed = {chunk_id for chunk_id, drive_id in rows if drive_id in vaults}
+    return [(cid, s) for cid, s in candidates if cid in allowed]
+
+
 def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
            reranker=None, auth_epoch: int = 0,
-           scope: list[str] | None = None) -> EvidenceSet:
+           scope: list[str] | None = None,
+           vaults: list[str] | None = None) -> EvidenceSet:
     """Run the full query path; never raises on empty/missing index state.
 
     - ``qvec``: the pre-embedded query as a 1536*4 fp32 blob (or None to run
@@ -114,6 +140,9 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
     - ``scope``: optional list of terms; a candidate serves only if its
       file's title/path/id contains one. Applied post-fusion so both
       retrieval sides obey it identically.
+    - ``vaults``: optional vault-id list (P2.5); a candidate serves only
+      if its source's drive_id is in the list. Same post-fusion position,
+      same honesty rules.
 
     Returns EvidenceSet(evidence, route_decision, trace). Empty index ->
     empty evidence with the AGENTIC trigger recorded in the decision signals
@@ -136,6 +165,7 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
 
     fused = rrf.rrf_fuse(lexical, dense)
     fused = _apply_scope(conn, fused, scope)
+    fused = _apply_vaults(conn, fused, vaults)
 
     trace: dict = {
         "query": query,
@@ -143,6 +173,7 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
         "policy_version": decision.policy_version,
         "signals": decision.signals,
         "scope": scope or None,
+        "vaults": vaults or None,
         "bm25": [(cid, s) for cid, s in lexical],
         "knn": [(cid, s) for cid, s in dense],
         "rrf": [(cid, s) for cid, s in fused],

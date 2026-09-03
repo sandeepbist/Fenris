@@ -121,14 +121,16 @@ evaluation suite — is in **[docs/architecture.md](docs/architecture.md)**.
 | Command | What it does |
 | :--- | :--- |
 | `fenris drive auth` | PKCE loopback OAuth; refresh token goes to the OS keyring, never a file |
+| `fenris drive auth --vault work` | Connect a second Google account as its own vault (P2.5) |
 | `fenris drive disconnect` | Revokes the Google grant for real and deletes the stored token |
 | `fenris drive status` | Connection state and this session's quota counters |
-| `fenris sync run` | Drains the Drive change feed; renames cost metadata only, edits re-ingest |
+| `fenris vault ls` | Every registered vault + live keyring connection state |
+| `fenris sync run [--vault work]` | Drains the Drive change feed; renames cost metadata only, edits re-ingest |
 | `fenris sync status` | Cursor state, index counts, staleness verdict |
-| `fenris sync resync` | Full re-enumeration escape hatch with diff reconciliation |
+| `fenris sync resync [--vault work]` | Full re-enumeration escape hatch with diff reconciliation |
 | `fenris digest now` | Compute + print one "what changed in my Drive" digest |
 | `fenris digest schedule add "Weekly" --at 08:00 --weekly --dow mon` | Monday-8am digest schedule; the API process runs due ones |
-| `fenris ask "..."` | One question, one cited answer (or an explicit state) |
+| `fenris ask "..." [--vault work]` | One question, one cited answer (or an explicit state) |
 | `fenris eval --suite golden` | 120 graded cases over a reproducible synthetic corpus |
 | `fenris init` | Create the data directory and apply the schema |
 
@@ -157,7 +159,11 @@ anyway.
 - **First sync takes real time.** Downloads are paced against Drive's quota
   (~600/min). Hundreds of files is minutes; tens of thousands is hours — by
   design, because quota violations break syncs.
-- **Single user.** One Drive, one machine, one person. No multi-tenant anything.
+- **Single user, multiple vaults.** One machine, one person — but up to
+  several Google accounts (`fenris drive auth --vault work`), each with its
+  own keyring token, its own sync cursor, and per-question vault chips in
+  the chat. No multi-tenant anything: a vault is yours on this machine,
+  full stop.
 - **Answers are only as fresh as the last sync.** Fenris marks staleness when
   it detects it rather than pretending freshness.
 - **The local index is not encrypted.** The OS login is the boundary; a
