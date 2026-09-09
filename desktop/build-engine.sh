@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build the fenris-engine sidecar (PyInstaller onedir, per ***REMOVED***
-# packaging).
+# Build the fenris-engine sidecar (PyInstaller onedir; onefile has the
+# documented uvicorn Ctrl+C bug and /tmp exec issues).
 # Output: desktop/binaries/fenris-engine{,-<target-triple>} + _internal/
 set -euo pipefail
 cd "$(dirname "$0")/.."
