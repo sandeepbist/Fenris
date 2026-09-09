@@ -6,7 +6,7 @@ PIP := .venv/bin/pip
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup install install-full test eval lint clean api ui ui-dev ui-build dist release
+.PHONY: help setup install install-full test eval lint clean clean-caches check-junk api ui ui-dev ui-build dist release
 
 help:
 	@echo "fenris targets:"
@@ -19,6 +19,9 @@ help:
 	@echo "  make eval         - run the golden eval suite over the synthetic corpus"
 	@echo "  make dist         - build wheel + sdist"
 	@echo "  make release      - gate on full suite + lint, then build all artifacts"
+	@echo "  make clean        - remove venv, builds, frontend dist + all caches/junk"
+	@echo "  make clean-caches - just the junk sweep (pycache, tool caches, reports)"
+	@echo "  make check-junk   - list junk-shaped files; deletes nothing"
 
 setup: install
 
@@ -80,4 +83,26 @@ release: test lint dist
 	@echo "gate green; artifacts in dist/ - tag vX.Y.Z to trigger the real release"
 
 clean:
-	rm -rf .venv build dist *.egg-info src/*.egg-info frontend/dist
+	rm -rf .venv build dist *.egg-info src/*.egg-info frontend/dist frontend/node_modules
+	$(MAKE) clean-caches
+
+# The junk sweep: caches, bytecode, build outputs, test-report leftovers.
+# Run this after any work session; nothing it removes is source or config.
+clean-caches:
+	rm -rf .pytest_cache .ruff_cache .coverage htmlcov playwright-report test-results
+	find src tests eval -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null
+	rm -rf desktop/target desktop/binaries/fenris-engine desktop/binaries/fenris-engine-*
+	rm -rf .mimosa/history .mimosa/reports .mimosa/hook-status
+	find . -path ./.git -prune -o -name '*.tsbuildinfo' -print -delete 2>/dev/null || true
+	find . -path ./.git -prune -o -name '*.log' -print -delete 2>/dev/null || true
+
+# Report anything junk-shaped still tracked or lying around, without deleting.
+check-junk:
+	@echo "-- untracked junk-shaped files:"
+	@find . -path ./.git -prune -o -path ./.private-scrub -prune -o \
+	  \( -name '__pycache__' -o -name '*.pyc' -o -name '.pytest_cache' -o -name '.ruff_cache' \
+	     -o -name 'node_modules' -o -name 'target' -o -name '*.egg-info' -o -name '.venv' \
+	     -o -name '*.tsbuildinfo' -o -name 'playwright-report' -o -name 'test-results' \
+	     -o -name 'coverage' -o -name '*.log' -o -name '.DS_Store' -o -name '*.har' \) -print 2>/dev/null | grep -v '^./.git' || echo "  none"
+	@echo "-- junk patterns accidentally tracked by git:"
+	@git ls-files | grep -E '(__pycache__|\.pyc|\.pytest_cache|\.ruff_cache|node_modules/|/target/|\.egg-info|\.venv|tsbuildinfo|playwright-report|test-results/|coverage\.|\.log$$|\.DS_Store|\.har$$)' || echo "  none"

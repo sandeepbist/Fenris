@@ -5,6 +5,11 @@ __pycache__/
 .venv/
 dist/
 build/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage/
+htmlcov/
 
 # Fenris local data (never commit user content or tokens)
 .fenris-home/
@@ -14,6 +19,26 @@ artifacts/
 # Secrets
 client_secret*.json
 .env
-.pytest_cache/
-.ruff_cache/
+
+# Scanner session state (local-only, regenerated per session)
 .mimosa/
+
+# Frontend (bun/vite)
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+.vite/
+
+# Playwright / UI-test run leftovers
+playwright-report/
+test-results/
+*.har
+screenshot-*.png
+
+# Desktop (tauri / cargo)
+desktop/target/
+*.log
+
+# OS noise
+.DS_Store
+Thumbs.db
