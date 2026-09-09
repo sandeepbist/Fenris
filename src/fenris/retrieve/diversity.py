@@ -19,11 +19,11 @@ def apply_diversity(conn: sqlite3.Connection, ranked: list[tuple[int, float]],
                     max_per_file: int = DIVERSITY_MAX_PER_FILE) -> list[tuple[int, float]]:
     """Keep at most ``max_per_file`` chunks per file_id, in the given order.
 
-    ``ranked`` is a best-first ``[(chunk_id, score)]`` list. Returns the
-    filtered list (order preserved, no re-scoring). Ids that no longer resolve
-    to a live chunk row are dropped (defense in depth - evidence assembly
-    re-guards anyway).
-    """
+ ``ranked`` is a best-first ``[(chunk_id, score)]`` list. Returns the
+ filtered list (order preserved, no re-scoring). Ids that no longer resolve
+ to a live chunk row are dropped (defense in depth - evidence assembly
+ re-guards anyway).
+ """
     if not ranked:
         return []
     ids = [cid for cid, _s in ranked]

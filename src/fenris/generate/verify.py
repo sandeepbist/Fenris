@@ -3,31 +3,31 @@
 The verification step runs *after* evidence selection and *before* the prompt
 is built: cited sources are checked against the local index state (the
 ``sources``/``drive_files`` rows - a local read, no network; the full "drain
-Drive then re-check" refresh is M5's sync, plumbed in as ``refresh_fn``).
+Drive then re-check" refresh belongs to the sync layer, plumbed in as ``refresh_fn``).
 
 Two layers:
 
-- :func:`verify_sources` - the per-item pass. Items whose file vanished or
-  whose representation was retired/trashed/re-auth-epoch'd are dropped and
-  logged as ``internal_dropped`` (UNAUTHORIZED is an internal per-item filter,
-  NEVER a surfaced state - dropping silently preserves the "never reveal that
-  restricted content exists" rule). Items whose cited ``drive_version`` hint
-  differs from the indexed one are flagged ``stale``.
-- :func:`resolve_state` - the strict ladder below.
+-:func:`verify_sources` - the per-item pass. Items whose file vanished or
+ whose representation was retired/trashed/re-auth-epoch'd are dropped and
+ logged as ``internal_dropped`` (UNAUTHORIZED is an internal per-item filter,
+ NEVER a surfaced state - dropping silently preserves the "never reveal that
+ restricted content exists" rule). Items whose cited ``drive_version`` hint
+ differs from the indexed one are flagged ``stale``.
+-:func:`resolve_state` - the strict ladder below.
 
 The ladder order (STRICT - first match wins; documented once, applied once):
 
-1. **ERROR**     - set by the CALLER on an exception/system fault; this module
-                   never returns it, it just reserves the slot so every layer
-                   speaks the same enum.
-2. **STALE**     - a stale flag that persisted after ONE refresh retry
-                   (``stale_persistent=True`` on the verification result).
+1. **ERROR** - set by the CALLER on an exception/system fault; this module
+ never returns it, it just reserves the slot so every layer
+ speaks the same enum.
+2. **STALE** - a stale flag that persisted after ONE refresh retry
+ (``stale_persistent=True`` on the verification result).
 3. **INSUFFICIENT** - empty evidence after filtering, OR top rerank score
-                   below the calibrated floor, OR the agentic budget was
-                   exhausted (``budget_exhausted=True``).
+ below the calibrated floor, OR the agentic budget was
+ exhausted (``budget_exhausted=True``).
 4. **CONFLICTING** - the deterministic pre-check fires: two top candidates
-                   from different files, both scoring >= 0.7x the top-1, with
-                   overlapping ``term_df``-rare terms and differing revisions.
+ from different files, both scoring >= 0.7x the top-1, with
+ overlapping ``term_df``-rare terms and differing revisions.
 5. **ANSWERABLE** - otherwise.
 
 UNAUTHORIZED is deliberately absent: it is a per-item internal filter, not a
@@ -62,15 +62,15 @@ LADDER_ORDER = (ERROR, STALE, INSUFFICIENT, CONFLICTING, ANSWERABLE)
 class VerificationResult:
     """Outcome of the per-item verification pass.
 
-    - ``kept``: evidence that survived (order preserved, scores untouched).
-    - ``internal_dropped``: vanished/unauthorized/retired items - logged,
-      NEVER surfaced as a state and never revealed to the model or user.
-    - ``stale_ids``: evidence ids whose cited ``drive_version``/representation
-      hint differs from what the index holds now.
-    - ``stale_persistent``: True when a refresh was already attempted and the
-      stale flag did not clear (the caller retries exactly once - see
-      :func:`fenris.generate.service.ask`).
-    """
+ - ``kept``: evidence that survived (order preserved, scores untouched).
+ - ``internal_dropped``: vanished/unauthorized/retired items - logged,
+ NEVER surfaced as a state and never revealed to the model or user.
+ - ``stale_ids``: evidence ids whose cited ``drive_version``/representation
+ hint differs from what the index holds now.
+ - ``stale_persistent``: True when a refresh was already attempted and the
+ stale flag did not clear (the caller retries exactly once - see
+:func:`fenris.generate.service.ask`).
+ """
 
     kept: list[Evidence] = field(default_factory=list)
     internal_dropped: list[Evidence] = field(default_factory=list)
@@ -100,30 +100,30 @@ def verify_sources(conn: sqlite3.Connection, evidence: list[Evidence],
                    auth_epoch: int = 0) -> VerificationResult:
     """Verify each evidence item against the local index; never raises.
 
-    An item DROPS (recorded in ``internal_dropped`` - the UNAUTHORIZED path:
-    silent, never surfaced as a state, never revealed) when any of:
+ An item DROPS (recorded in ``internal_dropped`` - the UNAUTHORIZED path:
+ silent, never surfaced as a state, never revealed) when any of:
 
-    - its file vanished: no ``drive_files`` row AND no live representation
-      (both the Drive view and the index view are gone);
-    - its file is trashed, or its representation is retired (``active=0``)
-      or tombstoned (``sources.trashed=1``);
-    - its representation was re-indexed under a different auth epoch (access
-      was revoked and re-granted: the old chunks must not surface).
+ - its file vanished: no ``drive_files`` row AND no live representation
+ (both the Drive view and the index view are gone);
+ - its file is trashed, or its representation is retired (``active=0``)
+ or tombstoned (``sources.trashed=1``);
+ - its representation was re-indexed under a different auth epoch (access
+ was revoked and re-granted: the old chunks must not surface).
 
-    An item is flagged STALE (kept in place, but the ladder will report the
-    state) when the CURRENT Drive-side version hint (injected row, or the
-    ``drive_files`` table) differs from the hint captured at INDEX time
-    (``sources_hints``; written by ingest/sync via :func:`record_indexed_version`).
-    A hint that is NULL/None on either side means "no hint" and is never
-    treated as a mismatch (Workspace files often carry no version hint;
-    absence of a hint must not fabricate staleness).
+ An item is flagged STALE (kept in place, but the ladder will report the
+ state) when the CURRENT Drive-side version hint (injected row, or the
+ ``drive_files`` table) differs from the hint captured at INDEX time
+ (``sources_hints``; written by ingest/sync via:func:`record_indexed_version`).
+ A hint that is NULL/None on either side means "no hint" and is never
+ treated as a mismatch (Workspace files often carry no version hint;
+ absence of a hint must not fabricate staleness).
 
-    ``drive_files_rows`` lets tests/callers inject the current Drive-side
-    metadata without touching the DB: a list of mappings with at least
-    ``file_id`` and optionally ``trashed``/``drive_version``/``drive_id``;
-    when given it takes precedence over the ``drive_files`` table for the
-    vanish/trash/version checks.
-    """
+ ``drive_files_rows`` lets tests/callers inject the current Drive-side
+ metadata without touching the DB: a list of mappings with at least
+ ``file_id`` and optionally ``trashed``/``drive_version``/``drive_id``;
+ when given it takes precedence over the ``drive_files`` table for the
+ vanish/trash/version checks.
+ """
     result = VerificationResult()
     ensure_hints_table(conn)      # idempotent; no-op on read-only DBs
     injected: dict[tuple[str, str], dict] = {}
@@ -195,14 +195,14 @@ def verify_sources(conn: sqlite3.Connection, evidence: list[Evidence],
 def _sources_drive_version(conn: sqlite3.Connection, drive_id: str, file_id: str):
     """The indexed representation's ``drive_version`` hint, per file.
 
-    The M0 ``sources`` table does not carry the hint; this reads it from the
-    ``sources_hints`` side table (created lazily, idempotently, by
-    :func:`ensure_hints_table` - a read-only-DB-compatible upgrade: creation
-    is skipped silently when the DB is read-only or the table already
-    exists). M5's sync will move the hint onto ``sources`` itself; when it
-    does, this function swaps to that column read with zero call-site
-    changes.
-    """
+ The ``sources`` table does not carry the hint; this reads it from the
+ ``sources_hints`` side table (created lazily, idempotently, by
+:func:`ensure_hints_table` - a read-only-DB-compatible upgrade: creation
+ is skipped silently when the DB is read-only or the table already
+ exists). the sync layer will move the hint onto ``sources`` itself; when it
+ does, this function swaps to that column read with zero call-site
+ changes.
+ """
     try:
         row = conn.execute(
             "SELECT drive_version FROM sources_hints WHERE drive_id = ?"
@@ -215,13 +215,13 @@ def _sources_drive_version(conn: sqlite3.Connection, drive_id: str, file_id: str
 def ensure_hints_table(conn: sqlite3.Connection) -> bool:
     """Create the ``sources_hints`` side table if missing. Idempotent.
 
-    ``(drive_id, file_id) -> drive_version``: the version hint captured at
-    INDEX time, which the verification step compares against the CURRENT
-    Drive-side hint to detect staleness (the build plan s.6: "items whose file
-    vanished or whose drive_version/checksum moved are handled per-item").
-    Returns False (and does nothing) when the DB cannot accept the table
-    (read-only DBs degrade to "no hint", which never fabricates staleness).
-    """
+ ``(drive_id, file_id) -> drive_version``: the version hint captured at
+ INDEX time, which the verification step compares against the CURRENT
+ Drive-side hint to detect staleness (the build plan: "items whose file
+ vanished or whose drive_version/checksum moved are handled per-item").
+ Returns False (and does nothing) when the DB cannot accept the table
+ (read-only DBs degrade to "no hint", which never fabricates staleness).
+ """
     try:
         conn.execute(
             "CREATE TABLE IF NOT EXISTS sources_hints ("
@@ -239,11 +239,11 @@ def record_indexed_version(conn: sqlite3.Connection, drive_id: str, file_id: str
                            drive_version: str | None) -> None:
     """Persist the version hint a representation was indexed from.
 
-    Called by ingest/sync (M2.5+/M5) at representation-commit time. Safe to
-    call before ensure_hints_table: a missing table is a silent no-op, never
-    a raise (the hint is advisory - its absence means "cannot check", not
-    "stale").
-    """
+ Called by ingest/sync at representation-commit time. Safe to
+ call before ensure_hints_table: a missing table is a silent no-op, never
+ a raise (the hint is advisory - its absence means "cannot check", not
+ "stale").
+ """
     try:
         conn.execute(
             "INSERT OR REPLACE INTO sources_hints(drive_id, file_id, drive_version)"
@@ -282,18 +282,18 @@ def _rare_terms_for(conn: sqlite3.Connection, query: str) -> set[str]:
 def conflict_precheck(evidence: list[Evidence], rare_terms: set[str]) -> bool:
     """Deterministic CONFLICTING pre-check (the build plan), no DB needed.
 
-    Fires when ALL hold, on the two top candidates:
+ Fires when ALL hold, on the two top candidates:
 
-    - they come from different files;
-    - the second scores >= 0.7x the first;
-    - they overlap on at least one *rare* term (the query's term_df-rare
-      vocabulary - two random docs sharing "the" is not a conflict);
-    - their revisions differ (different revision dates/content generations).
+ - they come from different files;
+ - the second scores >= 0.7x the first;
+ - they overlap on at least one *rare* term (the query's term_df-rare
+ vocabulary - two random docs sharing "the" is not a conflict);
+ - their revisions differ (different revision dates/content generations).
 
-    ``rare_terms`` is the query's rare-term set (see :func:`_rare_terms_for`);
-    passing an empty set disables the check, which callers do when term_df
-    carries no signal for the query.
-    """
+ ``rare_terms`` is the query's rare-term set (see:func:`_rare_terms_for`);
+ passing an empty set disables the check, which callers do when term_df
+ carries no signal for the query.
+ """
     if len(evidence) < 2 or not rare_terms:
         return False
     first, second = evidence[0], evidence[1]
@@ -333,31 +333,31 @@ def resolve_state(verification: VerificationResult,
                   rerank_scale: bool = True) -> AnswerState:
     """Apply the strict ladder to one verified pass. Pure, never raises.
 
-    Ladder order (STRICT, first match wins):
+ Ladder order (STRICT, first match wins):
 
-    1. ERROR        - never returned here; reserved for the caller's
-                      exception path (documented so the enum is total).
-    2. STALE        - ``verification.stale_persistent``: a stale source that
-                      survived ONE refresh retry. (A first-time stale flag is
-                      NOT a final state - the caller refreshes and retries
-                      once before this fires.)
-    3. INSUFFICIENT - no evidence after filtering (covers the
-                      every-item-dropped case), OR ``budget_exhausted``, OR
-                      ``top_rerank_score`` below ``floor`` **when the score
-                      is on the reranker's scale** (``rerank_scale=True``).
-                      The EXACT route skips reranking by design, so its top
-                      score is on the RRF scale (~1/61) - incomparable with
-                      the FlashRank-calibrated floor; passing
-                      ``rerank_scale=False`` for that pass exempts it from
-                      the floor test (an exact full-phrase match is the
-                      strongest relevance signal the engine has).
-    4. CONFLICTING  - :func:`conflict_precheck` fires on the top two.
-    5. ANSWERABLE   - otherwise.
+ 1. ERROR - never returned here; reserved for the caller's
+ exception path (documented so the enum is total).
+ 2. STALE - ``verification.stale_persistent``: a stale source that
+ survived ONE refresh retry. (A first-time stale flag is
+ NOT a final state - the caller refreshes and retries
+ once before this fires.)
+ 3. INSUFFICIENT - no evidence after filtering (covers the
+ every-item-dropped case), OR ``budget_exhausted``, OR
+ ``top_rerank_score`` below ``floor`` **when the score
+ is on the reranker's scale** (``rerank_scale=True``).
+ The EXACT route skips reranking by design, so its top
+ score is on the RRF scale (~1/61) - incomparable with
+ the FlashRank-calibrated floor; passing
+ ``rerank_scale=False`` for that pass exempts it from
+ the floor test (an exact full-phrase match is the
+ strongest relevance signal the engine has).
+ 4. CONFLICTING -:func:`conflict_precheck` fires on the top two.
+ 5. ANSWERABLE - otherwise.
 
-    ``top_rerank_score`` is the top rerank score of the *pass being judged*
-    (after filtering); pass 0.0 for an empty set. UNAUTHORIZED never appears:
-    it is an internal per-item filter inside :func:`verify_sources`.
-    """
+ ``top_rerank_score`` is the top rerank score of the *pass being judged*
+ (after filtering); pass 0.0 for an empty set. UNAUTHORIZED never appears:
+ it is an internal per-item filter inside:func:`verify_sources`.
+ """
     if verification.stale_persistent:
         return STALE
     if not evidence_after_filter:

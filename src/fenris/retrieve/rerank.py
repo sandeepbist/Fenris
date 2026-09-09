@@ -1,20 +1,20 @@
 """Rerankers: the protocol, the unit-test double, and the FlashRank wrapper.
 
 Protocol (``Reranker``): ``rerank(query, candidates) -> [(chunk_id, score)]``
-where ``candidates`` is a best-first list of ``(chunk_id, ...anything...)``
+where ``candidates`` is a best-first list of ``(chunk_id,...anything...)``
 tuples - only ``candidate[0]`` (the chunk id) is required, so the fused RRF
 list feeds straight in. The output is the full candidate set, best-first,
 each with a rerank score in [0, 1] (higher = more relevant).
 
 Score conventions:
 - FlashRank cross-encoder logits pass through a sigmoid (its own code path
-  for single-logit models) and so already live in [0, 1]; the wrapper
-  additionally min-max normalizes the batch to span [0, 1] so a floor like
-  RERANK_FLOOR has a stable meaning across batch shapes. An empty batch
-  returns [].
+ for single-logit models) and so already live in [0, 1]; the wrapper
+ additionally min-max normalizes the batch to span [0, 1] so a floor like
+ RERANK_FLOOR has a stable meaning across batch shapes. An empty batch
+ returns [].
 - NoopReranker preserves the input order and reports the normalized rank
-  score 1/rank (1.0 for rank 1) - a deterministic stand-in that keeps
-  adaptive-k testable offline without any model.
+ score 1/rank (1.0 for rank 1) - a deterministic stand-in that keeps
+ adaptive-k testable offline without any model.
 
 FlashRankReranker is lazy: the ONNX session is only built on first use, and
 unit tests must use NoopReranker so no model is ever downloaded
@@ -40,9 +40,9 @@ class Reranker(Protocol):
 class NoopReranker:
     """Identity reranker: preserves input order, score = 1/rank.
 
-    The unit-test double - deterministic, offline, no model. Adaptive-k and
-    the orchestrator are exercised against it everywhere in tests.
-    """
+ The unit-test double - deterministic, offline, no model. Adaptive-k and
+ the orchestrator are exercised against it everywhere in tests.
+ """
 
     name = "noop"
 
@@ -53,16 +53,16 @@ class NoopReranker:
 class FlashRankReranker:
     """Wraps flashrank.Ranker (MiniLM cross-encoder, CPU ONNX).
 
-    Lazy model init: constructing the Ranker downloads the model on first
-    use when it is not already in cache_dir, so nothing here runs at import
-    time. Scores are min-max normalized to [0, 1] per batch (raw sigmoid
-    scores from a single-logit CE are already in [0, 1]; normalization makes
-    the RERANK_FLOOR comparable across batches - a batch of all-terrible
-    candidates must not present a fake 1.0).
+ Lazy model init: constructing the Ranker downloads the model on first
+ use when it is not already in cache_dir, so nothing here runs at import
+ time. Scores are min-max normalized to [0, 1] per batch (raw sigmoid
+ scores from a single-logit CE are already in [0, 1]; normalization makes
+ the RERANK_FLOOR comparable across batches - a batch of all-terrible
+ candidates must not present a fake 1.0).
 
-    ``cache_dir`` defaults to flashrank's own default (/tmp) - pass the
-    Fenris data dir in production wiring.
-    """
+ ``cache_dir`` defaults to flashrank's own default (/tmp) - pass the
+ Fenris data dir in production wiring.
+ """
 
     name = "flashrank"
 
@@ -86,9 +86,9 @@ class FlashRankReranker:
 
     def register_texts(self, texts: dict[int, str]) -> None:
         """Supply ``{chunk_id: "header\nbody"}`` for the candidates about to be
-        reranked. FlashRank reranks *text*; the pipeline carries ids, so the
-        orchestrator registers texts before calling rerank. Ids without a
-        registered text are skipped (never rerank on empty strings)."""
+ reranked. FlashRank reranks *text*; the pipeline carries ids, so the
+ orchestrator registers texts before calling rerank. Ids without a
+ registered text are skipped (never rerank on empty strings)."""
         self._texts = dict(texts)
 
     def rerank(self, query: str, candidates: Sequence[tuple]) -> list[tuple[int, float]]:
@@ -117,8 +117,8 @@ class FlashRankReranker:
 
 def _normalize_batch(scored: list[tuple[int, float]]) -> list[tuple[int, float]]:
     """Min-max normalize [0,1] so floors stay comparable across batch
-    shapes; an all-equal batch scores 1.0 for every candidate (the
-    batch said they are all the same - not that all are terrible)."""
+ shapes; an all-equal batch scores 1.0 for every candidate (the
+ batch said they are all the same - not that all are terrible)."""
     raw = [s for _cid, s in scored]
     lo, hi = min(raw), max(raw)
     if hi - lo < 1e-12:
@@ -129,17 +129,17 @@ def _normalize_batch(scored: list[tuple[int, float]]) -> list[tuple[int, float]]
 class ModernBertReranker:
     """gte-reranker-modernbert-base int8 ONNX (2026-09 retrieval round).
 
-    The encoder-class CPU upgrade over FlashRank's 2021 MiniLM (BEIR
-    56.19 vs the v1-era large at 49.32; 149M params, 8k pair context,
-    Apache-2.0). Weights arrive ONLY via `fenris models fetch
-    modernbert-rerank` (pinned sha256 + smoke test) - this class never
-    downloads. Score convention matches FlashRank exactly (sigmoid to
-    [0,1], then the shared min-max batch normalization), so per-
-    reranker floors stay the only calibration surface.
+ The encoder-class CPU upgrade over FlashRank's 2021 MiniLM (BEIR
+ 56.19 vs the v1-era large at 49.32; 149M params, 8k pair context,
+ Apache-2.0). Weights arrive ONLY via `fenris models fetch
+ modernbert-rerank` (pinned sha256 + smoke test) - this class never
+ downloads. Score convention matches FlashRank exactly (sigmoid to
+ [0,1], then the shared min-max batch normalization), so per-
+ reranker floors stay the only calibration surface.
 
-    Lazy session: nothing loads at import time. ``_weights_dir`` is the
-    test/models seam (fetch's smoke test passes the fetched dir).
-    """
+ Lazy session: nothing loads at import time. ``_weights_dir`` is the
+ test/models seam (fetch's smoke test passes the fetched dir).
+ """
 
     name = "modernbert"
 
@@ -210,11 +210,11 @@ class ModernBertReranker:
 def resolve_reranker(use_flashrank: bool = True):
     """The configured reranker, with the local fallback ladder.
 
-    FENRIS_RERANKER=modernbert opts into the encoder upgrade when its
-    weights are fetched; anything unfetchable degrades to FlashRank, then
-    Noop (the CLI's existing ladder). The reason is returned for traces
-    and doctor output - a silent no-op flag is the failure this prevents.
-    """
+ FENRIS_RERANKER=modernbert opts into the encoder upgrade when its
+ weights are fetched; anything unfetchable degrades to FlashRank, then
+ Noop (the CLI's existing ladder). The reason is returned for traces
+ and doctor output - a silent no-op flag is the failure this prevents.
+ """
     from fenris import models as models_mod
     from fenris.config import reranker_choice
 

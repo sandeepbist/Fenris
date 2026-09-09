@@ -1,18 +1,18 @@
 """Recursive character chunking (the build plan, "Chunk").
 
 - 512-token chunks, recursive character splitting with the hierarchy
-  paragraph -> sentence -> word.
-- ZERO overlap (the design notes line 107: overlap showed no benefit). The tests
-  pin this: adjacent chunks never share text.
+ paragraph -> sentence -> word.
+- ZERO overlap (the design notes: overlap showed no benefit). The tests
+ pin this: adjacent chunks never share text.
 - A local heuristic tokenizer (chars-per-token ratio) counts tokens; its
-  version constant is recorded in the chunker identity so a tokenizer
-  bump forces new representations instead of corrupting old ones.
+ version constant is recorded in the chunker identity so a tokenizer
+ bump forces new representations instead of corrupting old ones.
 - Parent (~2048-token) rows are written for parent-expansion retrieval;
-  only children are embedded.
+ only children are embedded.
 - Tables NEVER pass through the splitter: each Docling TableItem
-  becomes one tables row (TableRecord) plus row-block chunks
-  (~8 data rows, header prepended) with is_table=1, table_id and a
-  row_range - so a hit cites an exact region.
+ becomes one tables row (TableRecord) plus row-block chunks
+ (~8 data rows, header prepended) with is_table=1, table_id and a
+ row_range - so a hit cites an exact region.
 
 char_start/char_end are offsets into the representation's body_text
 (the citation frame, the build plan); table row-blocks carry offsets
@@ -54,9 +54,9 @@ _PARA_SPLIT = re.compile(r"\n\s*\n")
 def count_tokens(text: str) -> int:
     """Local heuristic token count: ceil(chars / CHARS_PER_TOKEN), floored at 1.
 
-    Deterministic and fast (no model calls); the tokenizer version constant
-    pins the behavior for identity purposes.
-    """
+ Deterministic and fast (no model calls); the tokenizer version constant
+ pins the behavior for identity purposes.
+ """
     if not text:
         return 0
     n = int(-(-len(text) // _CHARS_PER_TOKEN))  # ceil
@@ -70,9 +70,9 @@ def count_tokens(text: str) -> int:
 class ChunkRecord:
     """One chunks row payload (children, parents, or table row-blocks).
 
-    is_table=1 + table_id + row_range are set only for table row-blocks;
-    parent rows carry parent_chunk_id=None and children point at them.
-    """
+ is_table=1 + table_id + row_range are set only for table row-blocks;
+ parent rows carry parent_chunk_id=None and children point at them.
+ """
 
     ordinal: int
     body_text: str
@@ -173,15 +173,15 @@ def _join_clean(parts: list[str]) -> str:
 def _recursive_split(text: str, max_tokens: int) -> list[str]:
     """Recursive character split: paragraph -> sentence -> word.
 
-    Zero overlap by construction: every piece is emitted exactly once and
-    the pieces partition the input. A single unit (word) whose token count
-    exceeds the limit is hard-cut at the character boundary - the last
-    resort after the hierarchy failed.
+ Zero overlap by construction: every piece is emitted exactly once and
+ the pieces partition the input. A single unit (word) whose token count
+ exceeds the limit is hard-cut at the character boundary - the last
+ resort after the hierarchy failed.
 
-    Every piece respects the limit exactly: when a level's packing cannot
-    fit (or its joiner would push a piece over), the next level splits
-    finer; the hard cut is the exact character-width guarantee.
-    """
+ Every piece respects the limit exactly: when a level's packing cannot
+ fit (or its joiner would push a piece over), the next level splits
+ finer; the hard cut is the exact character-width guarantee.
+ """
     if not text.strip():
         return []
     if count_tokens(text) <= max_tokens:
@@ -218,8 +218,8 @@ def _recursive_split(text: str, max_tokens: int) -> list[str]:
 
 def _fit_or_none(pieces: list[str], max_tokens: int) -> list[str] | None:
     """None when any piece still exceeds the limit (drop to next level);
-    otherwise the pieces. An empty result is None too so the caller keeps
-    splitting rather than silently emitting nothing."""
+ otherwise the pieces. An empty result is None too so the caller keeps
+ splitting rather than silently emitting nothing."""
     if not pieces:
         return None
     if any(count_tokens(p) > max_tokens for p in pieces):
@@ -230,10 +230,10 @@ def _fit_or_none(pieces: list[str], max_tokens: int) -> list[str] | None:
 def _recursive_pack(units: list[str], max_tokens: int, sep: str) -> list[str]:
     """Greedily pack split units into chunks <= max_tokens.
 
-    Keeps the original unit order; separators are re-inserted with the
-    level's joiner. A unit that alone exceeds the limit is recursively
-    split at the next hierarchy level before packing.
-    """
+ Keeps the original unit order; separators are re-inserted with the
+ level's joiner. A unit that alone exceeds the limit is recursively
+ split at the next hierarchy level before packing.
+ """
     pieces: list[str] = []
     current: list[str] = []
     current_tokens = 0
@@ -292,7 +292,7 @@ def _covered_spans(spans, char_start: int, char_end: int):
 
 def _page_nos_for(spans, char_start: int, char_end: int) -> tuple[int, ...]:
     """Union of page numbers over the spans a chunk touches (item-level
-    provenance; Docling has no char offsets - the build plan)."""
+ provenance; Docling has no char offsets - the build plan)."""
     pages: list[int] = []
     for s in _covered_spans(spans, char_start, char_end):
         pages.extend(s.page_nos)
@@ -313,7 +313,7 @@ def _deepest_section_path(spans, char_start: int, char_end: int) -> tuple[str, .
 
 def split_text(body_text: str, max_tokens: int = CHUNK_TOKENS) -> list[str]:
     """Split text into <=max_token pieces. Zero overlap; the concatenation
-    of pieces (with normalized separators) covers the input."""
+ of pieces (with normalized separators) covers the input."""
     return _recursive_split(body_text, max_tokens)
 
 
@@ -326,20 +326,20 @@ def chunk_body(
 ) -> list[ChunkRecord]:
     """Chunk one representation's body text into child chunks + parents.
 
-    Children are the <=512-token pieces the retriever embeds; parents
-    (~2048 tokens) group consecutive children for parent expansion.
-    Tables must never arrive here - they go through build_table_records.
+ Children are the <=512-token pieces the retriever embeds; parents
+ (~2048 tokens) group consecutive children for parent expansion.
+ Tables must never arrive here - they go through build_table_records.
 
-    Args:
-        body_text: the parse output's linear text (table-free).
-        body_spans: parse.BodySpan list with section/page provenance.
-        chunk_tokens: child target size.
-        parent_tokens: parent grouping target.
+ Args:
+ body_text: the parse output's linear text (table-free).
+ body_spans: parse.BodySpan list with section/page provenance.
+ chunk_tokens: child target size.
+ parent_tokens: parent grouping target.
 
-    Returns:
-        ChunkRecords in ordinal order: parent rows interleave with their
-        children (parent first), children carry parent_ordinal.
-    """
+ Returns:
+ ChunkRecords in ordinal order: parent rows interleave with their
+ children (parent first), children carry parent_ordinal.
+ """
     if not body_text.strip():
         return []
 
@@ -417,9 +417,9 @@ def chunk_body(
 def build_row_blocks(table: TableData, block_rows: int = TABLE_ROW_BLOCK) -> list[TableRowBlock]:
     """Cut a table's data rows into ~8-row blocks, header prepended.
 
-    The header row (grid row 0) is prepended to every block so each block
-    is self-describing; only data rows consume block slots.
-    """
+ The header row (grid row 0) is prepended to every block so each block
+ is self-describing; only data rows consume block slots.
+ """
     grid = table.grid
     if not grid:
         return []
@@ -461,10 +461,10 @@ def build_table_record(
 ) -> TableRecord:
     """One TableItem -> one TableRecord (tables row payload + row blocks).
 
-    The TableRecord carries the serialized JSON the schema expects:
-    columns_json ([{name, normalized_name, type, unit}]) and row_blocks_json
-    (~8-row blocks with the header prepended).
-    """
+ The TableRecord carries the serialized JSON the schema expects:
+ columns_json ([{name, normalized_name, type, unit}]) and row_blocks_json
+ (~8-row blocks with the header prepended).
+ """
     grid = table.grid
     num_rows = table.num_rows or len(grid)
     num_cols = table.num_cols or (len(grid[0]) if grid else 0)
@@ -516,7 +516,7 @@ def _is_number(text: str) -> bool:
 
 def _is_number_type_column(grid, col_idx: int) -> bool:
     """A column is 'number' when a majority of its data cells parse as
-    numeric - header text alone says nothing about the cell types."""
+ numeric - header text alone says nothing about the cell types."""
     if len(grid) < 2:
         return False
     data = [row[col_idx].text for row in grid[1:] if col_idx < len(row)]

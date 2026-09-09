@@ -75,7 +75,7 @@ class EmbedCfg:
 
 def active_embeddable(conn, file_id: str) -> list[int]:
     """Chunk ids of the active representation's embeddable chunks
-    (children + table blocks; parent rows are kept but not embedded)."""
+ (children + table blocks; parent rows are kept but not embedded)."""
     return [
         r[0]
         for r in conn.execute(
@@ -189,7 +189,7 @@ class TestRouting:
 
     def test_images_tier_routing(self):
         """Images follow the installed parsing tier: slim -> recorded skip
-        (ocr_deferred_v1); full (torch) -> DIRECT, parsed with OCR."""
+ (ocr_deferred_v1); full (torch) -> DIRECT, parsed with OCR."""
         for mime in ("image/png", "image/jpeg", "image/tiff"):
             d = router_mod.route(mime, False, False)
             if router_mod.deep_models_available():
@@ -202,7 +202,7 @@ class TestRouting:
 
     def test_deep_model_env_override(self, monkeypatch):
         """FENRIS_DEEP_MODELS flips the tier without installing torch -
-        the full-tier routing is testable on the slim CI venv."""
+ the full-tier routing is testable on the slim CI venv."""
         monkeypatch.setenv("FENRIS_DEEP_MODELS", "1")
         router_mod.reset_deep_models_cache()
         try:
@@ -313,7 +313,7 @@ class TestParse:
 
     def test_pdf_tier_behavior(self):
         """The parsing tier decides: slim -> designed skip with the
-        recorded reason; full (torch) -> the layout models parse it."""
+ recorded reason; full (torch) -> the layout models parse it."""
         parsed = parse_mod.parse_bytes(_pdf_bytes(), "application/pdf", "a.pdf")
         if router_mod.deep_models_available():
             assert parsed.status in ("success", "partial_success"), (
@@ -465,7 +465,7 @@ def _cell(text: str, r: int, c: int) -> parse_mod.CellData:
 
 def _shares_words(a: str, b: str) -> bool:
     """True when any whitespace-delimited word appears at a's tail and b's head
-    (the signature of overlap)."""
+ (the signature of overlap)."""
     tail = a.split()[-8:]
     head = b.split()[:8]
     return bool(set(tail) & set(head))
@@ -489,7 +489,7 @@ class TestHeaders:
 
     def test_no_llm_calls(self):
         """build_header is pure string work - no imports of genai anywhere
-        in the headers module."""
+ in the headers module."""
         import fenris.ingest.headers as h
 
         assert "genai" not in Path(h.__file__).read_text()
@@ -616,7 +616,7 @@ class TestScanner:
 
     def test_whitespace_tolerant(self):
         """Extra/odd whitespace inside the phrase still matches."""
-        flagged, _ = scan_text("ignore  \n  previous\t\tinstructions")
+        flagged, _ = scan_text("ignore \n previous\t\tinstructions")
         assert flagged is True
 
     def test_never_blocks(self):
@@ -869,7 +869,7 @@ class TestPipeline:
 
     def test_dedup_same_hash_skips_embedding(self, conn, embedder):
         """Chunk-level dedup: same text_hash reuses the stored vector,
-        skipping the API call (FakeEmbedder counts)."""
+ skipping the API call (FakeEmbedder counts)."""
         body = b"# Doc\n\n" + (b"Uniquely shared chunk content gamma. " * 40)
         r1 = ingest_file(
             conn, None,
@@ -1044,8 +1044,8 @@ class TestPipeline:
 
 def _pdf_bytes() -> bytes:
     """A minimal valid single-page PDF (no deep models needed to reject it:
-    the slim venv raises the torch ModuleNotFoundError first - the designed
-    skip path under test)."""
+ the slim venv raises the torch ModuleNotFoundError first - the designed
+ skip path under test)."""
     return (
         b"%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n"
         b"2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n"

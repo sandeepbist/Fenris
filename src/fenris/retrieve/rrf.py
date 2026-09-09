@@ -18,11 +18,11 @@ def rrf_fuse(*ranked_lists: list[tuple[int, float]],
              k: int = RRF_K) -> list[tuple[int, float]]:
     """Fuse any number of ``[(chunk_id, score)]`` best-first lists.
 
-    Only the *order* of each input list is used (RRF is rank-based; the raw
-    BM25/KNN scores are not comparable across modalities). Returns
-    ``[(chunk_id, fused_score)]`` best-first. Empty input lists -> fusion of
-    what remains; all empty -> [].
-    """
+ Only the *order* of each input list is used (RRF is rank-based; the raw
+ BM25/KNN scores are not comparable across modalities). Returns
+ ``[(chunk_id, fused_score)]`` best-first. Empty input lists -> fusion of
+ what remains; all empty -> [].
+ """
     best_rank: dict[int, int] = {}
     fused: dict[int, float] = {}
     for lst in ranked_lists:

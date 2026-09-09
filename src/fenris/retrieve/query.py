@@ -1,22 +1,22 @@
 """The retrieval orchestrator (the build plan, the query path).
 
-    route -> BM25 || KNN -> RRF (k=60) -> [rerank] -> adaptive-k
-          -> per-file diversity cap -> evidence assembly
+ route -> BM25 || KNN -> RRF (k=60) -> [rerank] -> adaptive-k
+ -> per-file diversity cap -> evidence assembly
 
 Route-dependent pipeline:
 
 - EXACT: BM25-first (rerank skipped - "skip rerank if top-1 full-phrase match
-  with >30% gap"; MVP gives no calibrated gap test yet, so EXACT skips rerank
-  outright and runs adaptive-k on normalized RRF scores instead).
+ with >30% gap"; MVP gives no calibrated gap test yet, so EXACT skips rerank
+ outright and runs adaptive-k on normalized RRF scores instead).
 - TABLE: the hybrid is restricted to table chunks (is_table = 1) on the BM25
-  side and table candidates on the KNN side; table_id flows through to the
-  evidence records for a tables.range citation.
+ side and table candidates on the KNN side; table_id flows through to the
+ evidence records for a tables.range citation.
 - NORMAL: full hybrid + rerank + adaptive-k on rerank scores.
 - AGENTIC: not chosen by ``route()`` (it has no scores yet); the orchestrator
-  flips NORMAL -> AGENTIC post-rerank when the top-1 rerank score is below
-  RERANK_FLOOR, or when evidence comes back empty. The bounded retry loop
-  itself is M4+ (out of this slice); the flip is recorded in the decision
-  and the trace so the caller can act on it.
+ flips NORMAL -> AGENTIC post-rerank when the top-1 rerank score is below
+ RERANK_FLOOR, or when evidence comes back empty. The bounded retry loop
+ itself is M4+ (out of this slice); the flip is recorded in the decision
+ and the trace so the caller can act on it.
 
 The trace dict records per-stage candidates and scores (bm25, knn, rrf,
 rerank, k, final) - the eval harness and the CONFLICTING pre-check both read it.
@@ -37,7 +37,7 @@ from fenris.retrieve import adaptive_k, bm25, diversity, evidence, knn, rrf
 from fenris.retrieve import route as _route
 from fenris.retrieve.rerank import NoopReranker
 
-# how many fused candidates rerank scores (the build plan s.6: "scores the fused top-30")
+# how many fused candidates rerank scores (the build plan: "scores the fused top-30")
 RERANK_POOL = 30
 
 
@@ -51,9 +51,9 @@ class Embedder(Protocol):
 def embed_query(text: str, embedder: Embedder | None = None) -> bytes:
     """Stub for later wiring: delegate to an injected embedder.
 
-    The retrieval slice never embeds; the CLI/caller embeds and passes qvec.
-    Raises RuntimeError when no embedder is wired (fail loudly, not silently
-    with a zero vector)."""
+ The retrieval slice never embeds; the CLI/caller embeds and passes qvec.
+ Raises RuntimeError when no embedder is wired (fail loudly, not silently
+ with a zero vector)."""
     if embedder is None:
         raise RuntimeError("embed_query requires an injected embedder (qvec is caller-supplied)")
     return embedder.embed_query(text)
@@ -70,12 +70,12 @@ class EvidenceSet:
 
 def _apply_scope(conn, candidates, scope: list[str] | None):
     """Restrict candidates to files whose id is in scope (or whose source's
-    title/path contains any scope term - the practical folder semantics).
+ title/path contains any scope term - the practical folder semantics).
 
-    Empty scope = no restriction. An all-filtered corpus yields [] and the
-    caller's empty-evidence path takes over - a scoped miss is an honest
-    INSUFFICIENT, not a scope-ignoring fallback.
-    """
+ Empty scope = no restriction. An all-filtered corpus yields [] and the
+ caller's empty-evidence path takes over - a scoped miss is an honest
+ INSUFFICIENT, not a scope-ignoring fallback.
+ """
     if not scope:
         return candidates
     terms = [s.strip().lower() for s in scope if s and s.strip()]
@@ -103,11 +103,11 @@ def _apply_scope(conn, candidates, scope: list[str] | None):
 def _apply_vaults(conn, candidates, vaults: list[str] | None):
     """Restrict candidates to the given vault namespaces (P2.5).
 
-    Empty list/None = all vaults. Mirrors _apply_scope: post-fusion, so
-    BM25 and KNN obey identically; an all-filtered corpus yields [] and
-    the honest INSUFFICIENT path takes over - asking in one vault can
-    never leak another vault's evidence.
-    """
+ Empty list/None = all vaults. Mirrors _apply_scope: post-fusion, so
+ BM25 and KNN obey identically; an all-filtered corpus yields [] and
+ the honest INSUFFICIENT path takes over - asking in one vault can
+ never leak another vault's evidence.
+ """
     if not vaults:
         return candidates
     ids = [cid for cid, _s in candidates]
@@ -131,23 +131,23 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
            vaults: list[str] | None = None) -> EvidenceSet:
     """Run the full query path; never raises on empty/missing index state.
 
-    - ``qvec``: the pre-embedded query as a 1536*4 fp32 blob (or None to run
-      BM25-only - the dense side degrades to no hits, it does not raise).
-    - ``reranker``: a fenris.retrieve.rerank.Reranker; defaults to
-      NoopReranker() per the slice contract (unit tests must not download
-      models).
-    - ``auth_epoch``: the current auth epoch; KNN is filtered to it.
-    - ``scope``: optional list of terms; a candidate serves only if its
-      file's title/path/id contains one. Applied post-fusion so both
-      retrieval sides obey it identically.
-    - ``vaults``: optional vault-id list (P2.5); a candidate serves only
-      if its source's drive_id is in the list. Same post-fusion position,
-      same honesty rules.
+ - ``qvec``: the pre-embedded query as a 1536*4 fp32 blob (or None to run
+ BM25-only - the dense side degrades to no hits, it does not raise).
+ - ``reranker``: a fenris.retrieve.rerank.Reranker; defaults to
+ NoopReranker() per the slice contract (unit tests must not download
+ models).
+ - ``auth_epoch``: the current auth epoch; KNN is filtered to it.
+ - ``scope``: optional list of terms; a candidate serves only if its
+ file's title/path/id contains one. Applied post-fusion so both
+ retrieval sides obey it identically.
+ - ``vaults``: optional vault-id list (P2.5); a candidate serves only
+ if its source's drive_id is in the list. Same post-fusion position,
+ same honesty rules.
 
-    Returns EvidenceSet(evidence, route_decision, trace). Empty index ->
-    empty evidence with the AGENTIC trigger recorded in the decision signals
-    and the trace, no exception.
-    """
+ Returns EvidenceSet(evidence, route_decision, trace). Empty index ->
+ empty evidence with the AGENTIC trigger recorded in the decision signals
+ and the trace, no exception.
+ """
     decision = _route.route(query, conn)
     reranker = reranker if reranker is not None else NoopReranker()
 
@@ -209,7 +209,7 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
     }
 
     if not fused:
-        # AGENTIC: evidence empty (the build plan s.6). No rerank on nothing.
+        # AGENTIC: evidence empty (the build plan). No rerank on nothing.
         trace["agentic_trigger"] = "empty_evidence"
         signals = dict(decision.signals)
         signals["agentic_trigger"] = "empty_evidence"

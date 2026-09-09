@@ -2,25 +2,25 @@
 
 Case schema (the build plan, golden suite):
 
-- id                  unique, stable across runs (regression diffs key on it)
-- suite               always "golden" for this suite
-- slice               exact | temporal | multi_hop | paraphrase | hard_negative
-                      | unanswerable | table
-- question            the query text
-- expected_docs       {doc_id: grade} with grade 2 = must retrieve, 1 = helpful,
-                      0 = hard negative (must NOT rank); empty for unanswerable
-- answerable          bool; false only for the unanswerable slice
-- expected_state      ANSWERED | INSUFFICIENT (system ladder state for THIS suite;
-                      other states are exercised by later suites)
-- expected_answer_facts  strings that must appear in a correct answer
-- expected_spans      [{doc_id, start, end}] supporting evidence, char offsets
-                      into the manifest doc text
-- created_by          author tag, "synth-v1" for generator-authored cases
-- locked              false here; true is reserved for human-labeled cases
-                      (judge calibration, M6) and those are never used for tuning
+- id unique, stable across runs (regression diffs key on it)
+- suite always "golden" for this suite
+- slice exact | temporal | multi_hop | paraphrase | hard_negative
+ | unanswerable | table
+- question the query text
+- expected_docs {doc_id: grade} with grade 2 = must retrieve, 1 = helpful,
+ 0 = hard negative (must NOT rank); empty for unanswerable
+- answerable bool; false only for the unanswerable slice
+- expected_state ANSWERED | INSUFFICIENT (system ladder state for THIS suite;
+ other states are exercised by later suites)
+- expected_answer_facts strings that must appear in a correct answer
+- expected_spans [{doc_id, start, end}] supporting evidence, char offsets
+ into the manifest doc text
+- created_by author tag, "synth-v1" for generator-authored cases
+- locked false here; true is reserved for human-labeled cases
+ (judge calibration) and those are never used for tuning
 
 Files live in eval/cases/golden/ as YAML (pyyaml is installed); ``load_cases``
-also accepts .json so the suite works without pyyaml.
+also accepts.json so the suite works without pyyaml.
 """
 
 from __future__ import annotations
@@ -116,11 +116,11 @@ class EvalCase:
 def validate_case(case: EvalCase, manifest_docs: dict[str, dict]) -> None:
     """Raise ValueError unless the case is well-formed AND answerable by the corpus.
 
-    For every case (including unanswerable ones) every referenced doc must exist
-    and every expected span must resolve inside that doc's text. Unanswerable
-    cases must reference no docs and no spans, and their expected_state is
-    INSUFFICIENT.
-    """
+ For every case (including unanswerable ones) every referenced doc must exist
+ and every expected span must resolve inside that doc's text. Unanswerable
+ cases must reference no docs and no spans, and their expected_state is
+ INSUFFICIENT.
+ """
     if case.suite != SUITE:
         raise ValueError(f"{case.id}: suite must be {SUITE!r}, got {case.suite!r}")
     if case.slice not in SLICES:
@@ -210,8 +210,8 @@ def _dump_yaml(obj) -> str:
 def save_cases(cases: list[EvalCase], out_dir: Path, fmt: str = "yaml") -> list[Path]:
     """Write one file per case (eval/cases/golden/). Returns written paths.
 
-    fmt: "yaml" (default; falls back to json when pyyaml is missing) or "json".
-    """
+ fmt: "yaml" (default; falls back to json when pyyaml is missing) or "json".
+ """
     out_dir.mkdir(parents=True, exist_ok=True)
     use_yaml = fmt == "yaml" and yaml is not None
     ext = "yaml" if use_yaml else "json"

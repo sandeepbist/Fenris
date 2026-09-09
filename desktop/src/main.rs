@@ -1,6 +1,6 @@
 // Fenris desktop shell.
 //
-// Per the stack research notes (Tauri 2.11.5, verified against
+// Per the Tauri v2 packaging research (Tauri 2.11.5, verified against
 // plugin source and docs):
 // - The Python engine is a PyInstaller ONEDIR sidecar (externalBin;
 //   onefile has a documented uvicorn Ctrl+C bug, so onedir is the

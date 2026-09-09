@@ -21,7 +21,7 @@ TASK_FORMAT_VERSION = "asym-v1"          # RETRIEVAL_QUERY / RETRIEVAL_DOCUMENT 
 GENERATION_MODEL = "gemini-2.5-flash"
 JUDGE_MODEL = "gemini-2.5-flash"
 
-# RRF fusion constant (the design notes: k=60 default)
+# RRF fusion constant (design note: k=60 default)
 RRF_K = 60
 
 # Adaptive-k
@@ -64,8 +64,8 @@ INJECTION_PATTERNS = (
 
 def reranker_choice() -> str:
     """flashrank (default, calibrated) | modernbert (encoder upgrade;
-    requires `fenris models fetch modernbert-rerank`; floor provisional
-    until the golden-suite sweep runs)."""
+ requires `fenris models fetch modernbert-rerank`; floor provisional
+ until the golden-suite sweep runs)."""
     return os.environ.get("FENRIS_RERANKER", "flashrank")
 
 
@@ -76,13 +76,13 @@ def dedup_identical_bodies() -> bool:
 
 def contextual_headers_mode() -> str:
     """deterministic (default) | llm — the Anthropic-style chunk context
-    into the embed payload (dark until its eval gate)."""
+ into the embed payload (dark until its eval gate)."""
     return os.environ.get("FENRIS_CONTEXTUAL_HEADERS", "deterministic")
 
 
 def groundedness_mode() -> str:
     """off (default) | on — the NLI downgrade-only gate (dark until its
-    eval gate; requires `fenris models fetch nli-deberta-small`)."""
+ eval gate; requires `fenris models fetch nli-deberta-small`)."""
     return os.environ.get("FENRIS_GROUNDEDNESS", "off")
 
 

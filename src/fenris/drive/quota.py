@@ -2,11 +2,11 @@
 
 the build plan, quota reality - these unit costs drive ingest pacing:
 
-- files.get (metadata read)       =   5 units
-- files.list / changes.list        = 100 units
-- downloads (alt=media)            = 200 units
-- exports (files.export)           = 200 units  (Workspace-heavy corpora pay
-  the download rate on every export - the pacing rule applies equally)
+- files.get (metadata read) = 5 units
+- files.list / changes.list = 100 units
+- downloads (alt=media) = 200 units
+- exports (files.export) = 200 units (Workspace-heavy corpora pay
+ the download rate on every export - the pacing rule applies equally)
 
 The point is not to predict Google's meter to the unit; it is to make the
 cost of every decision visible: `status` prints it, eval's load/chaos suite
@@ -66,10 +66,10 @@ class QuotaSnapshot:
 class QuotaCounter:
     """Thread-safe counters for Drive quota units and per-op call counts.
 
-    Every DriveClient call routes through ``charge`` exactly once, AFTER the
-    call succeeds (failed calls are recorded under ``count_error`` but do not
-    consume units - Google does not bill a request the server rejected).
-    """
+ Every DriveClient call routes through ``charge`` exactly once, AFTER the
+ call succeeds (failed calls are recorded under ``count_error`` but do not
+ consume units - Google does not bill a request the server rejected).
+ """
 
     units_used: int = 0
     call_counts: Counter[str] = field(default_factory=Counter)
@@ -79,9 +79,9 @@ class QuotaCounter:
     def charge(self, op: str, cost: int, calls: int = 1) -> None:
         """Record a successful API call and its quota units.
 
-        ``op`` is a stable operation name ('list_files', 'get_metadata',
-        'download_media', 'export', 'get_start_page_token', 'changes_list').
-        """
+ ``op`` is a stable operation name ('list_files', 'get_metadata',
+ 'download_media', 'export', 'get_start_page_token', 'changes_list').
+ """
         if cost not in _UNIT_LABELS:
             raise ValueError(
                 f"unknown quota cost {cost!r}; use the COST_* constants so the "

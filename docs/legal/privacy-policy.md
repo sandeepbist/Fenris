@@ -87,7 +87,7 @@ The policy changes if the Software's data flows change — a new model provider,
 
 ## 10. Contact
 
-**[CONTACT EMAIL]** — for questions about this policy or the Software's data handling.
+Open an issue at github.com/sandeepbist/Fenris/issues — for questions about this policy or the Software's data handling.
 
 ---
 

@@ -3,21 +3,21 @@
 the build plan/5 decisions implemented here:
 
 - Scope: ``https://www.googleapis.com/auth/drive.readonly`` - the only honest
-  full-corpus choice (``drive.file`` cannot see pre-existing files;
-  ``drive.metadata.readonly`` cannot download content).
+ full-corpus choice (``drive.file`` cannot see pre-existing files;
+ ``drive.metadata.readonly`` cannot download content).
 - Flow: google-auth-oauthlib ``InstalledAppFlow.run_local_server`` - PKCE
-  loopback, which the library enables by default (it autogenerates the
-  S256 code verifier; we pass the flag explicitly so the intent is legible
-  and survives a library default flip).
+ loopback, which the library enables by default (it autogenerates the
+ S256 code verifier; we pass the flag explicitly so the intent is legible
+ and survives a library default flip).
 - Refresh token storage: the OS keyring ONLY (service "fenris", account
-  "drive-refresh"). No plaintext fallback, ever - on a headless Linux box
-  without Secret Service the user gets instructions, not a silent insecure
-  file (the build plan security section: a secret on disk is a regression).
+ "drive-refresh"). No plaintext fallback, ever - on a headless Linux box
+ without Secret Service the user gets instructions, not a silent insecure
+ file (the build plan security section: a secret on disk is a regression).
 - ``disconnect()`` revokes for real: POSTs the refresh token to
-  ``https://oauth2.googleapis.com/revoke`` AND deletes the keyring entry.
-  A stale token never lingers silently. Deletion happens even if the revoke
-  HTTP call fails, so local state never claims "connected" while Google
-  still honors the grant; a revoke failure is surfaced, not swallowed.
+ ``https://oauth2.googleapis.com/revoke`` AND deletes the keyring entry.
+ A stale token never lingers silently. Deletion happens even if the revoke
+ HTTP call fails, so local state never claims "connected" while Google
+ still honors the grant; a revoke failure is surfaced, not swallowed.
 """
 
 from __future__ import annotations
@@ -58,37 +58,37 @@ REVOKE_URL = "https://oauth2.googleapis.com/revoke"
 
 class AuthError(Exception):
     """OAuth flow failed in a way the user must fix (no client secrets file,
-    flow aborted, keyring unusable, refresh rejected)."""
+ flow aborted, keyring unusable, refresh rejected)."""
 
 
 class KeyringUnavailableError(AuthError):
     """No usable OS keyring backend. Never falls back to a plaintext file.
 
-    Instructions are embedded because this is the one failure a headless
-    Linux user actually hits (the build plan: headless-Linux gotchas).
-    """
+ Instructions are embedded because this is the one failure a headless
+ Linux user actually hits (the build plan: headless-Linux gotchas).
+ """
 
 
 def _require_keyring() -> None:
     """Raise KeyringUnavailableError if the OS has no real keyring backend.
 
-    keyring degrades to a null backend (returns None for everything) or a
-    fail backend (raises NoKeyringError) when nothing viable exists. Writing
-    to the null backend SILENTLY DISCARDS the token - that is the exact
-    silent-data-loss case the MVP security section forbids, so both
-    non-backends are treated as "unavailable" up front.
-    """
+ keyring degrades to a null backend (returns None for everything) or a
+ fail backend (raises NoKeyringError) when nothing viable exists. Writing
+ to the null backend SILENTLY DISCARDS the token - that is the exact
+ silent-data-loss case the MVP security section forbids, so both
+ non-backends are treated as "unavailable" up front.
+ """
     backend = keyring.get_keyring()
     if isinstance(backend, (null_backend.Keyring, fail_backend.Keyring)):
         raise KeyringUnavailableError(
             "No usable OS keyring backend was found, so fenris cannot store the "
             "Google refresh token safely. fenris never writes secrets to a "
             "plaintext file. Fix the keyring first:\n"
-            "  - Linux (headless): install and start a Secret Service provider, "
+            " - Linux (headless): install and start a Secret Service provider, "
             "e.g. `gnome-keyring` + `libsecret`, then re-run with the session "
             "keyring unlocked (or run inside a desktop session).\n"
-            "  - macOS: unlock the login keychain.\n"
-            "  - Windows: Credential Manager is used automatically.\n"
+            " - macOS: unlock the login keychain.\n"
+            " - Windows: Credential Manager is used automatically.\n"
             "See https://pypi.org/project/keyring for backend options."
         )
 
@@ -137,12 +137,12 @@ def run_auth_flow(
 ) -> str:
     """Run the PKCE loopback OAuth flow; store and return the refresh token.
 
-    Uses InstalledAppFlow.run_local_server (loopback redirect, PKCE S256 -
-    the library autogenerates the code verifier). The refresh token is
-    written to the OS keyring under (service "fenris", account
-    "drive-refresh" - or "drive-refresh:<vault>" for additional vaults,
-    P2.5) and also returned for callers that need it in-session.
-    """
+ Uses InstalledAppFlow.run_local_server (loopback redirect, PKCE S256 -
+ the library autogenerates the code verifier). The refresh token is
+ written to the OS keyring under (service "fenris", account
+ "drive-refresh" - or "drive-refresh:<vault>" for additional vaults,
+ P2.5) and also returned for callers that need it in-session.
+ """
     _require_keyring()
     config = _load_client_config(client_secrets)
     flow = InstalledAppFlow.from_client_config(
@@ -184,10 +184,10 @@ def build_credentials(refresh_token: str):
 def load_or_refresh(keyring_account: str = KEYRING_ACCOUNT):
     """Return valid google credentials from the keyring, refreshing as needed.
 
-    Raises AuthError when nothing is stored or the refresh is rejected (the
-    7-day-expiry case in the build plan - the user must re-run the flow;
-    silent failure would leave sync believing it is connected).
-    """
+ Raises AuthError when nothing is stored or the refresh is rejected (the
+ 7-day-expiry case in the build plan - the user must re-run the flow;
+ silent failure would leave sync believing it is connected).
+ """
     _require_keyring()
     refresh_token = keyring.get_password(KEYRING_SERVICE, keyring_account)
     if not refresh_token:
@@ -211,13 +211,13 @@ def load_or_refresh(keyring_account: str = KEYRING_ACCOUNT):
 def _delete_quietly(delete_password, account: str = KEYRING_ACCOUNT) -> None:
     """Best-effort keyring deletion.
 
-    Used on the disconnect paths, where a failed delete must never abort the
-    flow: the token is either already gone (KeyringError) or the backend is
-    misbehaving, and in both cases the correct next step is the same - make
-    sure nothing remains stored and let the caller's outcome stand. The
-    deletion failure is invisible to the user by design here because the
-    revoke outcome (the security-relevant part) is reported separately.
-    """
+ Used on the disconnect paths, where a failed delete must never abort the
+ flow: the token is either already gone (KeyringError) or the backend is
+ misbehaving, and in both cases the correct next step is the same - make
+ sure nothing remains stored and let the caller's outcome stand. The
+ deletion failure is invisible to the user by design here because the
+ revoke outcome (the security-relevant part) is reported separately.
+ """
     try:
         delete_password(KEYRING_SERVICE, account)
     except keyring.errors.KeyringError:
@@ -230,21 +230,21 @@ def disconnect(
 ) -> bool:
     """Revoke the stored grant for real and delete the keyring entry.
 
-    POSTs ``token=<refresh_token>`` to Google's revoke endpoint (form
-    encoded, per oauth2.googleapis.com/revoke). The keyring entry is deleted
-    REGARDLESS of the revoke outcome, so no local state can claim
-    "connected" while the grant still works remotely; if the revoke HTTP call
-    itself fails, that is returned/surfaced rather than swallowed.
+ POSTs ``token=<refresh_token>`` to Google's revoke endpoint (form
+ encoded, per oauth2.googleapis.com/revoke). The keyring entry is deleted
+ REGARDLESS of the revoke outcome, so no local state can claim
+ "connected" while the grant still works remotely; if the revoke HTTP call
+ itself fails, that is returned/surfaced rather than swallowed.
 
-    Returns True when the revoke succeeded (HTTP 200). Returns False when
-    there was nothing to disconnect. Raises AuthError on transport failure
-    (the keyring entry is still gone - disconnect is never half-done).
+ Returns True when the revoke succeeded (HTTP 200). Returns False when
+ there was nothing to disconnect. Raises AuthError on transport failure
+ (the keyring entry is still gone - disconnect is never half-done).
 
-    ``keyring_account`` selects the vault ("drive-refresh" default, or
-    "drive-refresh:<vault>" - P2.5). ``_opener`` / ``_keyring_get`` /
-    ``_keyring_delete`` are test seams: the offline suite injects a fake
-    network POST and a fake keyring backend.
-    """
+ ``keyring_account`` selects the vault ("drive-refresh" default, or
+ "drive-refresh:<vault>" - P2.5). ``_opener`` / ``_keyring_get`` /
+ ``_keyring_delete`` are test seams: the offline suite injects a fake
+ network POST and a fake keyring backend.
+ """
     get_pw = _keyring_get if _keyring_get is not None else keyring.get_password
     del_pw = _keyring_delete if _keyring_delete is not None else keyring.delete_password
     opener = _opener()

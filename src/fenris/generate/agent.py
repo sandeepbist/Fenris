@@ -11,30 +11,30 @@ Tools are typed, read-only, and LOCAL: ``search`` / ``find`` / ``open`` /
 network, Drive, URLs, or a shell - read-only by construction.
 
 - ``search`` delegates to the SAME injected search callable the CLI wires
-  (dependency injection: this module imports nothing from
-  ``fenris.retrieve.query``; it may import types).
+ (dependency injection: this module imports nothing from
+ ``fenris.retrieve.query``; it may import types).
 - ``open`` re-checks authorization IMMEDIATELY before returning content:
-  ``sources.active = 1 AND sources.trashed = 0`` AND the current
-  ``auth_epoch`` - a chunk that was retired/trashed/re-authed between search
-  and open returns nothing (the design notes' acceptance test: revoke access between
-  search and open; no bytes or citation escape).
+ ``sources.active = 1 AND sources.trashed = 0`` AND the current
+ ``auth_epoch`` - a chunk that was retired/trashed/re-authed between search
+ and open returns nothing (the design notes' acceptance test: revoke access between
+ search and open; no bytes or citation escape).
 - ``find`` locates chunks in one file by a text pattern (local, read-only).
 - ``summarize`` produces a derived working note that is NEVER an authoritative
-  citation - the final answer cites raw ``open`` evidence only.
+ citation - the final answer cites raw ``open`` evidence only.
 
 Loop policy (deterministic - no model in the loop; the model sees only the
 final assembled prompt):
 
 1. the initial search result is passed in by the caller (``service.ask``);
 2. a follow-up round runs only when the current state is non-ANSWERABLE,
-   unresolved claims remain, and budget allows;
+ unresolved claims remain, and budget allows;
 3. each follow-up round reformulates the query from the missing-evidence
-   signal (deterministic rewrite: the original query plus the distinct
-   missing-evidence keywords), searches again, and merges NEW evidence;
+ signal (deterministic rewrite: the original query plus the distinct
+ missing-evidence keywords), searches again, and merges NEW evidence;
 4. stall detection: 2 consecutive rounds with no new evidence -> stop with
-   stop reason STALL (the loop then reports INSUFFICIENT, never an invented
-   answer - the design notes: "force the budget to zero; verify an explicit abstention
-   state rather than an invented answer").
+ stop reason STALL (the loop then reports INSUFFICIENT, never an invented
+ answer - design note: "force the budget to zero; verify an explicit abstention
+ state rather than an invented answer").
 
 Stop reasons (recorded on the trace): RESOLVED / ROUND_LIMIT / OPEN_LIMIT /
 DEADLINE / STALL. Every tool call is logged (tool name, args, result count,
@@ -100,11 +100,11 @@ def _evidence_key(ev: Evidence) -> str:
 class Toolbox:
     """The four typed read-only tools, bound to a connection and an epoch.
 
-    ``search_fn`` is the INJECTED search callable the CLI wires (signature:
-    ``search_fn(query: str) -> list[Evidence]`` or an EvidenceSet-like object
-    with ``.evidence``); the toolbox never imports the retrieval orchestrator.
-    ``auth_epoch`` is the epoch every access is re-checked against.
-    """
+ ``search_fn`` is the INJECTED search callable the CLI wires (signature:
+ ``search_fn(query: str) -> list[Evidence]`` or an EvidenceSet-like object
+ with ``.evidence``); the toolbox never imports the retrieval orchestrator.
+ ``auth_epoch`` is the epoch every access is re-checked against.
+ """
 
     def __init__(self, conn: sqlite3.Connection, search_fn, auth_epoch: int = 0):
         self.conn = conn
@@ -134,10 +134,10 @@ class Toolbox:
     def search(self, query: str, top_k: int | None = None) -> list[Evidence]:
         """Run the injected search; returns evidence records (best-first).
 
-        A corpus filter is not a tool argument here: the injected search_fn
-        already carries the route/filters - the tool never widens them (a
-        generated subquery may never expand the allowed tenant or ACL scope).
-        """
+ A corpus filter is not a tool argument here: the injected search_fn
+ already carries the route/filters - the tool never widens them (a
+ generated subquery may never expand the allowed tenant or ACL scope).
+ """
         try:
             result = self.search_fn(query)
         except Exception as exc:  # noqa: BLE001 - a tool failure ends the round
@@ -155,20 +155,20 @@ class Toolbox:
     def find(self, file_id: str, pattern: str) -> list[dict]:
         """Locate chunks in ONE file by a text pattern. Local, read-only.
 
-        Returns the live chunk rows (chunk_id, ordinal, page_nos, header,
-        span, is_table) for chunks whose text contains the pattern. Retired/
-        trashed/re-authed sources are excluded by the same guard ``open`` uses.
-        """
+ Returns the live chunk rows (chunk_id, ordinal, page_nos, header,
+ span, is_table) for chunks whose text contains the pattern. Retired/
+ trashed/re-authed sources are excluded by the same guard ``open`` uses.
+ """
         args = {"file_id": file_id, "pattern": pattern}
         try:
             rows = self.conn.execute(
                 """SELECT c.chunk_id, c.ordinal, c.page_nos, c.header_text,
-                     c.char_start, c.char_end, c.is_table
-                   FROM chunks c JOIN sources s ON s.id = c.source_id
-                   WHERE s.file_id = ? AND s.active = 1 AND s.trashed = 0
-                     AND s.auth_epoch = ?
-                     AND (c.header_text LIKE ? OR c.body_text LIKE ?)
-                   ORDER BY c.ordinal""",
+ c.char_start, c.char_end, c.is_table
+ FROM chunks c JOIN sources s ON s.id = c.source_id
+ WHERE s.file_id = ? AND s.active = 1 AND s.trashed = 0
+ AND s.auth_epoch = ?
+ AND (c.header_text LIKE ? OR c.body_text LIKE ?)
+ ORDER BY c.ordinal""",
                 (file_id, self.auth_epoch, f"%{pattern}%", f"%{pattern}%"),
             ).fetchall()
         except sqlite3.Error as exc:
@@ -189,25 +189,25 @@ class Toolbox:
     def open(self, chunk_id: int) -> dict | None:
         """Return one chunk's exact stored text + provenance, or None.
 
-        Re-checks authorization IMMEDIATELY: ``sources.active = 1``,
-        ``sources.trashed = 0``, and ``sources.auth_epoch = <current>``. A
-        chunk retired, tombstoned, or re-authed since the search returns
-        NOTHING (no bytes, no citation, no existence signal). The returned
-        record is immutable evidence: chunk_id, file_id, revision, pages,
-        span, header, and the exact stored body text. Opened records are
-        cached by evidence id so ``summarize`` can work over them without a
-        second content read.
-        """
+ Re-checks authorization IMMEDIATELY: ``sources.active = 1``,
+ ``sources.trashed = 0``, and ``sources.auth_epoch = <current>``. A
+ chunk retired, tombstoned, or re-authed since the search returns
+ NOTHING (no bytes, no citation, no existence signal). The returned
+ record is immutable evidence: chunk_id, file_id, revision, pages,
+ span, header, and the exact stored body text. Opened records are
+ cached by evidence id so ``summarize`` can work over them without a
+ second content read.
+ """
         args = {"chunk_id": chunk_id}
         self.open_count += 1
         try:
             row = self.conn.execute(
                 """SELECT c.chunk_id, c.header_text, c.body_text, c.page_nos,
-                     c.char_start, c.char_end, s.file_id, s.source_revision,
-                     s.title, s.auth_epoch
-                   FROM chunks c JOIN sources s ON s.id = c.source_id
-                   WHERE c.chunk_id = ?
-                     AND s.active = 1 AND s.trashed = 0 AND s.auth_epoch = ?""",
+ c.char_start, c.char_end, s.file_id, s.source_revision,
+ s.title, s.auth_epoch
+ FROM chunks c JOIN sources s ON s.id = c.source_id
+ WHERE c.chunk_id = ?
+ AND s.active = 1 AND s.trashed = 0 AND s.auth_epoch = ?""",
                 (chunk_id, self.auth_epoch),
             ).fetchone()
         except sqlite3.Error as exc:
@@ -235,12 +235,12 @@ class Toolbox:
     def summarize(self, evidence_ids: list[str], max_tokens: int = 128) -> dict:
         """A derived working note over opened evidence - never a citation.
 
-        Deterministic MVP summarize: the headers + span heads of the opened
-        evidence, bounded to ``max_tokens`` (heuristic token count). The final
-        answer must cite raw ``open`` evidence, never this note (the design notes
-        2146-2157), so the note carries its evidence ids for traceability and
-        the caller never feeds it to the citation renderer as evidence.
-        """
+ Deterministic MVP summarize: the headers + span heads of the opened
+ evidence, bounded to ``max_tokens`` (heuristic token count). The final
+ answer must cite raw ``open`` evidence, never this note (the design notes
+ 2146-2157), so the note carries its evidence ids for traceability and
+ the caller never feeds it to the citation renderer as evidence.
+ """
         args = {"evidence_ids": list(evidence_ids), "max_tokens": max_tokens}
         lines: list[str] = []
         count = 0
@@ -282,11 +282,11 @@ def _as_evidence_list(result) -> list[Evidence]:
 def _reformulate(query: str, missing_evidence: list[str]) -> str:
     """Deterministic query rewrite from the missing-evidence signal.
 
-    MVP has no model in the loop: the rewrite appends the distinct informative
-    words of the missing-evidence notes to the original query. The ORIGINAL
-    question is always kept (the design notes: never replace the original
-    irreversibly) and every rewrite is recorded in the trace's ``queries``.
-    """
+ MVP has no model in the loop: the rewrite appends the distinct informative
+ words of the missing-evidence notes to the original query. The ORIGINAL
+ question is always kept (the design notes: never replace the original
+ irreversibly) and every rewrite is recorded in the trace's ``queries``.
+ """
     stop = {"the", "a", "an", "of", "to", "for", "and", "or", "is", "are",
             "was", "were", "in", "on", "about", "missing", "evidence",
             "not", "no", "any", "with", "from", "that", "this"}
@@ -309,17 +309,17 @@ def run_agentic_loop(conn: sqlite3.Connection, query: str, *,
                      deadline_seconds: float = DEADLINE_SECONDS) -> AgenticResult:
     """Drive the bounded retry loop for one non-answerable first pass.
 
-    Round 1 IS the caller's initial search (already run): the loop starts from
-    its verification + state and only spends further rounds when the state is
-    non-ANSWERABLE. Each round: reformulate -> search -> merge new evidence ->
-    re-verify -> re-resolve the state; the loop stops at the first
-    ANSWERABLE/CONFLICTING resolution or when a budget trips.
+ Round 1 IS the caller's initial search (already run): the loop starts from
+ its verification + state and only spends further rounds when the state is
+ non-ANSWERABLE. Each round: reformulate -> search -> merge new evidence ->
+ re-verify -> re-resolve the state; the loop stops at the first
+ ANSWERABLE/CONFLICTING resolution or when a budget trips.
 
-    Budgets (all recorded in the trace): rounds <= max_rounds, opens <=
-    max_opens, wall clock <= deadline_seconds. Stall detection: 2 consecutive
-    rounds yielding no new evidence -> stop reason STALL. Every stop maps to
-    an explicit abstention (INSUFFICIENT) - never an invented answer.
-    """
+ Budgets (all recorded in the trace): rounds <= max_rounds, opens <=
+ max_opens, wall clock <= deadline_seconds. Stall detection: 2 consecutive
+ rounds yielding no new evidence -> stop reason STALL. Every stop maps to
+ an explicit abstention (INSUFFICIENT) - never an invented answer.
+ """
     deadline = time.monotonic() + deadline_seconds
     toolbox = Toolbox(conn, search_fn, auth_epoch=auth_epoch)
 
@@ -413,10 +413,10 @@ def _unresolved_from_state(state: str, verification: VerificationResult,
                            top_score: float, floor: float) -> list[str]:
     """The named unresolved-claim signal for a non-answerable first pass.
 
-    A second search is allowed ONLY when the current evidence leaves a named
-    claim unresolved, contradictory, or below the calibrated support floor
-    (the design notes) - so the signal must be concrete: which condition fired.
-    """
+ A second search is allowed ONLY when the current evidence leaves a named
+ claim unresolved, contradictory, or below the calibrated support floor
+ (design note) - so the signal must be concrete: which condition fired.
+ """
     if state == ANSWERABLE:
         return []
     notes: list[str] = []

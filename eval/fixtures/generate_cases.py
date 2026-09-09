@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """Author the 120 golden-suite cases into eval/cases/golden/ (the build plan).
 
-Run:  .venv/bin/python eval/fixtures/generate_cases.py
+Run:.venv/bin/python eval/fixtures/generate_cases.py
 
 Composition (exact, from the build plan):
-  exact 20, temporal 15, multi_hop 15, paraphrase 15,
-  hard_negative 25, unanswerable 15, table 15  ->  120 cases.
+ exact 20, temporal 15, multi_hop 15, paraphrase 15,
+ hard_negative 25, unanswerable 15, table 15 -> 120 cases.
 
 Every case is generated from the COMMITTED manifest (eval/fixtures/
 golden_corpus/manifest.json) and its expected_spans are located in the actual
@@ -87,7 +87,7 @@ def _spans_for(doc: dict, needles: list[str]) -> list[ExpectedSpan]:
 
 def build_exact(docs: list[dict]) -> list[EvalCase]:
     """20 exact-id/name cases: unique invoice numbers, decision numbers,
-    booking references - the EXACT route (df <= 3)."""
+ booking references - the EXACT route (df <= 3)."""
     cases = []
     invoices = [d for d in docs if d["family"] == "invoice"][:12]
     meetings = [d for d in docs if d["family"] == "meeting"][:4]
@@ -125,7 +125,7 @@ def build_exact(docs: list[dict]) -> list[EvalCase]:
 
 def build_temporal(docs: list[dict]) -> list[EvalCase]:
     """15 temporal cases: questions where the DATE discriminates the target
-    from same-topic docs (other years/months)."""
+ from same-topic docs (other years/months)."""
     cases = []
     invoices = [d for d in docs if d["family"] == "invoice"
                 and d["meta"]["year"] in (2024, 2025)]
@@ -188,8 +188,8 @@ def build_temporal(docs: list[dict]) -> list[EvalCase]:
 
 def build_multi_hop(docs: list[dict]) -> list[EvalCase]:
     """15 multi-hop cases: meeting decision -> invoice for the same project
-    (the answer needs both docs), and project spec revision chains (v1 -> v3).
-    Grade 2 on both hops' docs when both are required evidence."""
+ (the answer needs both docs), and project spec revision chains (v1 -> v3).
+ Grade 2 on both hops' docs when both are required evidence."""
     cases = []
     meetings = [d for d in docs if d["family"] == "meeting"]
     invoices = [d for d in docs if d["family"] == "invoice"]
@@ -273,8 +273,8 @@ def build_multi_hop(docs: list[dict]) -> list[EvalCase]:
 
 def build_paraphrase(docs: list[dict]) -> list[EvalCase]:
     """15 paraphrase/alias cases: same doc, different surface form - the doc
-    never contains the question's words (cost -> 'amount due', 'trip' vs
-    'itinerary', full country name vs the doc's usage, 'latest' vs v3)."""
+ never contains the question's words (cost -> 'amount due', 'trip' vs
+ 'itinerary', full country name vs the doc's usage, 'latest' vs v3)."""
     cases = []
     invoices = [d for d in docs if d["family"] == "invoice"][:5]
     for d in invoices:
@@ -361,10 +361,10 @@ def build_paraphrase(docs: list[dict]) -> list[EvalCase]:
 def build_hard_negative(docs: list[dict]) -> list[EvalCase]:
     """25 hard-negative cases: a near-duplicate exists that must NOT rank.
 
-    Sources of near-duplicates: same vendor different year (near_dup family),
-    same project different invoice, same vendor different year in the invoice
-    family, same city different trip.
-    """
+ Sources of near-duplicates: same vendor different year (near_dup family),
+ same project different invoice, same vendor different year in the invoice
+ family, same city different trip.
+ """
     cases = []
     near_dups = [d for d in docs if d["family"] == "near_dup"]
     # pair structure: same pair index, tags a/b
@@ -483,7 +483,7 @@ def build_hard_negative(docs: list[dict]) -> list[EvalCase]:
 
 def build_unanswerable(docs: list[dict]) -> list[EvalCase]:
     """15 unanswerable cases: every referenced entity is verified ABSENT from
-    the whole corpus text; expected_state is INSUFFICIENT."""
+ the whole corpus text; expected_state is INSUFFICIENT."""
     cases = []
     templates = []
     for v in MISSING_VENDORS:
@@ -537,7 +537,7 @@ def build_unanswerable(docs: list[dict]) -> list[EvalCase]:
 
 def build_table(docs: list[dict]) -> list[EvalCase]:
     """15 table cases: row-level facts from the expenses sheet blocks - the
-    TABLE route (numeric + vendor + project tokens)."""
+ TABLE route (numeric + vendor + project tokens)."""
     cases = []
     expenses = [d for d in docs if d["family"] == "expenses"]
     rows = []

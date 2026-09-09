@@ -4,18 +4,18 @@ Rules this module enforces:
 
 - Input is bytes over a ``BytesIO``/``DocumentStream`` - never a temp file.
 - Every conversion is bounded: max pages, max bytes, max wall time. The
-  bounds live here (parse owns its resource policy), mirrored from the
-  the build plan ceilings.
+ bounds live here (parse owns its resource policy), mirrored from the
+ the build plan ceilings.
 - Every conversion runs inside try/except: a parse failure records
-  ``status='failed'`` plus the error string and the *caller keeps going*.
+ ``status='failed'`` plus the error string and the *caller keeps going*.
 - Missing deep models (this venv ships docling SLIM without torch) map to
-  ``status='skipped'`` with reason ``deep_model_unavailable`` - that is the
-  designed behavior, not a crash.
+ ``status='skipped'`` with reason ``deep_model_unavailable`` - that is the
+ designed behavior, not a crash.
 - Provenance comes from ``iterate_items()``: page numbers per region. Docling
-  has no char offsets, so chunk provenance is item-level page sets.
+ has no char offsets, so chunk provenance is item-level page sets.
 - ``SectionHeaderItem``s build the section_path; ``TableItem`` grids become
-  ``TableData`` records with text, row/col spans and offset indices - tables
-  bypass the chunker entirely (see chunk.py).
+ ``TableData`` records with text, row/col spans and offset indices - tables
+ bypass the chunker entirely (see chunk.py).
 
 Slim-mode reality (verified against this environment, docling 2.123.1):
 docx/xlsx/pptx/md/txt/html/epub parse without deep models; pdf and images
@@ -36,7 +36,7 @@ from io import BytesIO
 ParseError = Exception
 
 # --- Bounding constants (parse owns its resource policy) --------------------
-# Mirrors the the build plan ceilings; kept here rather than config.py because this
+# Mirrors the build-plan ceilings; kept here rather than config.py because this
 # module owns parse-time bounding.
 
 PARSER_NAME = "docling"
@@ -95,9 +95,9 @@ class TableData:
 class BodySpan:
     """A located body-text region with the Docling provenance that covers it.
 
-    char_start/char_end are offsets into ParsedFile.body_text - the chunker
-    never re-derives them.
-    """
+ char_start/char_end are offsets into ParsedFile.body_text - the chunker
+ never re-derives them.
+ """
 
     char_start: int
     char_end: int
@@ -110,15 +110,15 @@ class BodySpan:
 class ParsedFile:
     """The full parse output for one representation.
 
-    Attributes:
-        status: 'success' | 'partial_success' | 'failed' | 'skipped'.
-        error: for failures, a short error string; for skips, the
-            machine-readable reason (e.g. 'deep_model_unavailable').
-        body_text: the linear text (markdown export minus table rows) that
-            the chunker operates over.
-        body_spans: located regions covering body_text.
-        tables: TableData records, one per Docling TableItem.
-    """
+ Attributes:
+ status: 'success' | 'partial_success' | 'failed' | 'skipped'.
+ error: for failures, a short error string; for skips, the
+ machine-readable reason (e.g. 'deep_model_unavailable').
+ body_text: the linear text (markdown export minus table rows) that
+ the chunker operates over.
+ body_spans: located regions covering body_text.
+ tables: TableData records, one per Docling TableItem.
+ """
 
     status: str = _STATUS_FAILED
     error: str | None = None
@@ -187,7 +187,7 @@ def _item_page_nos(item) -> tuple[int, ...]:
 
 def _stream_name(target_mime: str, filename: str | None) -> str:
     """Docling selects its backend by filename extension: mint one that
-    matches the representation MIME when the real filename disagrees."""
+ matches the representation MIME when the real filename disagrees."""
     ext_by_mime = {
         "application/pdf": "pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
@@ -207,10 +207,10 @@ def _stream_name(target_mime: str, filename: str | None) -> str:
 def _input_format(target_mime: str):
     """Map the representation MIME to Docling's InputFormat enum.
 
-    Images map to InputFormat.IMAGE even though the router defers them out
-    of v1 (ocr_deferred_v1): if one ever reaches the parser anyway, it must
-    land in the deep-model skip path, not in 'unsupported repr mime'.
-    """
+ Images map to InputFormat.IMAGE even though the router defers them out
+ of v1 (ocr_deferred_v1): if one ever reaches the parser anyway, it must
+ land in the deep-model skip path, not in 'unsupported repr mime'.
+ """
     from docling.datamodel.base_models import InputFormat
 
     if target_mime == "application/pdf":
@@ -246,11 +246,11 @@ def _input_format(target_mime: str):
 def _render_table_markdown(grid: list[list[CellData]]) -> str:
     """Render a cell grid the way export_to_markdown renders its tables.
 
-    Note: this is only a fallback used when Docling's own per-item rendering
-    is unavailable; the primary path reuses
-    ``TableItem.export_to_markdown(doc=...)`` so the bytes we excise from the
-    body are exactly the bytes Docling emitted.
-    """
+ Note: this is only a fallback used when Docling's own per-item rendering
+ is unavailable; the primary path reuses
+ ``TableItem.export_to_markdown(doc=...)`` so the bytes we excise from the
+ body are exactly the bytes Docling emitted.
+ """
     if not grid or not grid[0]:
         return ""
     cols = max((len(row) for row in grid), default=0)
@@ -356,20 +356,20 @@ def parse_bytes(
 ) -> ParsedFile:
     """Parse one representation's bytes with Docling.
 
-    Never raises: every failure mode is carried in the returned ParsedFile
-    (status='failed' + error, or status='skipped' + reason when the slim
-    install cannot load the deep models the format needs).
+ Never raises: every failure mode is carried in the returned ParsedFile
+ (status='failed' + error, or status='skipped' + reason when the slim
+ install cannot load the deep models the format needs).
 
-    Args:
-        content: the raw representation bytes (download or export).
-        target_mime: the representation MIME (routing target).
-        filename: optional original name, used for backend selection.
-        max_num_pages / max_file_bytes / max_seconds: bounds; the defaults are
-            the MVP ceilings and the tests tighten them.
+ Args:
+ content: the raw representation bytes (download or export).
+ target_mime: the representation MIME (routing target).
+ filename: optional original name, used for backend selection.
+ max_num_pages / max_file_bytes / max_seconds: bounds; the defaults are
+ the MVP ceilings and the tests tighten them.
 
-    Returns:
-        ParsedFile with status, error, body_text, body_spans, tables.
-    """
+ Returns:
+ ParsedFile with status, error, body_text, body_spans, tables.
+ """
     failed = ParsedFile(status=_STATUS_FAILED)
     if content is None or len(content) < MIN_BYTES:
         failed.error = "empty_input"
@@ -506,13 +506,13 @@ def parse_bytes(
 def _remove_table_markdown(body_md: str, extracted, document) -> str:
     """Remove each extracted table's markdown rendering from the body text.
 
-    Docling renders tables into export_to_markdown() output; the chunker
-    never sees table text (tables bypass it by design, the build plan).
-    The rendering comes from ``TableItem.export_to_markdown(doc=document)`` -
-    the same serializer the document export uses - so the excised bytes match
-    byte-for-byte. Falls back to a plain grid rendering when the serializer
-    path fails (then to a no-op if even that cannot be located).
-    """
+ Docling renders tables into export_to_markdown() output; the chunker
+ never sees table text (tables bypass it by design, the build plan).
+ The rendering comes from ``TableItem.export_to_markdown(doc=document)`` -
+ the same serializer the document export uses - so the excised bytes match
+ byte-for-byte. Falls back to a plain grid rendering when the serializer
+ path fails (then to a no-op if even that cannot be located).
+ """
     remaining = body_md.replace("\r\n", "\n")
     for item, table in extracted:
         rendering = ""
@@ -555,12 +555,12 @@ def _locate_spans(
 ) -> list[BodySpan]:
     """Map each item text to its location in body_text, in order.
 
-    The markdown export emits item texts in iteration order, so a forward
-    scan (each search starts after the previous hit) locates every item even
-    when identical text repeats. Text that cannot be found (Docling rendered
-    it differently, e.g. escapes) is skipped - the chunker falls back to
-    whole-body spans for uncovered regions.
-    """
+ The markdown export emits item texts in iteration order, so a forward
+ scan (each search starts after the previous hit) locates every item even
+ when identical text repeats. Text that cannot be found (Docling rendered
+ it differently, e.g. escapes) is skipped - the chunker falls back to
+ whole-body spans for uncovered regions.
+ """
     out: list[BodySpan] = []
     cursor = 0
     work = body_text

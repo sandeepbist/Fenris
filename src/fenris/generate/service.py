@@ -1,30 +1,30 @@
-"""The M4 orchestrator: ``ask`` - one question to one AnswerPacket.
+"""The answer orchestrator: ``ask`` - one question to one AnswerPacket.
 
 Pipeline (the build plan, the M4 row):
 
-    search (injected)
-      -> verify (per-item: vanished/trashed/retired/re-authed dropped silently,
-                 version-hint mismatches flagged stale)
-      -> resolve the state ladder
-      -> if non-answerable AND agentic budget remains: the bounded retry loop
-      -> STALE refresh: drain-and-retry ONCE (refresh_fn), report STALE if
-         it persists
-      -> assemble the prompt (U-shape + untrusted wrapper)
-      -> generate (structured output)
-      -> render citations (deterministic; invented ids dropped + logged)
-      -> AnswerPacket
+ search (injected)
+ -> verify (per-item: vanished/trashed/retired/re-authed dropped silently,
+ version-hint mismatches flagged stale)
+ -> resolve the state ladder
+ -> if non-answerable AND agentic budget remains: the bounded retry loop
+ -> STALE refresh: drain-and-retry ONCE (refresh_fn), report STALE if
+ it persists
+ -> assemble the prompt (U-shape + untrusted wrapper)
+ -> generate (structured output)
+ -> render citations (deterministic; invented ids dropped + logged)
+ -> AnswerPacket
 
 Seams (all dependency-injected; this module imports NO retrieval orchestrator):
 
 - ``search_fn(query) -> EvidenceSet | list[Evidence]`` - the CLI wires
-  ``fenris.retrieve.search`` (partially applied with conn/qvec/reranker).
+ ``fenris.retrieve.search`` (partially applied with conn/qvec/reranker).
 - ``refresh_fn() -> EvidenceSet | list[Evidence]`` - the STALE refresh. The
-  actual Drive drain is M5's sync; for M4 the default is "re-run search_fn
-  once with the same query" (the document says: accept a refresh_fn callable
-  that defaults to re-running search_fn - the M5 integrator swaps in a
-  drain-then-re-search callable at this seam, nothing else changes).
+ actual Drive drain belongs to the sync layer; for M4 the default is "re-run search_fn
+ once with the same query" (the document says: accept a refresh_fn callable
+ that defaults to re-running search_fn - the M5 integrator swaps in a
+ drain-then-re-search callable at this seam, nothing else changes).
 - ``generator`` - anything satisfying the Generator protocol
-  (GeminiGenerator in production, FakeGenerator in tests).
+ (GeminiGenerator in production, FakeGenerator in tests).
 
 ERROR handling: any exception on the non-ERROR-reserved paths is caught by
 ``ask`` and surfaced as the system ERROR state with the reason recorded -
@@ -83,10 +83,10 @@ def _as_evidence_list(result) -> list[Evidence]:
 def _resolve_groundedness_checker():
     """The configured NLI checker when its weights are fetched, else None.
 
-    Mirrors resolve_reranker: FENRIS_GROUNDEDNESS=on + fetched weights
-    -> NliGroundednessChecker; anything less -> None (the gate no-ops,
-    never blocks an answer).
-    """
+ Mirrors resolve_reranker: FENRIS_GROUNDEDNESS=on + fetched weights
+ -> NliGroundednessChecker; anything less -> None (the gate no-ops,
+ never blocks an answer).
+ """
     from fenris.config import groundedness_mode
 
     if groundedness_mode() != "on":
@@ -115,22 +115,22 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
         floor: float | None = None, strict: bool = False) -> AnswerPacket:
     """Answer one question end-to-end. Never raises: system faults -> ERROR.
 
-    - ``qvec``: the pre-embedded query (passed through to nothing here - the
-      caller's ``search_fn`` closure already holds it; the parameter exists
-      so the CLI signature mirrors the retrieval contract).
-    - ``search_fn(query) -> EvidenceSet | list[Evidence]``: the injected
-      retrieval entry point.
-    - ``drive_files_rows``: current Drive-side metadata for the verification
-      pass (rows from the ``drive_files`` table, or an injected view of them).
-    - ``refresh_fn() -> EvidenceSet | list[Evidence]``: the STALE refresh;
-      defaults to re-running ``search_fn`` once (M5 swaps in the real drain).
-    - ``floor``: the INSUFFICIENT rerank floor; defaults to
-      ``fenris.retrieve.RERANK_FLOOR``.
+ - ``qvec``: the pre-embedded query (passed through to nothing here - the
+ caller's ``search_fn`` closure already holds it; the parameter exists
+ so the CLI signature mirrors the retrieval contract).
+ - ``search_fn(query) -> EvidenceSet | list[Evidence]``: the injected
+ retrieval entry point.
+ - ``drive_files_rows``: current Drive-side metadata for the verification
+ pass (rows from the ``drive_files`` table, or an injected view of them).
+ - ``refresh_fn() -> EvidenceSet | list[Evidence]``: the STALE refresh;
+ defaults to re-running ``search_fn`` once (M5 swaps in the real drain).
+ - ``floor``: the INSUFFICIENT rerank floor; defaults to
+ ``fenris.retrieve.RERANK_FLOOR``.
 
-    Returns AnswerPacket with the state ladder's verdict, the rendered
-    citations, unverifiable claims, and a JSON-traceable ``trace`` dict
-    (route_id, stages, tool calls) for the eval runner.
-    """
+ Returns AnswerPacket with the state ladder's verdict, the rendered
+ citations, unverifiable claims, and a JSON-traceable ``trace`` dict
+ (route_id, stages, tool calls) for the eval runner.
+ """
     from fenris.retrieve import RERANK_FLOOR
 
     if floor is None:
@@ -258,7 +258,7 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
 
         # ------------------------------------------------------------------ #
         # 5. STALE refresh: drain-and-retry ONCE, then report STALE if it
-        #    persists (the actual Drive drain is M5's; the seam is refresh_fn)
+        # persists (the actual Drive drain is the sync layer's; the seam is refresh_fn)
         # ------------------------------------------------------------------ #
         if verification.has_stale and not verification.stale_persistent:
             _stage("stale_refresh", attempted=True)
@@ -335,11 +335,11 @@ def ask(conn: sqlite3.Connection, query: str, qvec, *, generator, search_fn,
         trace["dropped_citation_ids"] = list(rendered.dropped_ids)
 
         # 9. the final state: the system ladder is authoritative when the model
-        #    disagrees; the model's claims_conflict can only *raise* the state
-        #    to CONFLICTING (the build plan: pre-check OR model-declared), never lower
-        #    it - an ANSWERABLE ladder verdict survives an abstaining model,
-        #    and vice versa: an INSUFFICIENT ladder verdict is never overridden
-        #    to ANSWERABLE by the model.
+        # disagrees; the model's claims_conflict can only *raise* the state
+        # to CONFLICTING (the build plan: pre-check OR model-declared), never lower
+        # it - an ANSWERABLE ladder verdict survives an abstaining model,
+        # and vice versa: an INSUFFICIENT ladder verdict is never overridden
+        # to ANSWERABLE by the model.
         final_state = state
         if state == ANSWERABLE and generation.claims_conflict:
             final_state = CONFLICTING
@@ -433,14 +433,14 @@ def ask_stream(conn: sqlite3.Connection, query: str, qvec, *, generator,
                search_fn, drive_files_rows=None, auth_epoch: int = 0,
                refresh_fn=None, floor: float | None = None,
                strict: bool = False):
-    """Streaming variant of :func:`ask` for the CLI's ``fenris ask``.
+    """Streaming variant of:func:`ask` for the CLI's ``fenris ask``.
 
-    The retrieval/verify/ladder/prompt stages run identically; the only
-    difference is the generation stage, which yields the generator's text
-    chunks as they arrive and then yields the final AnswerPacket. Callers
-    consume: ``for chunk_or_packet in ask_stream(...)`` - str items are
-    display text, the last item is the AnswerPacket.
-    """
+ The retrieval/verify/ladder/prompt stages run identically; the only
+ difference is the generation stage, which yields the generator's text
+ chunks as they arrive and then yields the final AnswerPacket. Callers
+ consume: ``for chunk_or_packet in ask_stream(...)`` - str items are
+ display text, the last item is the AnswerPacket.
+ """
     from fenris.retrieve import RERANK_FLOOR
 
     if floor is None:

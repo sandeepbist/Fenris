@@ -112,7 +112,7 @@ def test_list_files_paginates_across_pages():
 
 def test_list_files_page_tokens_are_resume_points():
     """The generator's token is a resumable cursor: re-entering from it yields
-    exactly the remaining files (this is what a killed ingest relies on)."""
+ exactly the remaining files (this is what a killed ingest relies on)."""
     c = make_client(page_size=3)
     for i in range(7):
         c.upload(f"f{i}")
@@ -195,7 +195,7 @@ def test_quota_counts_each_operation_on_the_cost_table():
 
 def test_failed_calls_do_not_charge_quota_but_do_count_errors():
     """A rejected request costs nothing on Drive's meter; we mirror that and
-    record the failure by kind so `status` can show it."""
+ record the failure by kind so `status` can show it."""
     c = make_client()
     c.upload("a")
     c.fail_next_with(403, "rateLimitExceeded", op="files.get")
@@ -251,7 +251,7 @@ def test_classify_quota_reasons_all_rate_limited(reason):
 
 def test_classify_429_without_reason_still_rate_limited():
     """Bare 429 with an unrecognized body reason falls back to status-code
-    semantics: retryable."""
+ semantics: retryable."""
     out = classify_http_error(_http_error(429, "someOpaqueReason"))
     assert isinstance(out, RateLimitedError)
     assert out.retry_after is None
@@ -313,7 +313,7 @@ def test_rate_limit_exhausts_retries_then_raises():
 
 def test_permission_denial_raises_immediately_no_retry_attempted():
     """THE the build plan rule: genuine denial never enters the retry loop. Assert the
-    retry counter did not move and no backoff sleep was scheduled."""
+ retry counter did not move and no backoff sleep was scheduled."""
     sleeper = _RecordingSleep()
     c = FakeDriveClient(sleep=sleeper)
     c.upload("a")
@@ -326,7 +326,7 @@ def test_permission_denial_raises_immediately_no_retry_attempted():
 
 def test_denial_inside_backoff_sequence_stops_immediately():
     """A denial arriving mid-sequence (attempt 2 of a rate-limited stretch)
-    still aborts instantly rather than burning the remaining retries."""
+ still aborts instantly rather than burning the remaining retries."""
     sleeper = _RecordingSleep()
     c = FakeDriveClient(sleep=sleeper)
     c.upload("a")
@@ -379,7 +379,7 @@ def test_backoff_is_exponential_with_decorrelated_jitter_and_capped():
 
 def test_changes_list_returns_next_page_and_new_start_tokens():
     """A multi-page change stream: page 1 carries nextPageToken and NO
-    newStartPageToken; the final page flips that around (the build plan cursor loop)."""
+ newStartPageToken; the final page flips that around (the build plan cursor loop)."""
     c = make_client(changes_page_size=2)
     for i in range(3):
         c.upload(f"f{i}")
@@ -405,7 +405,7 @@ def test_changes_list_returns_next_page_and_new_start_tokens():
 
 def test_changes_replaying_from_new_start_token_yields_nothing():
     """The invariant of the cursor loop: after committing at the new start
-    token, a drain must see zero changes (idempotent replay)."""
+ token, a drain must see zero changes (idempotent replay)."""
     c = make_client()
     c.upload("a")
     start = c.get_start_page_token()
@@ -435,7 +435,7 @@ def test_changes_removed_entries_cover_deletion_and_loss_of_access():
 
 def test_get_start_page_token_precedes_enumeration():
     """the build plan: the token is taken BEFORE enumeration, so the first
-    ingest can replay changes that happen during it."""
+ ingest can replay changes that happen during it."""
     c = make_client()
     start_before = c.get_start_page_token()
     c.upload("a")  # change lands after the snapshot
@@ -445,7 +445,7 @@ def test_get_start_page_token_precedes_enumeration():
 
 def test_changes_metadata_only_change_keeps_md5_stable():
     """Rename bumps Drive's version but leaves md5Checksum alone - the
-    metadata-vs-content split the sync layer keys on."""
+ metadata-vs-content split the sync layer keys on."""
     c = make_client()
     c.upload("a", name="old", content=b"bytes", md5_checksum="md5-v1")
     start = c.get_start_page_token()
@@ -488,7 +488,7 @@ def test_move_and_trash_restore_round_trip():
 
 def test_resource_key_header_attached_when_present():
     """Link-shared resource-key files need X-Goog-Drive-Resource-Keys on the
-    media request, formatted '<fileId>/<resourceKey>' (the build plan)."""
+ media request, formatted '<fileId>/<resourceKey>' (the build plan)."""
     c = make_client()
     c.upload("shared1", content=b"secret-doc", resource_key="rk-123")
     body = c.download_media("shared1", resource_key="rk-123")
@@ -512,7 +512,7 @@ def test_no_resource_key_header_when_absent():
 
 def test_candownload_false_denies_before_any_media_request():
     """canDownload=False raises PermissionDeniedError BEFORE the 200-unit call:
-    no files.get_media request may appear, and only the 5-unit gate read is spent."""
+ no files.get_media request may appear, and only the 5-unit gate read is spent."""
     c = make_client()
     c.upload("locked", content=b"nope", can_download=False)
 
@@ -546,7 +546,7 @@ def test_export_returns_bytes_and_charges_200():
 
 def test_download_of_missing_file_is_404_not_forgotten():
     """A missing file surfaces as the typed FenrisDriveError for its 404, not
-    as an unclassified exception (sync's unreadable path depends on that)."""
+ as an unclassified exception (sync's unreadable path depends on that)."""
     from fenris.drive.errors import FenrisDriveError
 
     c = make_client()
@@ -580,7 +580,7 @@ class _FakeKeyringModule:
 
 def test_disconnect_revokes_and_deletes_keyring_entry(monkeypatch):
     """THE security rule: disconnect POSTs to the revoke endpoint with the
-    token AND removes the keyring entry - no stale token lingers silently."""
+ token AND removes the keyring entry - no stale token lingers silently."""
     opener = FakeOpener(status=200)
     ring = FakeKeyring(stored="refresh-token-1")
 
@@ -683,10 +683,10 @@ def test_run_auth_flow_requires_installed_type_secrets(tmp_path):
 def test_keyring_unavailable_raises_with_instructions_never_plaintext(monkeypatch, tmp_path):
     """No keyring backend -> clear instructions, NOT a plaintext fallback.
 
-    run_auth_flow must fail before any OAuth work happens, and it must never
-    write the token to disk: after the failure, no file exists under the
-    caller's tree.
-    """
+ run_auth_flow must fail before any OAuth work happens, and it must never
+ write the token to disk: after the failure, no file exists under the
+ caller's tree.
+ """
     from keyring.backends import null as null_backend
 
     monkeypatch.setattr(auth_mod.keyring, "get_keyring", lambda: null_backend.Keyring())
@@ -709,7 +709,7 @@ def test_keyring_unavailable_raises_with_instructions_never_plaintext(monkeypatc
 
 def test_load_or_refresh_without_token_tells_user_to_auth(monkeypatch):
     """No stored token -> a clear AuthError pointing at `fenris drive auth`,
-    never a silent empty credential that sync would treat as connected."""
+ never a silent empty credential that sync would treat as connected."""
     ring = _FakeKeyringModule(stored=None)
     monkeypatch.setattr(auth_mod.keyring, "get_password", ring.get_password)
     from keyring.backends import SecretService  # a REAL backend class so
@@ -726,8 +726,8 @@ def test_load_or_refresh_without_token_tells_user_to_auth(monkeypatch):
 
 def test_fake_is_drop_in_for_the_real_client_contract():
     """FakeDriveClient exposes exactly the DriveClient surface the sync layer
-    calls - same names, same signatures - so the freshness suite and the real
-    client cannot drift apart."""
+ calls - same names, same signatures - so the freshness suite and the real
+ client cannot drift apart."""
     import inspect
 
     real = DriveClient.__dict__
@@ -748,7 +748,7 @@ def test_fake_is_drop_in_for_the_real_client_contract():
 
 def test_fake_counts_quota_on_the_same_cost_table_as_the_real_client():
     """The fake charges what production pays for an identical op mix - this is
-    what makes 'quota units/run' numbers from offline eval meaningful."""
+ what makes 'quota units/run' numbers from offline eval meaningful."""
     from fenris.drive.fake import FakeDriveService
 
     def seed(svc):

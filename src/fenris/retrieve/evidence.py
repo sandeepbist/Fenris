@@ -60,20 +60,20 @@ class Evidence:
 def evidence_id_for(source_revision: str, chunk_id: int, page_nos, char_start,
                     char_end) -> str:
     """Deterministic 16-hex-char evidence id: sha256 over the concatenated
-    identity fields, first 16 hex chars. Same inputs -> same id, always.
+ identity fields, first 16 hex chars. Same inputs -> same id, always.
 
-    Field encodings (frozen - any change re-keys every citation):
-    ``source_revision`` as-is; ``chunk_id`` as its decimal string;
-    ``page_nos`` as its stored JSON string when it is one, else
-    json.dumps(list) for an iterable, else the empty string for NULL;
-    ``char_start``/``char_end`` via str() (so NULL -> "None").
-    Each field is preceded by a NUL delimiter (``\\x1f``, the ASCII unit
-    separator) so concatenation is injective - naive ``f"{a}{b}"`` would
-    collide e.g. (rev, chunk 1, span 12-3) with (rev, chunk 11, span 1-23).
-    The MVP formula sha256(source_revision | chunk_id | page_nos |
-    char_start | char_end)[:16] is preserved; the separator only fixes which
-    byte boundary each field starts at.
-    """
+ Field encodings (frozen - any change re-keys every citation):
+ ``source_revision`` as-is; ``chunk_id`` as its decimal string;
+ ``page_nos`` as its stored JSON string when it is one, else
+ json.dumps(list) for an iterable, else the empty string for NULL;
+ ``char_start``/``char_end`` via str() (so NULL -> "None").
+ Each field is preceded by a NUL delimiter (``\\x1f``, the ASCII unit
+ separator) so concatenation is injective - naive ``f"{a}{b}"`` would
+ collide e.g. (rev, chunk 1, span 12-3) with (rev, chunk 11, span 1-23).
+ The MVP formula sha256(source_revision | chunk_id | page_nos |
+ char_start | char_end)[:16] is preserved; the separator only fixes which
+ byte boundary each field starts at.
+ """
     import json
 
     if page_nos is None:
@@ -104,12 +104,12 @@ def _pages_list(page_nos_json: str | None) -> list[int]:
 def build_evidence(conn: sqlite3.Connection, chunk_id: int, score: float) -> Evidence | None:
     """Assemble the Evidence record for one chunk from the DB.
 
-    Returns None when the chunk does not resolve (deleted between candidate
-    generation and assembly - the caller drops it) or the score is not a
-    float-able number. The excerpt is the head of body_text; when
-    char_start/char_end are present and point inside body_text, the excerpt is
-    the *span* text (the citation frame makes the quote verifiable).
-    """
+ Returns None when the chunk does not resolve (deleted between candidate
+ generation and assembly - the caller drops it) or the score is not a
+ float-able number. The excerpt is the head of body_text; when
+ char_start/char_end are present and point inside body_text, the excerpt is
+ the *span* text (the citation frame makes the quote verifiable).
+ """
     try:
         row = conn.execute(
             f"SELECT {_COLUMNS} FROM chunks c JOIN sources s ON s.id = c.source_id"
@@ -158,7 +158,7 @@ def build_evidence(conn: sqlite3.Connection, chunk_id: int, score: float) -> Evi
 def build_evidence_set(conn: sqlite3.Connection,
                        ranked: list[tuple[int, float]]) -> list[Evidence]:
     """Build Evidence records for a best-first [(chunk_id, score)] list,
-    preserving order and dropping unresolvable ids."""
+ preserving order and dropping unresolvable ids."""
     out: list[Evidence] = []
     for chunk_id, score in ranked:
         ev = build_evidence(conn, chunk_id, score)

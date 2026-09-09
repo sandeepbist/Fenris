@@ -24,9 +24,9 @@ def cfg(tmp_path) -> FenrisConfig:
 def _insert_source(conn, file_id="f1", revision="abc123", active=1) -> int:
     cur = conn.execute(
         """INSERT INTO sources(drive_id, file_id, source_revision, repr_mime,
-             parser_version, chunker_version, embedding_model, embed_dims, active)
-           VALUES ('mydrive', ?, ?, 'application/pdf', 'docling-1',
-                   'recursive512-v1', 'gemini-embedding-001', 1536, ?)""",
+ parser_version, chunker_version, embedding_model, embed_dims, active)
+ VALUES ('mydrive', ?, ?, 'application/pdf', 'docling-1',
+ 'recursive512-v1', 'gemini-embedding-001', 1536, ?)""",
         (file_id, revision, active),
     )
     return cur.lastrowid
@@ -35,7 +35,7 @@ def _insert_source(conn, file_id="f1", revision="abc123", active=1) -> int:
 def _insert_chunk(conn, source_id, ordinal, header, body) -> int:
     cur = conn.execute(
         """INSERT INTO chunks(source_id, ordinal, header_text, body_text, text_hash)
-           VALUES (?, ?, ?, ?, ?)""",
+ VALUES (?, ?, ?, ?, ?)""",
         (source_id, ordinal, header, body, f"hash-{source_id}-{ordinal}"),
     )
     return cur.lastrowid
@@ -62,7 +62,7 @@ def test_schema_applies_and_is_idempotent(cfg):
 
 def test_fts5_triggers_keep_index_in_sync(cfg):
     """The M0 blocker from the red-team review: without triggers the FTS index
-    stays empty and BM25 silently returns nothing."""
+ stays empty and BM25 silently returns nothing."""
     conn = connect(cfg.db_path)
     try:
         src = _insert_source(conn)
@@ -156,7 +156,7 @@ def test_one_active_representation_invariant(cfg):
 
 def test_chunks_cascade_and_fts_cleanup(cfg):
     """Deleting a source (ON DELETE CASCADE) removes chunks; the FTS trigger
-    fires on those deletes so the lexical index never orphans rows."""
+ fires on those deletes so the lexical index never orphans rows."""
     conn = connect(cfg.db_path)
     try:
         src = _insert_source(conn)

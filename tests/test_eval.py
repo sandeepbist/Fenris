@@ -4,13 +4,13 @@ Covers, per the slice spec:
 - generator determinism (two runs -> byte-identical corpus)
 - corpus manifest self-consistency (spans within doc bounds, text matches)
 - case validity (expected_docs exist in manifest; unanswerable cases empty;
-  slice composition exactly 20/15/15/15/25/15/15)
+ slice composition exactly 20/15/15/15/25/15/15)
 - metrics correctness on HAND-COMPUTED small examples (3-query toy set;
-  nDCG worked by hand with graded 2/1/0 and LINEAR gain)
+ nDCG worked by hand with graded 2/1/0 and LINEAR gain)
 - span-recall overlap math (exact-boundary, 50% overlap, no-overlap)
 - per-slice isolation (a failure in one slice cannot contaminate another)
 - runner: writes correct eval_runs/eval_case_results rows; report contains
-  per-case results that can regress
+ per-case results that can regress
 
 No LLM calls, no network, no writes outside tmp_path / repo.
 """
@@ -150,7 +150,7 @@ def test_cases_composition_exact(cases: list[EvalCase]):
 
 def test_every_case_answerable_by_corpus(cases, manifest_docs):
     """Programmatic verification: expected_docs exist; expected_spans resolve
-    inside the manifest doc text; answerable slices carry a grade-2 doc."""
+ inside the manifest doc text; answerable slices carry a grade-2 doc."""
     validate_all(cases, manifest_docs)  # raises on any violation
     # and the unanswerable slice references nothing
     for c in cases:
@@ -218,29 +218,29 @@ def _toy_case(cid: str, grades: dict[str, int]) -> EvalCase:
 def test_ir_metrics_hand_computed():
     """3-query toy set; every number worked by hand below.
 
-    GRADED relevance: 2 = must, 1 = helpful, 0 = hard-negative.
-    ir-measures nDCG uses LINEAR gain g(rel)=rel and log2 discount:
-    DCG@10 = sum over ranks i (1-based) of rel_i / log2(i + 1).
+ GRADED relevance: 2 = must, 1 = helpful, 0 = hard-negative.
+ ir-measures nDCG uses LINEAR gain g(rel)=rel and log2 discount:
+ DCG@10 = sum over ranks i (1-based) of rel_i / log2(i + 1).
 
-    Query q1: qrels A=2, B=1, C=0. Run returns [B, A, C].
-      recall@5  = |{A,B} found in top5| / |rel>=1| = 2/2 = 1.0
-      recall@20 = 2/2 = 1.0
-      RR        = 1 / rank of first rel>=1 doc (B at rank 1) = 1.0
-      DCG  = 1/log2(2) + 2/log2(3) + 0/log2(4)
-           = 1.0 + 2/1.5849625007 = 1.0 + 1.2618595071 = 2.2618595071
-      IDCG (ideal [A(2), B(1), C(0)]) = 2/1 + 1/1.5849625 = 2.6309297536
-      nDCG@10 = 2.2618595071 / 2.6309297536 = 0.8597186999
+ Query q1: qrels A=2, B=1, C=0. Run returns [B, A, C].
+ recall@5 = |{A,B} found in top5| / |rel>=1| = 2/2 = 1.0
+ recall@20 = 2/2 = 1.0
+ RR = 1 / rank of first rel>=1 doc (B at rank 1) = 1.0
+ DCG = 1/log2(2) + 2/log2(3) + 0/log2(4)
+ = 1.0 + 2/1.5849625007 = 1.0 + 1.2618595071 = 2.2618595071
+ IDCG (ideal [A(2), B(1), C(0)]) = 2/1 + 1/1.5849625 = 2.6309297536
+ nDCG@10 = 2.2618595071 / 2.6309297536 = 0.8597186999
 
-    Query q2: same qrels. Run returns [C, A, B].
-      recall@5  = 2/2 = 1.0 (C is grade 0 - not counted for recall)
-      RR        = first rel>=1 doc is A at rank 2 -> 1/2 = 0.5
-      DCG  = 0 + 2/1.5849625 + 1/log2(4) = 1.2618595071 + 0.5 = 1.7618595071
-      nDCG@10 = 1.7618595071 / 2.6309297536 = 0.6698703962
+ Query q2: same qrels. Run returns [C, A, B].
+ recall@5 = 2/2 = 1.0 (C is grade 0 - not counted for recall)
+ RR = first rel>=1 doc is A at rank 2 -> 1/2 = 0.5
+ DCG = 0 + 2/1.5849625 + 1/log2(4) = 1.2618595071 + 0.5 = 1.7618595071
+ nDCG@10 = 1.7618595071 / 2.6309297536 = 0.6698703962
 
-    Query q3: qrels X=2 only. Run returns [Y, Z] (both unjudged, neither X).
-      recall@5 = 0/1 = 0.0; recall@20 = 0.0; RR = 0.0
-      nDCG@10 = 0.0 (no relevant doc retrieved; IDCG = 2, DCG = 0)
-    """
+ Query q3: qrels X=2 only. Run returns [Y, Z] (both unjudged, neither X).
+ recall@5 = 0/1 = 0.0; recall@20 = 0.0; RR = 0.0
+ nDCG@10 = 0.0 (no relevant doc retrieved; IDCG = 2, DCG = 0)
+ """
     q1 = _toy_case("q1", {"A": 2, "B": 1, "C": 0})
     r1 = [RetrievedDoc(doc_id="B", score=3.0),
           RetrievedDoc(doc_id="A", score=2.0),
@@ -397,8 +397,8 @@ def test_state_correctness_exact_match():
 
 def test_slice_isolation_failure_does_not_contaminate():
     """A slice where every case fails must not move another slice's numbers,
-    and the overall row must be the documented mean of slice means (not the
-    per-case mean)."""
+ and the overall row must be the documented mean of slice means (not the
+ per-case mean)."""
     good = _toy_case("g1", {"A": 2})
     ok = [RetrievedDoc(doc_id="A", score=1.0)]
     bad = _toy_case("b1", {"Z": 2})
@@ -452,7 +452,7 @@ def test_slice_isolation_one_case_fails_slice_mean_drops_only_that_slice():
 
 class _OracleRetriever:
     """Retrieves each case's grade-2 docs (or a fixed list) - a deterministic
-    stand-in for the real retriever (which this module never imports)."""
+ stand-in for the real retriever (which this module never imports)."""
 
     def __init__(self, cases: list[EvalCase], fail_slices: set[str] = frozenset()):
         self.calls: list[str] = []
@@ -486,7 +486,7 @@ class _OracleRetriever:
 
 def test_runner_writes_db_rows_and_report(conn, cases):
     """run_suite writes one eval_runs row + one row per case with the real
-    schema, and the markdown carries per-slice tables + per-case failures."""
+ schema, and the markdown carries per-slice tables + per-case failures."""
     retriever = _OracleRetriever(cases)
     result = run_suite(conn, cases, retriever,
                        flag_config={"hybrid": "on", "rerank": "on"},
@@ -541,7 +541,7 @@ def test_runner_writes_db_rows_and_report(conn, cases):
 
 def test_runner_report_regression_capable(conn, cases):
     """A failing case shows up by id in the report so a regression diff
-    between two runs can name exactly which case regressed."""
+ between two runs can name exactly which case regressed."""
     retriever = _OracleRetriever(cases, fail_slices={"temporal"})
     result = run_suite(conn, cases, retriever)
     # every temporal case crashed -> recorded, not raised; run completes
@@ -594,7 +594,7 @@ def test_runner_render_report_standalone():
 
 def test_runner_oracle_full_suite_numbers(conn, cases):
     """Sanity: oracle retriever yields perfect per-slice numbers, and the
-    overall row equals the mean of slice means for every metric."""
+ overall row equals the mean of slice means for every metric."""
     result = run_suite(conn, cases, _OracleRetriever(cases))
     from fenris.eval.metrics import ALL_METRIC_NAMES
 
@@ -617,7 +617,7 @@ def test_runner_oracle_full_suite_numbers(conn, cases):
 
 def test_runner_accepts_plain_dict_retriever(conn, cases):
     """The retrieve-callable may also return plain dicts with doc_id/char_span
-    - the runner adapts them (keeps the contract loose for the integrator)."""
+ - the runner adapts them (keeps the contract loose for the integrator)."""
 
     def dict_retriever(question: str):
         for c in cases:
@@ -634,7 +634,7 @@ def test_runner_accepts_plain_dict_retriever(conn, cases):
 
 def test_runner_no_retrieval_imports():
     """Zero imports from fenris.retrieve anywhere in the eval package - the
-    retriever reaches the runner ONLY through the injected callable."""
+ retriever reaches the runner ONLY through the injected callable."""
     import ast
 
     pkg_dir = Path(__file__).resolve().parents[1] / "src" / "fenris" / "eval"

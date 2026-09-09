@@ -7,19 +7,19 @@ only writes. Crash before commit leaves nothing half-written.
 What one call does:
 
 1. Route (router.route) - skip-listed formats write one ``sources`` row
-   with status='skipped' and the reason, nothing else. Shortcuts are
-   routed away (the target file is ingested on its own merits).
+ with status='skipped' and the reason, nothing else. Shortcuts are
+ routed away (the target file is ingested on its own merits).
 2. Parse (parse.parse_bytes) - bounded, never raises; failures write
-   status='failed' + error.
+ status='failed' + error.
 3. Chunk (chunk.chunk_body / build_table_record) - children, parents, and
-   table row-blocks; tables never touch the splitter.
+ table row-blocks; tables never touch the splitter.
 4. Headers (headers.build_header) - deterministic, zero LLM calls.
 5. Embed (embed.Embedder) - chunk-hash dedup: a text_hash already stored
-   reuses its chunks_vec embedding and skips the API call. Parents are
-   kept but never embedded.
+ reuses its chunks_vec embedding and skips the API call. Parents are
+ kept but never embedded.
 6. One transaction: {retire superseded sources rows for this file, insert
-   the new sources row, insert chunks + tables + chunks_vec rows (with
-   active/trashed/auth_epoch mirrored from the source), update term_df}.
+ the new sources row, insert chunks + tables + chunks_vec rows (with
+ active/trashed/auth_epoch mirrored from the source), update term_df}.
 
 Re-ingesting an unchanged representation (same source_revision and
 toolchain) touches nothing - no new rows, no writes. A revision bump
@@ -84,7 +84,7 @@ class IngestResult:
 
 def _body_hash(body_text: str) -> str:
     """sha256(body) - the cross-folder dedup key (text_hash correctly
-    includes the header, so folder-differing duplicates never collide)."""
+ includes the header, so folder-differing duplicates never collide)."""
     h = hashlib.sha256()
     h.update((body_text or "").encode("utf-8"))
     return h.hexdigest()
@@ -109,8 +109,8 @@ def _json_pages(pages: tuple[int, ...]) -> str:
 
 def _chunker_identity() -> str:
     """The effective chunker version: byte-identical to CHUNKER_FULL_VERSION
-    in deterministic mode (zero churn); +ctx-llm-v1 in llm mode (R3), so a
-    mode switch re-represents instead of mixing vector spaces."""
+ in deterministic mode (zero churn); +ctx-llm-v1 in llm mode (R3), so a
+ mode switch re-represents instead of mixing vector spaces."""
     from fenris.config import contextual_headers_mode
     from fenris.ingest.contextualize import chunker_identity
 
@@ -134,17 +134,17 @@ def _existing_source_row(conn, meta: FileMeta, target_mime: str, model_id: str):
     """The sources row for this exact representation, if any (dedup path)."""
     return conn.execute(
         """SELECT id, active FROM sources WHERE drive_id=? AND file_id=?
-             AND source_revision=? AND repr_mime=? AND parser_version=?
-             AND chunker_version=? AND embedding_model=?""",
+ AND source_revision=? AND repr_mime=? AND parser_version=?
+ AND chunker_version=? AND embedding_model=?""",
         _representation_key(meta, target_mime, model_id),
     ).fetchone()
 
 
 def _existing_hash_map(conn, hashes: list[str]) -> dict[str, bytes]:
     """Stored embeddings for chunk texts seen before — same contextual MODE
-    only (R3: an llm-mode payload differs per document even for identical
-    bodies, so a deterministic-era vector must never back an llm-mode embed).
-    The join follows this file's own existing convention."""
+ only (R3: an llm-mode payload differs per document even for identical
+ bodies, so a deterministic-era vector must never back an llm-mode embed).
+ The join follows this file's own existing convention."""
     from fenris.config import contextual_headers_mode
     from fenris.ingest.contextualize import chunker_identity
 
@@ -203,10 +203,10 @@ def _bump_term_df(conn, terms: list[str], delta: int) -> None:
 def _retire_old_sources(conn, meta: FileMeta) -> list[int]:
     """Set active=0 on this file's other active representations; return ids.
 
-    Also mirrors the retirement into chunks_vec so filtered KNN drops them
-    during the scan (verified vec0 behavior, the build plan). Must run
-    inside the ingest transaction.
-    """
+ Also mirrors the retirement into chunks_vec so filtered KNN drops them
+ during the scan (verified vec0 behavior, the build plan). Must run
+ inside the ingest transaction.
+ """
     retired: list[int] = []
     rows = conn.execute(
         """SELECT id FROM sources WHERE drive_id=? AND file_id=? AND active=1""",
@@ -218,7 +218,7 @@ def _retire_old_sources(conn, meta: FileMeta) -> list[int]:
         )
         conn.execute(
             """UPDATE chunks_vec SET active=0 WHERE chunk_id IN
-                 (SELECT chunk_id FROM chunks WHERE source_id=?)""",
+ (SELECT chunk_id FROM chunks WHERE source_id=?)""",
             (old_id,),
         )
         retired.append(old_id)
@@ -229,10 +229,10 @@ def _insert_source(conn, meta: FileMeta, target_mime: str, model_id: str) -> int
     """Insert the new sources row (the representation manifest entry)."""
     cur = conn.execute(
         """INSERT INTO sources(drive_id, file_id, source_revision, repr_mime,
-             parser_version, chunker_version, embedding_model, embed_dims,
-             active, trashed, auth_epoch, status, error, attempts, title, path,
-             modified_time, resource_key, created_at)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+ parser_version, chunker_version, embedding_model, embed_dims,
+ active, trashed, auth_epoch, status, error, attempts, title, path,
+ modified_time, resource_key, created_at)
+ VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
             meta.drive_id,
             meta.file_id,
@@ -271,17 +271,17 @@ def _write_status_row(
 ) -> int:
     """A skip/failed representation: one sources row, no content work.
 
-    The row is inserted (never OR REPLACE: replacing a UNIQUE row deletes
-    first, and the delete would cascade away a still-referenced
-    representation's chunks). If the identical skip row already exists it
-    is simply re-recorded via the UNIQUE tuple update.
-    """
+ The row is inserted (never OR REPLACE: replacing a UNIQUE row deletes
+ first, and the delete would cascade away a still-referenced
+ representation's chunks). If the identical skip row already exists it
+ is simply re-recorded via the UNIQUE tuple update.
+ """
     with conn:
         retired = _retire_old_sources(conn, meta)
         row = conn.execute(
             """SELECT id FROM sources WHERE drive_id=? AND file_id=?
-                 AND source_revision=? AND repr_mime=? AND parser_version=?
-                 AND chunker_version=? AND embedding_model=?""",
+ AND source_revision=? AND repr_mime=? AND parser_version=?
+ AND chunker_version=? AND embedding_model=?""",
             (
                 meta.drive_id,
                 meta.file_id,
@@ -296,7 +296,7 @@ def _write_status_row(
             source_id = row[0]
             conn.execute(
                 """UPDATE sources SET status=?, error=?, active=1, trashed=?,
-                     auth_epoch=?, attempts=attempts+1 WHERE id=?""",
+ auth_epoch=?, attempts=attempts+1 WHERE id=?""",
                 (
                     status,
                     error,
@@ -308,11 +308,11 @@ def _write_status_row(
         else:
             cur = conn.execute(
                 """INSERT INTO sources(drive_id, file_id, source_revision,
-                     repr_mime, parser_version, chunker_version, embedding_model,
-                     embed_dims, active, trashed, auth_epoch, status, error,
-                     attempts, title, path, modified_time, resource_key,
-                     created_at)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+ repr_mime, parser_version, chunker_version, embedding_model,
+ embed_dims, active, trashed, auth_epoch, status, error,
+ attempts, title, path, modified_time, resource_key,
+ created_at)
+ VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     meta.drive_id,
                     meta.file_id,
@@ -350,19 +350,19 @@ def ingest_file(
 ) -> IngestResult:
     """Ingest one Drive file revision into the projection.
 
-    Args:
-        conn: the sqlite connection (fenris.db.connect).
-        client: the DriveClient (reserved for the export path; the bytes
-            arrive here as content_bytes so no network runs in tests).
-        file_meta: FileMeta with the representation identity.
-        content_bytes: the download (or export) bytes for this revision.
-        cfg: optional config exposing ``cfg.embedder``; a FakeEmbedder is
-            used when omitted - tests stay offline.
+ Args:
+ conn: the sqlite connection (fenris.db.connect).
+ client: the DriveClient (reserved for the export path; the bytes
+ arrive here as content_bytes so no network runs in tests).
+ file_meta: FileMeta with the representation identity.
+ content_bytes: the download (or export) bytes for this revision.
+ cfg: optional config exposing ``cfg.embedder``; a FakeEmbedder is
+ used when omitted - tests stay offline.
 
-    Returns:
-        IngestResult. Never raises for parse failures - they are recorded
-        as status='failed' rows and the caller's loop continues.
-    """
+ Returns:
+ IngestResult. Never raises for parse failures - they are recorded
+ as status='failed' rows and the caller's loop continues.
+ """
     from fenris.ingest.embed import FakeEmbedder
     from fenris.ingest.guards import (
         content_within_text_cap,
@@ -545,9 +545,9 @@ def ingest_file(
         for t_index, table_record in enumerate(table_records):
             cur = conn.execute(
                 """INSERT INTO tables(source_id, sheet_or_page, range, columns_json,
-                     row_blocks_json, num_rows, num_cols, formulas_json,
-                     merged_cells_json, header_hierarchy_json)
-                   VALUES (?,?,?,?,?,?,?,?,?,?)""",
+ row_blocks_json, num_rows, num_cols, formulas_json,
+ merged_cells_json, header_hierarchy_json)
+ VALUES (?,?,?,?,?,?,?,?,?,?)""",
                 (
                     source_id,
                     table_record.sheet_or_page,
@@ -571,9 +571,9 @@ def ingest_file(
             record = item["record"]
             cur = conn.execute(
                 """INSERT INTO chunks(source_id, ordinal, parent_chunk_id, page_nos,
-                     section_path, header_text, body_text, char_start, char_end,
-                     text_hash, body_hash, context_text, is_table, table_id, row_range, flagged, token_count)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+ section_path, header_text, body_text, char_start, char_end,
+ text_hash, body_hash, context_text, is_table, table_id, row_range, flagged, token_count)
+ VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     source_id,
                     record.ordinal,
@@ -620,9 +620,9 @@ def ingest_file(
             table_id = table_ids[item["table_index"]]
             cur = conn.execute(
                 """INSERT INTO chunks(source_id, ordinal, parent_chunk_id, page_nos,
-                     section_path, header_text, body_text, char_start, char_end,
-                     text_hash, body_hash, is_table, table_id, row_range, flagged, token_count)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+ section_path, header_text, body_text, char_start, char_end,
+ text_hash, body_hash, is_table, table_id, row_range, flagged, token_count)
+ VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     source_id,
                     base_ordinal + t_block_idx,
@@ -653,7 +653,7 @@ def ingest_file(
                 continue
             conn.execute(
                 """INSERT INTO chunks_vec(chunk_id, embedding, active, trashed,
-                     auth_epoch) VALUES (?,?,?,?,?)""",
+ auth_epoch) VALUES (?,?,?,?,?)""",
                 (_embeddable_chunk_id(item, body_chunk_ids, base_ordinal,
                                       source_id, conn),
                  vector, 1, 1 if file_meta.trashed else 0, file_meta.auth_epoch),
@@ -676,8 +676,8 @@ def ingest_file(
 
 def _embed_text(item: dict) -> str:
     """The text sent to the embedder: header + body (~600 tokens); under
-    contextual mode the LLM context sits between them (R3) — the context
-    improves retrieval, never the citation frame."""
+ contextual mode the LLM context sits between them (R3) — the context
+ improves retrieval, never the citation frame."""
     body = item["record"].body_text if item["kind"] == "body" else item["block"].text
     header = item["header"]
     context = item.get("context")

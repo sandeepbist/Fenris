@@ -12,7 +12,9 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-7aa2f7.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-306998.svg)](pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-416%20passing-4ade80.svg)](tests/)
+[![CI](https://github.com/sandeepbist/Fenris/actions/workflows/ci.yml/badge.svg)](https://github.com/sandeepbist/Fenris/actions/workflows/ci.yml)
+[![Release](https://github.com/sandeepbist/Fenris/actions/workflows/release.yml/badge.svg)](https://github.com/sandeepbist/Fenris/actions/workflows/release.yml)
+[![PyPI](https://img.shields.io/badge/pypi-fenris--drive-306998.svg)](https://pypi.org/project/fenris-drive/)
 [![Scope](https://img.shields.io/badge/Drive%20scope-read--only-f97316.svg)](docs/legal/security-disclosure.md)
 [![Offline](https://img.shields.io/badge/retrieval-100%25%20local-7aa2f7.svg)](docs/architecture.md)
 
@@ -20,7 +22,7 @@ Fenris connects to your Drive with a read-only token, builds a local search inde
 and answers questions about your files with citations to the exact text it used —
 or a plain statement that the evidence isn't there.
 
-[Key ideas](#key-ideas) · [Quickstart](#quickstart) · [How it works](#how-it-works) · [Commands](#commands) · [Limitations](#honest-limitations) · [Security](#security)
+[Key ideas](#key-ideas) · [Quickstart](#quickstart) · [How it works](#how-it-works) · [Commands](#commands) · [Limitations](#honest-limitations) · [Security](#security) · [Releases](#releases)
 
 </div>
 
@@ -193,7 +195,27 @@ in [tests/test_security.py](tests/test_security.py).
 
 Full disclosure: **[security & data handling](docs/legal/security-disclosure.md)** ·
 [terms of service](docs/legal/terms-of-service.md) ·
-[privacy policy](docs/legal/privacy-policy.md)
+[privacy policy](docs/legal/privacy-policy.md) ·
+[SECURITY.md](SECURITY.md) (how to report)
+
+---
+
+## Releases
+
+Every release — desktop bundles, the Python package, the git tag — builds
+from the same tagged commit and passes the same gate first: the full
+offline suite, green, on that exact commit.
+
+| Channel | What | Get it |
+| :--- | :--- | :--- |
+| **Desktop** | Tauri bundles: .dmg (Apple silicon + Intel), .msi, Linux AppImage/.deb | [GitHub Releases](https://github.com/sandeepbist/Fenris/releases) |
+| **Python** | `pipx install fenris-drive` — the CLI + engine, no browser needed | [PyPI](https://pypi.org/project/fenris-drive/) |
+| **Source** | `git clone`; `make setup` | this repo |
+
+Versioning is semver with one project-specific reading: the answer
+contract (the six invariants, the state ladder, citation enforcement) is
+API — a change there bumps the major. The whole policy is in
+[docs/release-channels.md](docs/release-channels.md).
 
 ---
 
@@ -210,8 +232,9 @@ src/fenris/
 └── api.py        local HTTP surface + one-process web UI
 
 frontend/         React 19 · Tailwind 4 · dark terminal aesthetic
+desktop/          Tauri v2 shell + PyInstaller engine sidecar
 tests/            the full suite, all offline
-docs/             architecture · legal · research notes
+docs/             architecture · roadmap · release channels · legal
 ```
 
 ---
@@ -223,7 +246,9 @@ features — the cursor never advances past uncommitted index state; one
 active representation per file; retrieved text is data; citations resolve
 deterministically; nothing stale or unauthorized serves; network never runs
 inside transactions. Read them in **[CONTRIBUTING.md](CONTRIBUTING.md)**
-before opening a PR.
+before opening a PR. Vulnerability reports go to the private advisory page
+in **[SECURITY.md](SECURITY.md)**, never a public issue. Community standards
+are in the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

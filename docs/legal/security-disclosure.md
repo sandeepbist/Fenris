@@ -42,7 +42,7 @@ The Software depends on open-source packages installed from public registries (P
 
 ## 4. Vulnerability reporting
 
-Report suspected vulnerabilities to **[SECURITY CONTACT EMAIL]**. The project is maintained by volunteers; treat disclosure timelines as best-effort. Do not open public issues for exploitable findings.
+Report suspected vulnerabilities through the repo's **private security advisory** page (github.com/sandeepbist/Fenris/security/advisories) — see [SECURITY.md](../SECURITY.md). The project is maintained by volunteers; treat disclosure timelines as best-effort. Do not open public issues for exploitable findings.
 
 ## 5. What we would tell you to check
 

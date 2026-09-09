@@ -4,11 +4,11 @@ The single most load-bearing distinction (the build plan): 403 handling
 splits by *reason*, not by status code.
 
 - rate-limit/quota (``rateLimitExceeded``, ``dailyLimitExceeded``,
-  ``tooManyRequests`` 429, ``userRateLimitExceeded``) -> exponential backoff
-  + jitter, capped, then surface as a stale/failed sync - retryable.
+ ``tooManyRequests`` 429, ``userRateLimitExceeded``) -> exponential backoff
+ + jitter, capped, then surface as a stale/failed sync - retryable.
 - genuine permission denial (``forbidden``, ``insufficientFilePermissions``)
-  -> **no retry ever**, the item is unreadable and routes to the
-  unauthorized path.
+ -> **no retry ever**, the item is unreadable and routes to the
+ unauthorized path.
 
 Everything else that looks transient (5xx, transport noise) is retryable as
 TransientError. Nothing in this module ever swallows an error silently.
@@ -70,9 +70,9 @@ _BACKOFF_CAP = 60.0
 class FenrisDriveError(Exception):
     """Base for all errors the Drive client surface raises deliberately.
 
-    Callers above this layer should never see a raw
-    googleapiclient/httplib2 error leak out of fenris.drive.
-    """
+ Callers above this layer should never see a raw
+ googleapiclient/httplib2 error leak out of fenris.drive.
+ """
 
     #: Whether a retry with backoff is meaningful for this error class.
     retryable: bool = False
@@ -111,11 +111,11 @@ class TransientError(FenrisDriveError):
 def _reasons_from_error(err: HttpError) -> list[str]:
     """Pull every machine-readable reason string out of an HttpError.
 
-    HttpError.reason is the human *message* (e.g. "Rate limit exceeded"), not
-    the machine reason; the per-item reasons live in the JSON body under
-    error.errors[i].reason (mirrored in error_details as a list of dicts).
-    We match on both surfaces so a malformed body can't hide the reason.
-    """
+ HttpError.reason is the human *message* (e.g. "Rate limit exceeded"), not
+ the machine reason; the per-item reasons live in the JSON body under
+ error.errors[i].reason (mirrored in error_details as a list of dicts).
+ We match on both surfaces so a malformed body can't hide the reason.
+ """
     reasons: list[str] = []
     # 1) error_details: list of per-item dicts with a "reason" key
     details = getattr(err, "error_details", "")
@@ -137,13 +137,13 @@ def _reasons_from_error(err: HttpError) -> list[str]:
                     if isinstance(item, dict) and isinstance(item.get("reason"), str):
                         reasons.append(item["reason"])
     # 3) HttpError.reason - the message. Google sometimes puts the bare reason
-    #    string here (e.g. plain-text or protobuf-less bodies).
+    # string here (e.g. plain-text or protobuf-less bodies).
     msg = getattr(err, "reason", "") or ""
     for token in msg.replace(",", " ").split():
         if token in RATE_LIMIT_REASONS or token in PERMISSION_DENIED_REASONS:
             reasons.append(token)
     # 4) the documented reason classification also rides on the HTTP layer:
-    #    resp.reason for e.g. "Too Many Requests" on 429s.
+    # resp.reason for e.g. "Too Many Requests" on 429s.
     resp = getattr(err, "resp", None)
     if resp is not None:
         r = resp.get("reason") if hasattr(resp, "get") else None
@@ -178,17 +178,17 @@ def _retry_after(err: HttpError) -> float | None:
 def classify_http_error(err: HttpError) -> FenrisDriveError:
     """Convert an HttpError into exactly one typed fenris error.
 
-    Order matters: reason strings win over status codes, because a 403 with
-    ``rateLimitExceeded`` is retryable while a 403 with ``forbidden`` never is.
-    Only if no recognized reason is found does the status code decide:
-    429/403 fall back to RateLimitedError (Google uses 403 for quota), other
-    5xx become TransientError, and anything else is surfaced as a
-    PermissionDeniedError-shaped dead end is wrong - unknown 4xx that are
-    neither rate limit nor permission (e.g. 400 bad request) map to a
-    non-retryable FenrisDriveError via TransientError's sibling: we keep the
-    class set minimal and use PermissionDeniedError only for real denials, so
-    unknown client errors become plain FenrisDriveError (never retried).
-    """
+ Order matters: reason strings win over status codes, because a 403 with
+ ``rateLimitExceeded`` is retryable while a 403 with ``forbidden`` never is.
+ Only if no recognized reason is found does the status code decide:
+ 429/403 fall back to RateLimitedError (Google uses 403 for quota), other
+ 5xx become TransientError, and anything else is surfaced as a
+ PermissionDeniedError-shaped dead end is wrong - unknown 4xx that are
+ neither rate limit nor permission (e.g. 400 bad request) map to a
+ non-retryable FenrisDriveError via TransientError's sibling: we keep the
+ class set minimal and use PermissionDeniedError only for real denials, so
+ unknown client errors become plain FenrisDriveError (never retried).
+ """
     reasons = _reasons_from_error(err)
     status = _status_code(err)
     retry_after = _retry_after(err)
@@ -241,14 +241,14 @@ def backoff(
 ) -> float:
     """Exponential backoff with decorrelated jitter; returns the delay used.
 
-    Decorrelated jitter (AWS formulation): ``sleep = min(cap, rand(base,
-    previous * 3))`` with previous starting at base - delays decorrelate
-    across callers instead of synchronizing.
+ Decorrelated jitter (AWS formulation): ``sleep = min(cap, rand(base,
+ previous * 3))`` with previous starting at base - delays decorrelate
+ across callers instead of synchronizing.
 
-    This helper computes and *performs* the sleep (injectable for tests so
-    the suite stays fast); callers pass the returned value as ``previous``
-    on the next round so the random walk carries state.
-    """
+ This helper computes and *performs* the sleep (injectable for tests so
+ the suite stays fast); callers pass the returned value as ``previous``
+ on the next round so the random walk carries state.
+ """
     rand = rng if rng is not None else random.random
     upper = min(_BACKOFF_CAP, _BACKOFF_BASE * (2 ** attempt))
     prev = previous if previous is not None else _BACKOFF_BASE
@@ -267,18 +267,18 @@ def run_with_backoff(
     sleep: Callable[[float], None] = time.sleep,
     rng: Callable[[], float] | None = None,
 ) -> Any:
-    """Run ``op`` retrying retryable failures per the build plan.
+    """Run ``op`` retrying retryable failures per the build plan
 
-    - Retries only errors for which ``is_retriable`` is True. In the Drive
-      client that means RateLimitedError and TransientError ONLY -
-      PermissionDeniedError propagates immediately, on the first failure,
-      because a genuine denial never becomes a grant by waiting.
-    - Honors a Retry-After header when the error carries one: that delay is
-      used verbatim (still capped) and beats the jittered estimate.
-    - Max 5 retries; the final failure re-raises.
-    - ``on_retry(attempt_1_based, error, delay)`` lets callers/tests count
-      retries without touching the sleep clock.
-    """
+ - Retries only errors for which ``is_retriable`` is True. In the Drive
+ client that means RateLimitedError and TransientError ONLY -
+ PermissionDeniedError propagates immediately, on the first failure,
+ because a genuine denial never becomes a grant by waiting.
+ - Honors a Retry-After header when the error carries one: that delay is
+ used verbatim (still capped) and beats the jittered estimate.
+ - Max 5 retries; the final failure re-raises.
+ - ``on_retry(attempt_1_based, error, delay)`` lets callers/tests count
+ retries without touching the sleep clock.
+ """
     previous: float | None = None
     attempt = 0
     while True:

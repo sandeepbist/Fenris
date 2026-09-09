@@ -2,11 +2,11 @@
 
 Design goals - every family exists because a specific eval slice needs it:
 
-- invoices       -> exact-id/name + table + hard-negative (same vendor, different year)
-- meetings       -> temporal + multi-hop (decision referenced by a later invoice)
-- projects       -> versioned revisions of the SAME doc (freshness/multi-hop)
+- invoices -> exact-id/name + table + hard-negative (same vendor, different year)
+- meetings -> temporal + multi-hop (decision referenced by a later invoice)
+- projects -> versioned revisions of the SAME doc (freshness/multi-hop)
 - expenses sheet -> table slice (row-level facts)
-- travel         -> paraphrase/alias + temporal
+- travel -> paraphrase/alias + temporal
 - near-duplicates-> hard-negatives that must NOT rank for the target question
 
 Each document carries ground truth: the questions it answers and the supporting
@@ -132,9 +132,9 @@ def _span_of(text: str, needle: str, which: int = 0) -> tuple[int, int]:
 def _build_invoices(rng: random.Random) -> list[CorpusDoc]:
     """Dated invoices: amounts, vendors, project codes.
 
-    Years 2023-2026 so 'same vendor different year' near-duplicates exist.
-    Invoice numbers are unique and high-signal (exact-id slice).
-    """
+ Years 2023-2026 so 'same vendor different year' near-duplicates exist.
+ Invoice numbers are unique and high-signal (exact-id slice).
+ """
     docs: list[CorpusDoc] = []
     for year in (2023, 2024, 2025, 2026):
         for m_idx, month in enumerate(MONTHS):           # 12 months/yr
@@ -175,7 +175,7 @@ def _build_invoices(rng: random.Random) -> list[CorpusDoc]:
 
 def _build_meetings(rng: random.Random) -> list[CorpusDoc]:
     """Meeting notes: attendees, decisions. Decisions reference projects so
-    multi-hop cases can chain meeting -> invoice."""
+ multi-hop cases can chain meeting -> invoice."""
     docs: list[CorpusDoc] = []
     for i in range(14):
         year = 2024 + i % 3
@@ -215,9 +215,9 @@ def _build_meetings(rng: random.Random) -> list[CorpusDoc]:
 
 def _build_projects(rng: random.Random) -> list[CorpusDoc]:
     """Project docs with VERSIONED REVISIONS of the same document: v1, v2, v3
-    of e.g. 'ATLAS architecture spec'. The latest revision is the current
-    truth; older revisions answer 'what did v1 say' questions and act as
-    freshness/multi-hop material."""
+ of e.g. 'ATLAS architecture spec'. The latest revision is the current
+ truth; older revisions answer 'what did v1 say' questions and act as
+ freshness/multi-hop material."""
     docs: list[CorpusDoc] = []
     for p_idx, (project, desc) in enumerate(PROJECTS.items()):
         for rev in (1, 2, 3):
@@ -257,7 +257,7 @@ def _build_projects(rng: random.Random) -> list[CorpusDoc]:
 
 def _build_expenses(rng: random.Random) -> list[CorpusDoc]:
     """The expenses spreadsheet: one doc per sheet block of rows, rendered as
-    pipe-separated rows so table-slice questions have row-level ground truth."""
+ pipe-separated rows so table-slice questions have row-level ground truth."""
     docs: list[CorpusDoc] = []
     rows: list[dict] = []
     for i in range(36):
@@ -298,7 +298,7 @@ def _build_expenses(rng: random.Random) -> list[CorpusDoc]:
 
 def _build_travel(rng: random.Random) -> list[CorpusDoc]:
     """Travel itineraries: cities, dates, flight numbers, aliases (city short
-    forms) for the paraphrase slice."""
+ forms) for the paraphrase slice."""
     docs: list[CorpusDoc] = []
     for i in range(12):
         city, country = CITIES[i % len(CITIES)]
@@ -334,8 +334,8 @@ def _build_travel(rng: random.Random) -> list[CorpusDoc]:
 
 def _build_near_dups(rng: random.Random) -> list[CorpusDoc]:
     """Hard-negative near-duplicates: same vendor different year, same project
-    different invoice number, near-identical wording. These must NOT rank for
-    the target question about the OTHER document."""
+ different invoice number, near-identical wording. These must NOT rank for
+ the target question about the OTHER document."""
     docs: list[CorpusDoc] = []
     pairs = [
         # (vendor, year A, year B, differing detail)

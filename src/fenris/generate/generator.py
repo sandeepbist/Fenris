@@ -62,10 +62,10 @@ RESPONSE_SCHEMA: dict = {
 class GenerationResult:
     """One generation outcome: the structured fields + the raw text.
 
-    ``state`` is the MODEL's state (the three-value enum); the system ladder
-    remains authoritative and may override it. ``raw_text`` preserves exactly
-    what the generator emitted so malformed output is debuggable, never lost.
-    """
+ ``state`` is the MODEL's state (the three-value enum); the system ladder
+ remains authoritative and may override it. ``raw_text`` preserves exactly
+ what the generator emitted so malformed output is debuggable, never lost.
+ """
 
     state: str = "INSUFFICIENT"
     answer: str = ""
@@ -98,13 +98,13 @@ class Generator(Protocol):
 def parse_structured(text: str) -> GenerationResult:
     """Parse a generator's text into GenerationResult; never raises.
 
-    - Accepts bare JSON or a ```json fenced block.
-    - Unknown/missing ``state`` -> INSUFFICIENT (never a crash, never a fake
-      ANSWERABLE); a state outside the three-value enum is coerced down.
-    - Any parse failure -> state INSUFFICIENT with ``error`` set and the raw
-      text preserved (the CALLER maps that to the system ERROR state; the
-      model-facing enum stays limited to the three).
-    """
+ - Accepts bare JSON or a ```json fenced block.
+ - Unknown/missing ``state`` -> INSUFFICIENT (never a crash, never a fake
+ ANSWERABLE); a state outside the three-value enum is coerced down.
+ - Any parse failure -> state INSUFFICIENT with ``error`` set and the raw
+ text preserved (the CALLER maps that to the system ERROR state; the
+ model-facing enum stays limited to the three).
+ """
     if text is None:
         text = ""
     result = GenerationResult(raw_text=text)
@@ -146,17 +146,17 @@ def parse_structured(text: str) -> GenerationResult:
 class FakeGenerator:
     """Deterministic Generator double: echoes scripted structured outputs.
 
-    ``outputs`` is a list of payloads consumed one per ``generate`` call
-    (a payload may be a dict - returned as successful structured output - or
-    a string - emitted raw, exercising the parser, including malformed JSON).
-    When the script is exhausted the last payload repeats, so a loop that
-    keeps generating never crashes the test.
+ ``outputs`` is a list of payloads consumed one per ``generate`` call
+ (a payload may be a dict - returned as successful structured output - or
+ a string - emitted raw, exercising the parser, including malformed JSON).
+ When the script is exhausted the last payload repeats, so a loop that
+ keeps generating never crashes the test.
 
-    Streaming is genuinely incremental: ``generate_stream`` chunks the
-    scripted payload's JSON text so streaming consumers see multiple yields,
-    then ``generate`` returns the same payload as a whole. Every call is
-    recorded in ``calls`` (the prompt text) for asserting what the loop sent.
-    """
+ Streaming is genuinely incremental: ``generate_stream`` chunks the
+ scripted payload's JSON text so streaming consumers see multiple yields,
+ then ``generate`` returns the same payload as a whole. Every call is
+ recorded in ``calls`` (the prompt text) for asserting what the loop sent.
+ """
 
     name = "fake"
 
@@ -186,11 +186,11 @@ class FakeGenerator:
     def generate_stream(self, prompt: str):
         """Yield the scripted output in small text chunks, then a final result.
 
-        Yields strings for the display layer; the LAST yielded item is the
-        GenerationResult (so a consumer can finish the stream with the
-        structured fields, mirroring how the CLI prints streamed text then
-        resolves citations).
-        """
+ Yields strings for the display layer; the LAST yielded item is the
+ GenerationResult (so a consumer can finish the stream with the
+ structured fields, mirroring how the CLI prints streamed text then
+ resolves citations).
+ """
         self.calls.append(prompt)
         payload = self._payload()
         text = json.dumps(payload) if isinstance(payload, dict) else str(payload)
@@ -208,30 +208,30 @@ class FakeGenerator:
 class GeminiGenerator:
     """The real generator: google-genai client, model from config.
 
-    Structured output strategy (both verified against google-genai 2.20.0 at
-    runtime):
+ Structured output strategy (both verified against google-genai 2.20.0 at
+ runtime):
 
-    1. PRIMARY - ``response_schema=RESPONSE_SCHEMA`` +
-       ``response_mime_type='application/json'``: the SDK enforces the shape
-       and exposes ``response.parsed``.
-    2. FALLBACK - JSON mode only (``response_mime_type='application/json'``):
-       we parse the text with :func:`parse_structured`. Used when the schema
-       path raises (older API versions, region quirks).
+ 1. PRIMARY - ``response_schema=RESPONSE_SCHEMA`` +
+ ``response_mime_type='application/json'``: the SDK enforces the shape
+ and exposes ``response.parsed``.
+ 2. FALLBACK - JSON mode only (``response_mime_type='application/json'``):
+ we parse the text with:func:`parse_structured`. Used when the schema
+ path raises (older API versions, region quirks).
 
-    Streaming (``generate_stream``): google-genai 2.20.0 ships
-    ``client.models.generate_content_stream``, which yields response chunks
-    with a ``.text`` property - this implementation streams those chunks and
-    finishes with the structured result parsed from the concatenated text.
-    The capability is real in the installed version; if a future SDK drops
-    the method, the import-time check in :func:`generate_stream` raises
-    AttributeError immediately rather than simulating streaming.
+ Streaming (``generate_stream``): google-genai 2.20.0 ships
+ ``client.models.generate_content_stream``, which yields response chunks
+ with a ``.text`` property - this implementation streams those chunks and
+ finishes with the structured result parsed from the concatenated text.
+ The capability is real in the installed version; if a future SDK drops
+ the method, the import-time check in:func:`generate_stream` raises
+ AttributeError immediately rather than simulating streaming.
 
-    The client is lazy: constructing ``google.genai.Client`` happens on the
-    first ``generate``/``generate_stream`` call (so importing this module in a
-    test environment costs nothing and never needs credentials). ``api_key``
-    is read from the parameter or ``GOOGLE_API_KEY``/``GEMINI_API_KEY`` by the
-    SDK itself.
-    """
+ The client is lazy: constructing ``google.genai.Client`` happens on the
+ first ``generate``/``generate_stream`` call (so importing this module in a
+ test environment costs nothing and never needs credentials). ``api_key``
+ is read from the parameter or ``GOOGLE_API_KEY``/``GEMINI_API_KEY`` by the
+ SDK itself.
+ """
 
     name = "gemini"
 
@@ -269,8 +269,8 @@ class GeminiGenerator:
 
     def generate(self, prompt: str) -> GenerationResult:
         """One structured generation. Any SDK error surfaces as a GenerationResult
-        with ``error`` set (the caller maps it to the ERROR state) - a broken
-        API call must not crash the answer layer."""
+ with ``error`` set (the caller maps it to the ERROR state) - a broken
+ API call must not crash the answer layer."""
         self.calls.append(prompt)
         client = self._ensure_client()
         text = ""
@@ -294,11 +294,11 @@ class GeminiGenerator:
     def generate_stream(self, prompt: str):
         """Yield streamed text chunks, then the final GenerationResult.
 
-        Uses the SDK's real streaming call (``generate_content_stream`` -
-        present in google-genai 2.20.0); there is no simulated fallback. The
-        structured fields are parsed from the full concatenated text once the
-        stream is drained.
-        """
+ Uses the SDK's real streaming call (``generate_content_stream`` -
+ present in google-genai 2.20.0); there is no simulated fallback. The
+ structured fields are parsed from the full concatenated text once the
+ stream is drained.
+ """
         self.calls.append(prompt)
         client = self._ensure_client()
         chunks: list[str] = []

@@ -3,24 +3,24 @@
 Two layers, mirroring the real stack so client.py needs zero test-only code:
 
 - ``FakeDriveService`` - stands in for the googleapiclient Resource: exposes
-  ``files()`` / ``changes()`` builders returning request objects with a
-  ``headers`` dict and ``execute()``, raising REAL ``googleapiclient.errors
-  .HttpError`` objects (built from real ``httplib2.Response`` dicts and real
-  JSON bodies) so the client's classification/retry/backoff paths are
-  exercised against the genuine exception types.
+ ``files()`` / ``changes()`` builders returning request objects with a
+ ``headers`` dict and ``execute()``, raising REAL ``googleapiclient.errors
+.HttpError`` objects (built from real ``httplib2.Response`` dicts and real
+ JSON bodies) so the client's classification/retry/backoff paths are
+ exercised against the genuine exception types.
 - ``FakeDriveClient`` - implements the exact same public contract as
-  ``DriveClient`` (same method signatures, same pagination semantics, same
-  quota cost table, same typed errors), driving FakeDriveService.
+ ``DriveClient`` (same method signatures, same pagination semantics, same
+ quota cost table, same typed errors), driving FakeDriveService.
 
 Faithfulness rules the tests rely on:
 - pagination is deterministic (fixed page size, stable insertion order);
 - quota is charged on the SAME cost table as the real client;
 - injected failures are real HttpErrors with real reasons, so a
-  ``fail_next_with(403, "rateLimitExceeded")`` goes through the same
-  classify/backoff machinery, not a mock of it;
+ ``fail_next_with(403, "rateLimitExceeded")`` goes through the same
+ classify/backoff machinery, not a mock of it;
 - mutation helpers (upload/edit/rename/move/trash/restore/unshare) exist so
-  the freshness suite can author edit/rename/move/trash/restore scenarios
-  offline (the build plan).
+ the freshness suite can author edit/rename/move/trash/restore scenarios
+ offline (the build plan).
 """
 
 from __future__ import annotations
@@ -53,11 +53,11 @@ def make_http_error(
 ) -> HttpError:
     """Build a genuine googleapiclient HttpError, as Drive itself would.
 
-    Real Drive bodies nest the machine reason under ``error.errors[].reason``
-    while ``error.message`` carries prose - exactly the shape the classifier
-    must see (the plain ``reason`` attribute of HttpError would otherwise be
-    the message string).
-    """
+ Real Drive bodies nest the machine reason under ``error.errors[].reason``
+ while ``error.message`` carries prose - exactly the shape the classifier
+ must see (the plain ``reason`` attribute of HttpError would otherwise be
+ the message string).
+ """
     response_info: dict[str, str] = {
         "status": str(status),
         "reason": {429: "Too Many Requests", 403: "Forbidden"}.get(status, "Error"),
@@ -83,12 +83,12 @@ def make_http_error(
 
 class _FakeRequest:
     """A built-but-not-executed request: mirrors googleapiclient.http.HttpRequest
-    closely enough that the client can attach headers before execute().
+ closely enough that the client can attach headers before execute().
 
-    The owning FakeDriveService records headers at execute time so tests can
-    assert exactly what the request carried on the wire (e.g. the
-    X-Goog-Drive-Resource-Keys header on media downloads).
-    """
+ The owning FakeDriveService records headers at execute time so tests can
+ assert exactly what the request carried on the wire (e.g. the
+ X-Goog-Drive-Resource-Keys header on media downloads).
+ """
 
     def __init__(
         self,
@@ -158,12 +158,12 @@ class _FakeChangesResource:
 class FakeDriveService:
     """In-memory Drive v3: files dict + a change log with deterministic tokens.
 
-    Page tokens are stable strings (``page-<n>`` for lists,
-    ``start-<n>``/``change-cursor-<n>`` for changes) so tests can assert
-    exact pagination behavior. The change log records every mutation so
-    changes.list replays it Drive-style (entries carry fileId, removed flag,
-    and - for live files - the same metadata fields as list_files).
-    """
+ Page tokens are stable strings (``page-<n>`` for lists,
+ ``start-<n>``/``change-cursor-<n>`` for changes) so tests can assert
+ exact pagination behavior. The change log records every mutation so
+ changes.list replays it Drive-style (entries carry fileId, removed flag,
+ and - for live files - the same metadata fields as list_files).
+ """
 
     def __init__(self, *, page_size: int = DEFAULT_PAGE_SIZE):
         self._files: dict[str, dict[str, Any]] = {}
@@ -191,10 +191,10 @@ class FakeDriveService:
     ) -> None:
         """Make the NEXT matching API call raise a real HttpError once.
 
-        ``op`` narrows the failure to one endpoint ('files.list',
-        'files.get', 'files.get_media', 'files.export_media',
-        'changes.getStartPageToken', 'changes.list'); None means any.
-        """
+ ``op`` narrows the failure to one endpoint ('files.list',
+ 'files.get', 'files.get_media', 'files.export_media',
+ 'changes.getStartPageToken', 'changes.list'); None means any.
+ """
         self._failures.append((op or "*", status, reason, retry_after))
 
     def _check_failure(self, op: str) -> None:
@@ -249,8 +249,8 @@ class FakeDriveService:
         self._record_change(file_id, removed=False)
 
     def rename(self, file_id: str, name: str) -> None:
-        """Metadata-only change: bump version, SAME md5 (the the build-plan rename rule:
-        a rename bumps Drive's version without a content change)."""
+        """Metadata-only change: bump version, SAME md5 (the build-plan rename rule:
+ a rename bumps Drive's version without a content change)."""
         rec = self._require(file_id)
         rec["name"] = name
         rec["version"] = str(int(rec["version"]) + 1)
@@ -278,9 +278,9 @@ class FakeDriveService:
     def unshare(self, file_id: str) -> None:
         """Loss of access: Drive emits removed=true; the file leaves our view.
 
-        the build plan: tombstone regardless of fetchability - deletion and
-        loss-of-access both surface as removed.
-        """
+ the build plan: tombstone regardless of fetchability - deletion and
+ loss-of-access both surface as removed.
+ """
         self._files.pop(file_id, None)
         self._record_change(file_id, removed=True)
 
@@ -373,14 +373,14 @@ class FakeDriveService:
 class FakeDriveClient:
     """Same public contract as DriveClient, but driving FakeDriveService.
 
-    Implemented as a thin subclass-free adapter: it owns a FakeDriveService
-    and a REAL DriveClient (so pagination, quota accounting, classification,
-    backoff, and the canDownload gate are the production code paths, never a
-    re-implementation), plus the mutation helpers tests author scenarios with.
-    The fake deliberately subclasses nothing from DriveClient's public face -
-    it IS one, compositionally, which is the whole point: the test double
-    cannot drift from the real contract.
-    """
+ Implemented as a thin subclass-free adapter: it owns a FakeDriveService
+ and a REAL DriveClient (so pagination, quota accounting, classification,
+ backoff, and the canDownload gate are the production code paths, never a
+ re-implementation), plus the mutation helpers tests author scenarios with.
+ The fake deliberately subclasses nothing from DriveClient's public face -
+ it IS one, compositionally, which is the whole point: the test double
+ cannot drift from the real contract.
+ """
 
     def __init__(
         self,
@@ -411,7 +411,7 @@ class FakeDriveClient:
         query: str | None = None,
     ):
         """``page_size`` defaults to the constructor's, so pagination tests are
-        deterministic without each caller re-stating it."""
+ deterministic without each caller re-stating it."""
         return self._inner.list_files(
             page_token, fields=fields,
             page_size=page_size if page_size is not None else self._page_size,

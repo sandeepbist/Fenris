@@ -1,17 +1,17 @@
-"""Fenris retrieval path (the build plan, milestone M3).
+"""Fenris retrieval path (the build plan).
 
 Public surface - the integrator wires these into the CLI and the generation
 layer:
 
-- :func:`fenris.retrieve.search` - the orchestrator entry point
-- :class:`fenris.retrieve.EvidenceSet`
-- :class:`fenris.retrieve.Evidence`
-- :class:`fenris.retrieve.RouteDecision`
-- :class:`fenris.retrieve.NoopReranker` / :class:`fenris.retrieve.FlashRankReranker`
-  / the :class:`fenris.retrieve.Reranker` protocol
+-:func:`fenris.retrieve.search` - the orchestrator entry point
+-:class:`fenris.retrieve.EvidenceSet`
+-:class:`fenris.retrieve.Evidence`
+-:class:`fenris.retrieve.RouteDecision`
+-:class:`fenris.retrieve.NoopReranker` /:class:`fenris.retrieve.FlashRankReranker`
+ / the:class:`fenris.retrieve.Reranker` protocol
 - stage functions: ``route.route``, ``bm25.bm25_search``, ``knn.knn_search``,
-  ``knn.pack_vector``, ``rrf.rrf_fuse``, ``adaptive_k.select_k``,
-  ``diversity.apply_diversity``, ``evidence.build_evidence``
+ ``knn.pack_vector``, ``rrf.rrf_fuse``, ``adaptive_k.select_k``,
+ ``diversity.apply_diversity``, ``evidence.build_evidence``
 """
 
 from fenris.retrieve.evidence import Evidence, build_evidence, build_evidence_set, evidence_id_for

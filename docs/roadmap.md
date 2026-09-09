@@ -1,6 +1,6 @@
 # Fenris — Upgrade Roadmap
 
-Date: 2026-09-02. Sources: full codebase scan (51 modules, 10.7k lines, 332 tests) + two research passes — the offline-RAG research notes (engine frontier, 122 citations) and the product-frontier research notes (product frontier, 64 citations). Every precedent cited there; this document is the synthesis and the build order.
+Date: 2026-09-02. Sources: a full codebase scan (51 modules, 10.7k lines, 332 tests) plus two research passes (engine frontier, 122 citations; product frontier, 64 citations), every claim primary-sourced. This document is the synthesis and the build order.
 
 The roadmap follows one rule inherited from the original plan: correctness and trust before novelty. Nothing below sacrifices the citation contract, the state ladder, or the local-first architecture.
 

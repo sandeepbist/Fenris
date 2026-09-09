@@ -6,11 +6,11 @@ manual normalization - the build plan), serialized as little-endian
 f32 for the sqlite-vec ``float[1536]`` column.
 
 - ``GeminiEmbedder``: google-genai, model ``gemini-embedding-001``,
-  ``RETRIEVAL_DOCUMENT`` task, ``output_dimensionality=1536``, batches of
-  <=32 texts, a local token pre-count per request, 429 backoff honoring
-  ``Retry-After`` capped at 5 attempts.
+ ``RETRIEVAL_DOCUMENT`` task, ``output_dimensionality=1536``, batches of
+ <=32 texts, a local token pre-count per request, 429 backoff honoring
+ ``Retry-After`` capped at 5 attempts.
 - ``FakeEmbedder``: deterministic hash-seeded vectors, same shape -
-  tests run the whole pipeline offline with zero network calls.
+ tests run the whole pipeline offline with zero network calls.
 
 Every batch is pre-counted locally so a request that would blow the
 per-request token budget is split before the API sees it.
@@ -80,15 +80,15 @@ class Embedder(Protocol):
 class GeminiEmbedder:
     """google-genai implementation: batched, pre-counted, rate-limit aware.
 
-    Args:
-        client: a ``google.genai.Client`` (injected; never constructed
-            here, so tests never trigger auth/network paths).
-        model: embedding model id.
-        dims: output dimensionality.
-        batch_size: max texts per API request.
-        sleep: injectable sleep (tests pass a no-op recorder).
-        max_retries: 429/5xx retry cap.
-    """
+ Args:
+ client: a ``google.genai.Client`` (injected; never constructed
+ here, so tests never trigger auth/network paths).
+ model: embedding model id.
+ dims: output dimensionality.
+ batch_size: max texts per API request.
+ sleep: injectable sleep (tests pass a no-op recorder).
+ max_retries: 429/5xx retry cap.
+ """
 
     def __init__(
         self,
@@ -178,10 +178,10 @@ class GeminiEmbedder:
     def embed_documents(self, texts: list[str]) -> list[bytes]:
         """Embed texts in pre-counted batches <= batch_size texts each.
 
-        The per-request token estimate stays under EMBED_REQUEST_TOKEN_LIMIT:
-        with header+body ~600 tokens and 32 texts per request the estimate
-        is checked before the call, and oversized batches are split.
-        """
+ The per-request token estimate stays under EMBED_REQUEST_TOKEN_LIMIT:
+ with header+body ~600 tokens and 32 texts per request the estimate
+ is checked before the call, and oversized batches are split.
+ """
         if not texts:
             return []
         out: list[bytes] = []
@@ -211,11 +211,11 @@ class GeminiEmbedder:
 class FakeEmbedder:
     """Deterministic hash-seeded vectors - identical input, identical vector.
 
-    Not semantic: it exists so the pipeline, dedup and vec0 storage are
-    fully testable offline. Same shape as GeminiEmbedder's output
-    (1536-dim f32, L2-normalized, serialized bytes). Counts every call so
-    tests can assert dedup skipped the API.
-    """
+ Not semantic: it exists so the pipeline, dedup and vec0 storage are
+ fully testable offline. Same shape as GeminiEmbedder's output
+ (1536-dim f32, L2-normalized, serialized bytes). Counts every call so
+ tests can assert dedup skipped the API.
+ """
 
     def __init__(self, dims: int = EMBED_DIMS, seed_prefix: str = "fenris") -> None:
         self._dims = dims

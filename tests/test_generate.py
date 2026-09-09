@@ -65,8 +65,8 @@ def add_source(c, file_id="f1", revision="rev1", active=1, trashed=0, title=None
                auth_epoch=0, modified_time=None) -> int:
     cur = c.execute(
         """INSERT INTO sources(drive_id, file_id, source_revision, repr_mime,
-             active, trashed, auth_epoch, title, modified_time)
-           VALUES ('mydrive', ?, ?, 'application/pdf', ?, ?, ?, ?, ?)""",
+ active, trashed, auth_epoch, title, modified_time)
+ VALUES ('mydrive', ?, ?, 'application/pdf', ?, ?, ?, ?, ?)""",
         (file_id, revision, active, trashed, auth_epoch, title, modified_time),
     )
     c.commit()
@@ -77,8 +77,8 @@ def add_chunk(c, source_id, ordinal, header, body, page_nos=None, char_start=Non
               char_end=None, is_table=0, table_id=None, row_range=None) -> int:
     cur = c.execute(
         """INSERT INTO chunks(source_id, ordinal, header_text, body_text, text_hash,
-             page_nos, char_start, char_end, is_table, table_id, row_range)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+ page_nos, char_start, char_end, is_table, table_id, row_range)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (source_id, ordinal, header, body, f"h-{source_id}-{ordinal}",
          page_nos, char_start, char_end, is_table, table_id, row_range),
     )
@@ -89,7 +89,7 @@ def add_chunk(c, source_id, ordinal, header, body, page_nos=None, char_start=Non
 def add_drive_file(c, file_id, title, trashed=0, drive_version=None) -> None:
     c.execute(
         """INSERT INTO drive_files(drive_id, file_id, title, trashed, drive_version)
-           VALUES ('mydrive', ?, ?, ?, ?)""",
+ VALUES ('mydrive', ?, ?, ?, ?)""",
         (file_id, title, trashed, drive_version),
     )
     c.commit()
@@ -104,7 +104,7 @@ def add_term_df(c, term, count) -> None:
 def add_table(c, source_id, range_str="Sheet1!B12:F18", num_rows=7, num_cols=5) -> int:
     cur = c.execute(
         """INSERT INTO tables(source_id, sheet_or_page, range, num_rows, num_cols)
-           VALUES (?, 'Sheet1', ?, ?, ?)""",
+ VALUES (?, 'Sheet1', ?, ?, ?)""",
         (source_id, range_str, num_rows, num_cols),
     )
     c.commit()
@@ -159,7 +159,7 @@ class TestUShape:
     def test_five_items_layout(self):
         out = u_shape([self.ev(i) for i in range(1, 6)])
         # rank 1 top; odd ranks descending fill the upper half; even ranks
-        # bottom-up into the lower half; rank 2 last (the build plan s.6)
+        # bottom-up into the lower half; rank 2 last (the build plan)
         assert [e.evidence_id for e in out] == [
             "e" + f"{i:016x}" for i in (1, 3, 5, 4, 2)]
 
@@ -299,7 +299,7 @@ class TestVerifySources:
 
     def test_retired_representation_without_drive_row_drops(self, conn):
         """The realistic revoked-access shape: the sources row retires (tombstone
-        from sync) and drive_files is gone - the item must drop silently."""
+ from sync) and drive_files is gone - the item must drop silently."""
         ev = self._one_evidence(conn)
         conn.execute("DELETE FROM drive_files WHERE file_id='f1'")
         conn.commit()
@@ -588,7 +588,7 @@ class TestRenderAnswer:
 
     def test_model_invented_page_number_ignored(self, conn):
         """The renderer uses the STORED page - a model-invented page in the
-        answer text cannot change the citation display."""
+ answer text cannot change the citation display."""
         ev = self._evidence(conn)
         gen = GenerationResult(
             state="ANSWERABLE",
@@ -706,7 +706,7 @@ class TestGeminiGeneratorOffline:
 
     def test_sdk_streaming_api_exists_at_runtime(self):
         """Runtime verification: the installed google-genai actually ships
-        generate_content_stream (no capability faked)."""
+ generate_content_stream (no capability faked)."""
         from google.genai import models as genai_models
         assert hasattr(genai_models.Models, "generate_content_stream")
         assert hasattr(genai_models.Models, "generate_content")
@@ -775,7 +775,7 @@ class TestAgenticLoop:
 
     def test_round_limit_stop_reason(self, conn):
         """A search that always returns ONE NEW item keeps the loop alive to
-        the round cap: 4 rounds max, then ROUND_LIMIT."""
+ the round cap: 4 rounds max, then ROUND_LIMIT."""
         counter = {"n": 0}
 
         def fresh_each_time(q):

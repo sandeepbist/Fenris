@@ -2,26 +2,26 @@
 
 Every Drive file lands in exactly one of:
 
-- ``direct``    - a binary Docling can parse in place (pdf, docx, xlsx, pptx,
-                  txt/md, html, epub; images too when the deep-model tier
-                  is installed).
-- ``export``    - a Google Workspace native that must go through
-                  ``files.export`` to an OOXML target (Docs->docx,
-                  Sheets->xlsx, Slides->pptx) before Docling sees it.
-- ``shortcut``  - not indexed as content; the *target* file is routed instead.
-- ``skipped``   - deliberately out of corpus (audio/video/Vids, Drawings,
-                  Forms, Maps, Apps Script, archives, unknown binaries).
-                  Recorded as ``status='skipped'`` with a machine-readable
-                  reason in ``error``; excluded from retry logic.
+- ``direct`` - a binary Docling can parse in place (pdf, docx, xlsx, pptx,
+ txt/md, html, epub; images too when the deep-model tier
+ is installed).
+- ``export`` - a Google Workspace native that must go through
+ ``files.export`` to an OOXML target (Docs->docx,
+ Sheets->xlsx, Slides->pptx) before Docling sees it.
+- ``shortcut`` - not indexed as content; the *target* file is routed instead.
+- ``skipped`` - deliberately out of corpus (audio/video/Vids, Drawings,
+ Forms, Maps, Apps Script, archives, unknown binaries).
+ Recorded as ``status='skipped'`` with a machine-readable
+ reason in ``error``; excluded from retry logic.
 
 The parsing TIERS (probed once, cached; FENRIS_DEEP_MODELS=0/1 overrides):
 
 - slim (default): no torch. PDFs route direct and the PARSER returns the
-  designed ``deep_model_unavailable`` skip; images route skipped with
-  ``ocr_deferred_v1``.
+ designed ``deep_model_unavailable`` skip; images route skipped with
+ ``ocr_deferred_v1``.
 - full: torch + docling layout models installed. Images route direct
-  (OCR + layout over PNG/JPEG/TIFF/WebP/BMP/GIF); PDFs parse with the
-  layout models.
+ (OCR + layout over PNG/JPEG/TIFF/WebP/BMP/GIF); PDFs parse with the
+ layout models.
 
 ``route()`` itself stays pure: same inputs + same tier, same decision,
 no IO, no clock (the tier probe is cached module state, overridable for
@@ -74,10 +74,10 @@ _deep_models_cache: bool | None = None
 def deep_models_available() -> bool:
     """Is the deep-model parsing tier installed (torch importable)?
 
-    Cached module state: the probe runs once per process. Tests override
-    with FENRIS_DEEP_MODELS=0/1 (no torch install needed to exercise the
-    full-tier routing), or by resetting ``router._deep_models_cache``.
-    """
+ Cached module state: the probe runs once per process. Tests override
+ with FENRIS_DEEP_MODELS=0/1 (no torch install needed to exercise the
+ full-tier routing), or by resetting ``router._deep_models_cache``.
+ """
     global _deep_models_cache
     if _deep_models_cache is not None:
         return _deep_models_cache
@@ -244,15 +244,15 @@ GENERIC_BINARY_MIMES = frozenset(
 class RouteDecision:
     """The routing verdict plus everything the pipeline needs to act on it.
 
-    Attributes:
-        route: one of Route.DIRECT / Route.EXPORT / Route.SHORTCUT / Route.SKIP.
-        action: one of the Action constants - what the caller must do.
-        target_mime: the representation MIME to parse into (repr_mime). For
-            Workspace exports this is the OOXML export target; for direct
-            files the content MIME itself; empty for skips/shortcuts.
-        reason: machine-readable skip reason (SkipReason constant) or None.
-        is_workspace: echo of the input flag (native Workspace file).
-    """
+ Attributes:
+ route: one of Route.DIRECT / Route.EXPORT / Route.SHORTCUT / Route.SKIP.
+ action: one of the Action constants - what the caller must do.
+ target_mime: the representation MIME to parse into (repr_mime). For
+ Workspace exports this is the OOXML export target; for direct
+ files the content MIME itself; empty for skips/shortcuts.
+ reason: machine-readable skip reason (SkipReason constant) or None.
+ is_workspace: echo of the input flag (native Workspace file).
+ """
 
     route: str
     action: str
@@ -264,20 +264,20 @@ class RouteDecision:
 def route(mime_type: str, is_workspace: bool, is_shortcut: bool) -> RouteDecision:
     """Decide how one Drive file flows into the ingestion pipeline.
 
-    Pure function: no IO, no clock, no randomness - rebuilds always re-route
-    identically.
+ Pure function: no IO, no clock, no randomness - rebuilds always re-route
+ identically.
 
-    Args:
-        mime_type: the file's Drive mimeType (empty/None treated as unknown).
-        is_workspace: True for Google Workspace native files (vnd.google-apps.*
-            except the non-content kinds handled below).
-        is_shortcut: True for application/vnd.google-apps.shortcut.
+ Args:
+ mime_type: the file's Drive mimeType (empty/None treated as unknown).
+ is_workspace: True for Google Workspace native files (vnd.google-apps.*
+ except the non-content kinds handled below).
+ is_shortcut: True for application/vnd.google-apps.shortcut.
 
-    Returns:
-        RouteDecision with the route, the action to take, the representation
-        MIME to parse into (when content work is needed) and a skip reason
-        (when it is not).
-    """
+ Returns:
+ RouteDecision with the route, the action to take, the representation
+ MIME to parse into (when content work is needed) and a skip reason
+ (when it is not).
+ """
     mime = (mime_type or "").strip().lower()
 
     # Shortcuts are never indexed as content; the target file is routed on
@@ -346,7 +346,7 @@ def route(mime_type: str, is_workspace: bool, is_shortcut: bool) -> RouteDecisio
             is_workspace=False,
         )
 
-    # Prefix skip-list (audio/*, video/*, ...).
+    # Prefix skip-list (audio/*, video/*,...).
     for prefix, reason in SKIP_MIME_PREFIXES:
         if mime.startswith(prefix):
             return RouteDecision(
@@ -380,10 +380,10 @@ def route_with_name(
 ) -> RouteDecision:
     """route() plus an extension fallback for generic binary labels.
 
-    Drive labels many perfectly good files ``application/octet-stream``; the
-    extension is the only signal left. A name that still says nothing keeps
-    the unknown-binary skip decision.
-    """
+ Drive labels many perfectly good files ``application/octet-stream``; the
+ extension is the only signal left. A name that still says nothing keeps
+ the unknown-binary skip decision.
+ """
     decision = route(mime_type, is_workspace, is_shortcut)
     if decision.route != Route.SKIP:
         return decision

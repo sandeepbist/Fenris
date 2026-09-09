@@ -1,9 +1,9 @@
-"""Golden-suite runner: cases -> injected retrieval -> metrics -> DB + report (M2.5).
+"""Golden-suite runner: cases -> injected retrieval -> metrics -> DB + report.
 
 Contract (the integrator adapts the real retriever to this later; this module
 imports NOTHING from fenris.retrieve):
 
-    retrieve(question: str) -> list[RetrievedDoc]
+ retrieve(question: str) -> list[RetrievedDoc]
 
 where RetrievedDoc has doc_id + char_span (see fenris.eval.metrics). The
 runner calls it once per case, scores the result, writes eval_runs /
@@ -68,12 +68,12 @@ class CaseResult:
     def gate_pass(self) -> int:
         """1 when this case passes its own gate.
 
-        Deliberately strict for the skeleton: a miss on recall@5 or
-        span_recall fails the case; hard_negative cases additionally require
-        nDCG@10 == 1.0 (no displacement by a near-duplicate), and every
-        answerable case requires the correct answer state. The M6 gate
-        calibration will replace exact-1.0 checks with real thresholds.
-        """
+ Deliberately strict for the skeleton: a miss on recall@5 or
+ span_recall fails the case; hard_negative cases additionally require
+ nDCG@10 == 1.0 (no displacement by a near-duplicate), and every
+ answerable case requires the correct answer state. The M6 gate
+ calibration will replace exact-1.0 checks with real thresholds.
+ """
         must_be_one = ("recall@5", "ndcg@10", "span_recall") \
             if self.slice == "hard_negative" else ("recall@5", "span_recall")
         if self.slice == "unanswerable":
@@ -109,18 +109,18 @@ class RunResult:
 def _observed_state(case: EvalCase, retrieved: list[RetrievedDoc]) -> str:
     """State ladder for the golden skeleton: ANSWERED iff anything retrieved.
 
-    The full ladder (STALE/CONFLICTING/...) arrives with the query path (M4);
-    this deterministic proxy is exact for this suite because every answerable
-    case expects ANSWERED and every unanswerable case expects INSUFFICIENT
-    with no relevant docs in the corpus.
-    """
+ The full ladder (STALE/CONFLICTING/...) arrives with the query path (the answer layer);
+ this deterministic proxy is exact for this suite because every answerable
+ case expects ANSWERED and every unanswerable case expects INSUFFICIENT
+ with no relevant docs in the corpus.
+ """
     return "ANSWERED" if retrieved else "INSUFFICIENT"
 
 
 def entailment_rate_for_case(case: EvalCase, checker) -> float | None:
     """Mean per-sentence NLI entailment of the case's golden answer against
-    its retrieved evidence union. None when the case yields nothing to score
-    (no answer text or no evidence) — recorded as absent, never zero."""
+ its retrieved evidence union. None when the case yields nothing to score
+ (no answer text or no evidence) — recorded as absent, never zero."""
     answer = getattr(case, "golden_answer", None) or ""
     evidence = getattr(case, "evidence_texts", None) or []
     if not answer or not evidence:
@@ -147,19 +147,19 @@ def run_suite(
 ) -> RunResult:
     """Run all cases through the injected retriever; persist + report.
 
-    - retrieve_fn: callable(question: str) -> list[RetrievedDoc]
-    - flag_config: JSON-serializable dict stored on the run row (ablations)
-    - manifest_spans: doc_id -> golden spans (optional; cases carry their own)
-    - groundedness_checker: optional NLI checker; when given, each case's
-      golden answer sentences are scored against their evidence unions and
-      the mean lands in metrics as ``entailment_rate`` (absent when None —
-      the aggregation skips missing values, so offline runs are unaffected).
+ - retrieve_fn: callable(question: str) -> list[RetrievedDoc]
+ - flag_config: JSON-serializable dict stored on the run row (ablations)
+ - manifest_spans: doc_id -> golden spans (optional; cases carry their own)
+ - groundedness_checker: optional NLI checker; when given, each case's
+ golden answer sentences are scored against their evidence unions and
+ the mean lands in metrics as ``entailment_rate`` (absent when None —
+ the aggregation skips missing values, so offline runs are unaffected).
 
-    Writes one eval_runs row and one eval_case_results row per case through
-    the real schema, then returns the RunResult with the markdown report.
-    Retrieval exceptions are caught per case and recorded as errors (state
-    INSUFFICIENT, metrics zeroed) - a crashing case never aborts the run.
-    """
+ Writes one eval_runs row and one eval_case_results row per case through
+ the real schema, then returns the RunResult with the markdown report.
+ Retrieval exceptions are caught per case and recorded as errors (state
+ INSUFFICIENT, metrics zeroed) - a crashing case never aborts the run.
+ """
     flag_config = dict(flag_config or {})
     if groundedness_checker is not None:
         flag_config["groundedness"] = getattr(groundedness_checker, "name", "unknown")
@@ -208,15 +208,15 @@ def run_suite(
 
     cur = conn.execute(
         """INSERT INTO eval_runs(started_at, git_sha, flag_config, generation, verdict)
-           VALUES (?, ?, ?, ?, ?)""",
+ VALUES (?, ?, ?, ?, ?)""",
         (started_at, git_sha, json.dumps(flag_config, sort_keys=True), GENERATION, None),
     )
     run_id = cur.lastrowid
     for cr in case_results:
         conn.execute(
             """INSERT INTO eval_case_results(run_id, case_id, suite, slice,
-                 metrics_json, gate_pass)
-               VALUES (?, ?, ?, ?, ?, ?)""",
+ metrics_json, gate_pass)
+ VALUES (?, ?, ?, ?, ?, ?)""",
             (run_id, cr.case_id, SUITE_NAME, cr.slice, cr.metrics_json(), cr.gate_pass),
         )
     verdict = "pass" if all(cr.gate_pass == 1 for cr in case_results) else "fail"

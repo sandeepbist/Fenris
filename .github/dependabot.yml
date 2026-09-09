@@ -1,0 +1,39 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      python-deps:
+        patterns: ["*"]
+    ignore:
+      # torch and friends are deliberately absent from the slim tier;
+      # docling-ibm-models is uninstalled by `make setup` on purpose.
+      - dependency-name: "torch*"
+      - dependency-name: "nvidia-*"
+      - dependency-name: "docling-ibm-models"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: "/frontend"
+    schedule:
+      interval: weekly
+    groups:
+      frontend:
+        patterns: ["*"]
+
+  - package-ecosystem: cargo
+    directory: "/desktop"
+    schedule:
+      interval: weekly
+    groups:
+      desktop:
+        patterns: ["*"]

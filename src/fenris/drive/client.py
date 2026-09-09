@@ -6,12 +6,12 @@ the the build plan sync requirements at the client boundary:
 - list/changes calls always send supportsAllDrives + includeItemsFromAllDrives;
 - enumeration fields are exactly the the build plan set;
 - downloads are gated on ``capabilities.canDownload`` BEFORE any request is
-  issued (a 200-unit call is never spent on a file we cannot read);
+ issued (a 200-unit call is never spent on a file we cannot read);
 - resource-key files carry the ``X-Goog-Drive-Resource-Keys`` header on
-  downloads (header value format: ``<fileId>/<resourceKey>``);
-- every call is quota-counted on the the build plan cost table and every failure is
-  classified (rate-limit vs permission denial vs transient) - genuine
-  permission denials never enter the retry loop.
+ downloads (header value format: ``<fileId>/<resourceKey>``);
+- every call is quota-counted on the build-plan cost table and every failure is
+ classified (rate-limit vs permission denial vs transient) - genuine
+ permission denials never enter the retry loop.
 
 All methods return plain dicts/dataclasses - no googleapiclient request or
 resource object leaks past this module. FakeDriveClient (fake.py) implements
@@ -62,9 +62,9 @@ RESOURCE_KEY_HEADER = "X-Goog-Drive-Resource-Keys"
 class _ServiceLike(Protocol):
     """The slice of googleapiclient's Resource API this client touches.
 
-    FakeDriveService (fake.py) satisfies the same shape, which is how the
-    whole offline test suite runs without a network.
-    """
+ FakeDriveService (fake.py) satisfies the same shape, which is how the
+ whole offline test suite runs without a network.
+ """
 
     def files(self) -> Any: ...
     def changes(self) -> Any: ...
@@ -73,10 +73,10 @@ class _ServiceLike(Protocol):
 class ChangesPage:
     """One changes.list page: the items plus the two tokens that matter.
 
-    ``next_page_token`` - another page follows; feed it back to changes_list.
-    ``new_start_page_token`` - present on the LAST page only; persist it as
-    the new cursor start (schema.sync_cursor.pending_start).
-    """
+ ``next_page_token`` - another page follows; feed it back to changes_list.
+ ``new_start_page_token`` - present on the LAST page only; persist it as
+ the new cursor start (schema.sync_cursor.pending_start).
+ """
 
     __slots__ = ("changes", "new_start_page_token", "next_page_token")
 
@@ -98,17 +98,17 @@ class ChangesPage:
 class DriveClient:
     """Read-only Drive v3 client with quota counting and typed retries.
 
-    Parameters
-    ----------
-    service:
-        A googleapiclient drive v3 Resource (or the FakeDriveService).
-    quota:
-        Shared QuotaCounter; a fresh one is created if omitted. Pass the same
-        counter to multiple clients to get one account for a whole session.
-    sleep / rng:
-        Injected clock/randomness for the backoff path (tests keep it fast
-        and deterministic).
-    """
+ Parameters
+ ----------
+ service:
+ A googleapiclient drive v3 Resource (or the FakeDriveService).
+ quota:
+ Shared QuotaCounter; a fresh one is created if omitted. Pass the same
+ counter to multiple clients to get one account for a whole session.
+ sleep / rng:
+ Injected clock/randomness for the backoff path (tests keep it fast
+ and deterministic).
+ """
 
     def __init__(
         self,
@@ -140,13 +140,13 @@ class DriveClient:
     def _call(self, op: str, cost: int, fn: Callable[[], Any]) -> Any:
         """Run one API call: classify failures, retry retriables, charge quota.
 
-        Contract (the build plan):
-        - PermissionDeniedError propagates on the FIRST failure - no retry is
-          even attempted for a genuine denial.
-        - RateLimitedError/TransientError back off with decorrelated jitter,
-          capped at BACKOFF_MAX_RETRIES, honoring Retry-After when sent.
-        - Failed calls never charge quota; every failure is counted by kind.
-        """
+ Contract (the build plan):
+ - PermissionDeniedError propagates on the FIRST failure - no retry is
+ even attempted for a genuine denial.
+ - RateLimitedError/TransientError back off with decorrelated jitter,
+ capped at BACKOFF_MAX_RETRIES, honoring Retry-After when sent.
+ - Failed calls never charge quota; every failure is counted by kind.
+ """
         def run() -> Any:
             try:
                 result = fn()
@@ -185,12 +185,12 @@ class DriveClient:
     ) -> Iterator[dict[str, Any]]:
         """Yield file metadata dicts, transparently following page tokens.
 
-        Enumeration parameters are fixed by the build plan:
-        pageSize=1000, supportsAllDrives=True, includeItemsFromAllDrives=True,
-        and the exact field set in LIST_FIELDS. Each PAGE costs 100 units and
-        is counted when fetched (quota is charged on the page, not the item,
-        matching how Google meters list calls).
-        """
+ Enumeration parameters are fixed by the build plan:
+ pageSize=1000, supportsAllDrives=True, includeItemsFromAllDrives=True,
+ and the exact field set in LIST_FIELDS. Each PAGE costs 100 units and
+ is counted when fetched (quota is charged on the page, not the item,
+ matching how Google meters list calls).
+ """
         token = page_token
         while True:
             def fetch(tok: str | None = token) -> dict[str, Any]:
@@ -219,10 +219,10 @@ class DriveClient:
     ) -> dict[str, Any]:
         """Fetch one file's metadata (5 units). Supports resource-key files.
 
-        The capability check callers need (``capabilities.canDownload``) is
-        part of the requested fields; the decision itself lives in
-        download_media so an un-downloadable file can still be inspected.
-        """
+ The capability check callers need (``capabilities.canDownload``) is
+ part of the requested fields; the decision itself lives in
+ download_media so an un-downloadable file can still be inspected.
+ """
         def fetch() -> dict[str, Any]:
             return self._service.files().get(
                 fileId=file_id,
@@ -244,14 +244,14 @@ class DriveClient:
     ) -> bytes:
         """Download a stored file's raw bytes (files.get alt=media, 200 units).
 
-        Gates on ``capabilities.canDownload`` first (the build plan): a
-        False capability raises PermissionDeniedError BEFORE any request is
-        issued, so no download quota is spent on a download the server would
-        refuse. The gate itself costs one 5-unit metadata read.
+ Gates on ``capabilities.canDownload`` first (the build plan): a
+ False capability raises PermissionDeniedError BEFORE any request is
+ issued, so no download quota is spent on a download the server would
+ refuse. The gate itself costs one 5-unit metadata read.
 
-        For files shared via a resource key, the X-Goog-Drive-Resource-Keys
-        header (``<fileId>/<resourceKey>``) is attached to the media request.
-        """
+ For files shared via a resource key, the X-Goog-Drive-Resource-Keys
+ header (``<fileId>/<resourceKey>``) is attached to the media request.
+ """
         meta = self.get_metadata(file_id, resource_key)
         caps = meta.get("capabilities") or {}
         if caps.get("canDownload") is not True:
@@ -282,13 +282,13 @@ class DriveClient:
     def export(self, file_id: str, mime: str) -> bytes:
         """Export a Workspace file (Google Docs/Sheets/Slides) to ``mime``.
 
-        Costs 200 units - the same rate as a download (the build plan: a
-        Workspace-heavy corpus pays it on every export; pacing applies
-        equally). Canvases that need resource-key behavior attach the header
-        the same way download_media does; v3's export endpoint accepts the
-        resourceKey query parameter, which export_media sets from fileId's
-        context - the fake keeps the same observable contract.
-        """
+ Costs 200 units - the same rate as a download (the build plan: a
+ Workspace-heavy corpus pays it on every export; pacing applies
+ equally). Canvases that need resource-key behavior attach the header
+ the same way download_media does; v3's export endpoint accepts the
+ resourceKey query parameter, which export_media sets from fileId's
+ context - the fake keeps the same observable contract.
+ """
         def fetch() -> bytes:
             request = self._service.files().export_media(fileId=file_id, mimeType=mime)
             return request.execute()
@@ -299,7 +299,7 @@ class DriveClient:
 
     def get_start_page_token(self, drive_id: str | None = None) -> str:
         """Snapshot token to enumerate changes FROM (the build plan: taken BEFORE
-        initial enumeration so the first ingest can replay what it missed)."""
+ initial enumeration so the first ingest can replay what it missed)."""
         def fetch() -> dict[str, Any]:
             return self._service.changes().getStartPageToken(
                 supportsAllDrives=True,
@@ -322,17 +322,17 @@ class DriveClient:
     ) -> ChangesPage:
         """Fetch one page of changes (100 units) from ``page_token``.
 
-        Parameters fixed by the build plan: includeRemoved=True,
-        includeItemsFromAllDrives=True, supportsAllDrives=True, pageSize=1000
-        (the constructor's changes_page_size overrides pageSize for tests
-        that need deterministic multi-page change streams; production always
-        uses the MVP value).
+ Parameters fixed by the build plan: includeRemoved=True,
+ includeItemsFromAllDrives=True, supportsAllDrives=True, pageSize=1000
+ (the constructor's changes_page_size overrides pageSize for tests
+ that need deterministic multi-page change streams; production always
+ uses the MVP value).
 
-        Returns a ChangesPage: the change entries, the next page token (None
-        on the last page), and - when Drive sends it - the new start page
-        token (present on the final page; this is the value that becomes the
-        saved cursor after the page applies cleanly).
-        """
+ Returns a ChangesPage: the change entries, the next page token (None
+ on the last page), and - when Drive sends it - the new start page
+ token (present on the final page; this is the value that becomes the
+ saved cursor after the page applies cleanly).
+ """
         def fetch() -> dict[str, Any]:
             return self._service.changes().list(
                 pageToken=page_token,

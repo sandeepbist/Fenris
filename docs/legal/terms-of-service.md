@@ -85,12 +85,12 @@ Some jurisdictions do not allow certain limitations or disclaimers. In those jur
 
 ## 11. General
 
-1. **Governing law.** These Terms are governed by the laws of **[JURISDICTION]**, without regard to conflict-of-law rules.
-2. **Disputes.** The parties will first attempt to resolve any dispute informally by contacting the project maintainers at **[CONTACT EMAIL]**. If unresolved after 60 days, disputes will be brought only in the courts of **[JURISDICTION]**, except that either party may seek injunctive relief for intellectual-property violations in any competent court.
+1. **Governing law.** These Terms are governed by the laws of the maintainer's country of residence, without regard to conflict-of-law rules.
+2. **Disputes.** The parties will first attempt to resolve any dispute informally by opening an issue at github.com/sandeepbist/Fenris/issues. If unresolved after 60 days, disputes will be brought only in the courts of the maintainer's country of residence, except that either party may seek injunctive relief for intellectual-property violations in any competent court.
 3. **Severability.** If a provision is unenforceable, it is modified to the minimum extent necessary; the rest remains in force.
 4. **No waiver.** Not enforcing a provision is not waiving it.
 5. **Entire agreement.** These Terms, the MIT License, and the documents in `docs/legal/` are the entire agreement between you and the Fenris project regarding the Software.
-6. **Contact.** **[CONTACT EMAIL / ADDRESS]**
+6. **Contact.** github.com/sandeepbist/Fenris/issues
 
 ---
 

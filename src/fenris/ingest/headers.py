@@ -19,9 +19,9 @@ HEADER_SEPARATOR = " / "
 def normalize_title(title: str | None) -> str:
     """Strip the noise that would otherwise make headers unstable.
 
-    Whitespace is collapsed; None/empty becomes ''. Casing is left alone
-    (titles are user data, not tokens to be normalized away).
-    """
+ Whitespace is collapsed; None/empty becomes ''. Casing is left alone
+ (titles are user data, not tokens to be normalized away).
+ """
     if not title:
         return ""
     collapsed = " ".join((title or "").split())
@@ -31,10 +31,10 @@ def normalize_title(title: str | None) -> str:
 def path_breadcrumbs(path: str | None, max_depth: int = 4) -> str:
     """Render a Drive path as ``A / B / C`` breadcrumbs, newest last.
 
-    Leading/trailing slashes are ignored; empty segments dropped. Depth is
-    clamped from the *root* side (the leaf is always kept - it is the most
-    specific context), so long folder chains cannot blow up header length.
-    """
+ Leading/trailing slashes are ignored; empty segments dropped. Depth is
+ clamped from the *root* side (the leaf is always kept - it is the most
+ specific context), so long folder chains cannot blow up header length.
+ """
     if not path:
         return ""
     parts = [seg.strip() for seg in path.split("/")]
@@ -53,19 +53,19 @@ def build_header(
 ) -> str:
     """Build the deterministic contextual header for one chunk.
 
-    The non-empty components are joined with ``" / "`` in the fixed order
-    title, path breadcrumbs, section path. Empty components are dropped
-    without leaving dangling separators.
+ The non-empty components are joined with ``" / "`` in the fixed order
+ title, path breadcrumbs, section path. Empty components are dropped
+ without leaving dangling separators.
 
-    Args:
-        title: the file title (sources.title).
-        path: the Drive folder path (sources.path).
-        section_path: the Docling-derived section breadcrumbs covering the
-            chunk (chunks.section_path).
+ Args:
+ title: the file title (sources.title).
+ path: the Drive folder path (sources.path).
+ section_path: the Docling-derived section breadcrumbs covering the
+ chunk (chunks.section_path).
 
-    Returns:
-        The header string; '' only when every component is empty.
-    """
+ Returns:
+ The header string; '' only when every component is empty.
+ """
     parts: list[str] = []
     t = normalize_title(title)
     if t:
@@ -83,5 +83,5 @@ def build_header(
 
 def is_deterministic(left: str, right: str) -> bool:
     """Sanity check used by tests: identical inputs must yield identical
-    headers, and different inputs must not collide."""
+ headers, and different inputs must not collide."""
     return left == right

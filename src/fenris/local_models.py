@@ -2,12 +2,12 @@
 
 Built per the stack research notes (all primary-sourced):
 - Embeddings: Qwen3-Embedding-0.6B via fastembed 0.8.0's native int8
-  build (``Qwen/Qwen3-Embedding-0.6B-Q``) on onnxruntime - the
-  research-verified default for CPU. Instructions: queries carry
-  'Instruct: ...\\nQuery: ...', documents carry nothing (the card's
-  own format; skipping the query instruct costs 1-5% retrieval).
+ build (``Qwen/Qwen3-Embedding-0.6B-Q``) on onnxruntime - the
+ research-verified default for CPU. Instructions: queries carry
+ 'Instruct:...\\nQuery:...', documents carry nothing (the card's
+ own format; skipping the query instruct costs 1-5% retrieval).
 - Generation: Qwen3.5-4B GGUF (Q4_K_M) via llama.cpp - the research's
-  new default local-QA model (Feb 2026, Apache-2.0, 262k ctx).
+ new default local-QA model (Feb 2026, Apache-2.0, 262k ctx).
 
 Both classes are LAZY: model weights load on first use, never at
 import, so the module costs nothing in the test suite and the
@@ -42,18 +42,18 @@ _QUERY_INSTRUCT = (
 class LocalEmbedder:
     """Qwen3-Embedding-0.6B (int8 ONNX) - the offline embedder.
 
-    Same protocol as GeminiEmbedder: ``embed_documents(list[str]) ->
-    list[bytes]`` (fp32 blobs). Lazy import of fastembed; missing
-    package or weights raise LocalModelError with the fix stated, at
-    CALL time, never import time.
+ Same protocol as GeminiEmbedder: ``embed_documents(list[str]) ->
+ list[bytes]`` (fp32 blobs). Lazy import of fastembed; missing
+ package or weights raise LocalModelError with the fix stated, at
+ CALL time, never import time.
 
-    Dimension note: this embedder emits 1024-dim vectors, NOT the API
-    model's 1536. The two spaces are incompatible by design - switching
-    embedding models re-embeds the corpus (the identity key encodes
-    model+dims, so a switch produces a new representation generation,
-    not silent mixed-space search). The provider switch therefore
-    applies to BOTH query-side and corpus-side together.
-    """
+ Dimension note: this embedder emits 1024-dim vectors, NOT the API
+ model's 1536. The two spaces are incompatible by design - switching
+ embedding models re-embeds the corpus (the identity key encodes
+ model+dims, so a switch produces a new representation generation,
+ not silent mixed-space search). The provider switch therefore
+ applies to BOTH query-side and corpus-side together.
+ """
 
     name = "local-qwen3-emb"
 
@@ -70,7 +70,7 @@ class LocalEmbedder:
         except ImportError as e:
             raise LocalModelError(
                 "fastembed is not installed. Local embeddings need it:\n"
-                "  pip install fastembed\n"
+                " pip install fastembed\n"
                 "(weights download on first use, ~600 MB)"
             ) from e
         try:
@@ -113,12 +113,12 @@ LOCAL_GENERATE_DEFAULT = "Qwen3.5-4B-Q4_K_M.gguf"   # research default pick
 class LocalGenerator:
     """Qwen3.5-4B (Q4_K_M GGUF) via llama.cpp - the offline answerer.
 
-    Implements the same two-method protocol as GeminiGenerator
-    (generate / generate_stream). Lazy: nothing loads until the first
-    call. The model file comes from FENRIS_LOCAL_MODEL (a .gguf path)
-    or a well-known models directory; missing llama-cpp or the weights
-    raise LocalModelError with the fix stated.
-    """
+ Implements the same two-method protocol as GeminiGenerator
+ (generate / generate_stream). Lazy: nothing loads until the first
+ call. The model file comes from FENRIS_LOCAL_MODEL (a.gguf path)
+ or a well-known models directory; missing llama-cpp or the weights
+ raise LocalModelError with the fix stated.
+ """
 
     name = "local-llamacpp"
 
@@ -130,7 +130,7 @@ class LocalGenerator:
 
     @staticmethod
     def resolve_model_path() -> str | None:
-        """Where the .gguf lives: env override, then ./models/."""
+        """Where the.gguf lives: env override, then./models/."""
         p = os.environ.get(LOCAL_GENERATE_MODEL_ENV)
         if p and os.path.exists(p):
             return p
@@ -149,7 +149,7 @@ class LocalGenerator:
         except ImportError as e:
             raise LocalModelError(
                 "llama-cpp-python is not installed. Local answers need it:\\n"
-                "  pip install llama-cpp-python --extra-index-url "
+                " pip install llama-cpp-python --extra-index-url "
                 "https://abetlen.github.io/llama-cpp-python/whl/cpu\\n"
                 "(CPU wheels; or vendor llama.cpp as a sidecar in the "
                 "desktop build)"

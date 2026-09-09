@@ -3,9 +3,9 @@
 The integrator wires ``drive_app`` into the main CLI (fenris.cli) - this
 module deliberately does not touch it. Commands:
 
-- ``auth``       - run the PKCE loopback OAuth flow, store the refresh token
+- ``auth`` - run the PKCE loopback OAuth flow, store the refresh token
 - ``disconnect`` - revoke the grant at Google AND delete the keyring entry
-- ``status``     - token present? quota counters for this session
+- ``status`` - token present? quota counters for this session
 - ``files list`` - enumerate Drive with the the build plan parameters
 
 Quota counters are process-local by design: `status` reports what THIS

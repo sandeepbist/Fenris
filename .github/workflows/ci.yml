@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  engine:
+    name: Engine (Python ${{ matrix.python }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.12", "3.13", "3.14"]
+        include:
+          - os: macos-latest
+            python: "3.12"
+          - os: windows-latest
+            python: "3.12"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+
+      - name: Install (editable, dev)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          python -m pip uninstall -y docling-ibm-models torch torchvision triton accelerate 2>/dev/null || true
+
+      - name: Lint
+        run: python -m ruff check src tests
+
+      - name: Test
+        run: python -m pytest
+        env:
+          FENRIS_DIGEST_SCHEDULER: "0"
+
+      - name: Golden eval (offline, synthetic corpus)
+        run: python -m fenris.cli eval --suite golden
+        env:
+          FENRIS_HOME: ${{ runner.temp }}/fenris-home
+          FENRIS_DIGEST_SCHEDULER: "0"
+
+  frontend:
+    name: Frontend (bun)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install
+        run: bun install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Lint
+        run: bun run lint
+        working-directory: frontend
+
+      - name: Build
+        run: bun run build
+        working-directory: frontend
+
+  desktop:
+    name: Desktop shell (cargo check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Check
+        run: cargo check
+        working-directory: desktop
+
+  api-contract:
+    name: API surface (import + app boots)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          python -m pip uninstall -y docling-ibm-models torch torchvision triton accelerate 2>/dev/null || true
+
+      - name: App importable and routes enumerated
+        run: |
+          python - <<'EOF'
+          from fenris.api import app
+          routes = sorted({r.path for r in app.routes if hasattr(r, "path")})
+          assert any("/api/health" in p for p in routes), routes
+          assert any("/api/ask" in p for p in routes), routes
+          print(f"{len(routes)} routes OK")
+          EOF
+        env:
+          FENRIS_DIGEST_SCHEDULER: "0"

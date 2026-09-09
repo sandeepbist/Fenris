@@ -2,22 +2,22 @@
 
 IR metrics (ir-measures 0.4.3, graded relevance 2/1/0):
 
-- recall@5, recall@20    (ir_measures.R)
-- RR -> MRR per slice    (ir_measures.RR averaged)
+- recall@5, recall@20 (ir_measures.R)
+- RR -> MRR per slice (ir_measures.RR averaged)
 - nDCG@10 with GRADED relevance. ir-measures/pytrec_eval uses LINEAR gain:
-  gain(rel) = rel (verified empirically in tests/test_eval.py against a
-  hand computation), and log2 discount. Graded qrels come in as
-  ir_measures.Qrel(query_id, doc_id, relevance) and runs as ScoredDoc.
+ gain(rel) = rel (verified empirically in tests/test_eval.py against a
+ hand computation), and log2 discount. Graded qrels come in as
+ ir_measures.Qrel(query_id, doc_id, relevance) and runs as ScoredDoc.
 
 Hand-rolled metrics ir-measures does not cover:
 
 - evidence-span recall: a golden span is COVERED when a retrieved chunk's
-  char range overlaps >= 80% of it (coverage fraction of the golden span).
+ char range overlaps >= 80% of it (coverage fraction of the golden span).
 - answer-state correctness: exact string match of expected_state.
 - per-slice aggregation: slices are NEVER blended into one number. Every
-  metric is reported per slice; a separate OVERALL row is the unweighted
-  mean of slice means and is documented as such (it exists for trend
-  reading, not for gating).
+ metric is reported per slice; a separate OVERALL row is the unweighted
+ mean of slice means and is documented as such (it exists for trend
+ reading, not for gating).
 
 Interface: pure functions over (case, retrieved) - no retrieval imports.
 """
@@ -48,9 +48,9 @@ IR_MEASURE_NAMES = ("recall@5", "recall@20", "mrr", "ndcg@10")
 class RetrievedDoc:
     """What the injected retrieval callable returns per hit.
 
-    ``doc_id`` maps to a corpus manifest doc; ``char_span`` is the (start, end)
-    tuple of the chunk's text within that doc - the span-recall interface.
-    """
+ ``doc_id`` maps to a corpus manifest doc; ``char_span`` is the (start, end)
+ tuple of the chunk's text within that doc - the span-recall interface.
+ """
 
     doc_id: str
     score: float = 0.0
@@ -76,10 +76,10 @@ RetrieveFn = "callable[[str], list[RetrievedDoc]]"
 def _case_qrels(case: EvalCase) -> list[Qrel]:
     """Graded qrels: 2 must / 1 helpful / 0 hard-negative.
 
-    Hard-negative docs are qrels at grade 0 so ir-measures sees them as
-    non-relevant: retrieving them does not help recall and HURTS nDCG (a
-    grade-0 doc in the top ranks displaces graded docs).
-    """
+ Hard-negative docs are qrels at grade 0 so ir-measures sees them as
+ non-relevant: retrieving them does not help recall and HURTS nDCG (a
+ grade-0 doc in the top ranks displaces graded docs).
+ """
     return [Qrel(case.id, doc_id, grade) for doc_id, grade in case.expected_docs.items()]
 
 
@@ -105,11 +105,11 @@ def _dcg(grades: list[int]) -> float:
 def ir_metrics_for_case(case: EvalCase, retrieved: list[RetrievedDoc]) -> dict[str, float]:
     """Per-case recall@5, recall@20, RR, nDCG@10 (graded, ir-measures).
 
-    Unanswerable cases have no grade>=1 docs, so every IR metric is defined as
-    0.0 by ir-measures; the runner scores them on state correctness only and
-    this function returns zeros (documented, and the caller excludes them from
-    slice means).
-    """
+ Unanswerable cases have no grade>=1 docs, so every IR metric is defined as
+ 0.0 by ir-measures; the runner scores them on state correctness only and
+ this function returns zeros (documented, and the caller excludes them from
+ slice means).
+ """
     if case.slice == "unanswerable" or not any(
         g >= 1 for g in case.expected_docs.values()
     ):
@@ -147,11 +147,11 @@ def span_recall_for_case(
 ) -> float:
     """Fraction of the case's golden spans covered at >= threshold.
 
-    Golden spans come from the case's expected_spans when present, else from
-    the manifest's per-doc answer spans for every grade>=1 doc (the runner
-    passes the case's own spans; manifest fallback keeps the interface usable
-    for ad-hoc analysis).
-    """
+ Golden spans come from the case's expected_spans when present, else from
+ the manifest's per-doc answer spans for every grade>=1 doc (the runner
+ passes the case's own spans; manifest fallback keeps the interface usable
+ for ad-hoc analysis).
+ """
     if case.slice == "unanswerable":
         return 0.0
     gold: list[AnswerSpan] = []
@@ -184,9 +184,9 @@ def span_recall_for_case(
 def state_correct_for_case(case: EvalCase, actual_state: str | None) -> float:
     """1.0 when the observed state exactly matches expected_state, else 0.0.
 
-    ``actual_state=None`` means the pipeline crashed / produced nothing: that
-    is a miss, not an exception, in the golden suite.
-    """
+ ``actual_state=None`` means the pipeline crashed / produced nothing: that
+ is a miss, not an exception, in the golden suite.
+ """
     return 1.0 if actual_state == case.expected_state else 0.0
 
 
@@ -239,11 +239,11 @@ def aggregate_by_slice(
 ) -> MetricsReport:
     """Aggregate per-case metrics into per-slice means.
 
-    ``case_metrics``: case_id -> {metric_name: float or None}. Slices are
-    computed independently: a failure in one slice cannot change another
-    slice's numbers. The overall row is the mean of slice means and carries
-    ``overall_definition`` so no reader mistakes it for a per-case mean.
-    """
+ ``case_metrics``: case_id -> {metric_name: float or None}. Slices are
+ computed independently: a failure in one slice cannot change another
+ slice's numbers. The overall row is the mean of slice means and carries
+ ``overall_definition`` so no reader mistakes it for a per-case mean.
+ """
     report = MetricsReport()
     by_slice: dict[str, list[EvalCase]] = {}
     for c in cases:
