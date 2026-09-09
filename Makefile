@@ -91,7 +91,7 @@ clean:
 clean-caches:
 	rm -rf .pytest_cache .ruff_cache .coverage htmlcov playwright-report test-results
 	find src tests eval -name __pycache__ -type d -prune -exec rm -rf {} + 2>/dev/null
-	rm -rf desktop/target desktop/binaries/fenris-engine desktop/binaries/fenris-engine-*
+	rm -rf desktop/target desktop/binaries/fenris-engine desktop/binaries/fenris-engine-*-*-*-gnu/
 	rm -rf .mimosa/history .mimosa/reports .mimosa/hook-status
 	find . -path ./.git -prune -o -name '*.tsbuildinfo' -print -delete 2>/dev/null || true
 	find . -path ./.git -prune -o -name '*.log' -print -delete 2>/dev/null || true
