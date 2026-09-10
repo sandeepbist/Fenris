@@ -221,8 +221,20 @@ def search(conn: sqlite3.Connection, query: str, qvec: bytes | None,
     pool = fused[:RERANK_POOL]
 
     if decision.route_id == "EXACT":
-        # EXACT: BM25-first, rerank skipped; adaptive-k runs on normalized RRF.
-        ranked = list(pool)
+        # EXACT: BM25-first, rerank skipped. "BM25-first" is literal: any
+        # pooled chunk BM25 hit keeps its BM25 rank (a phrase-matching
+        # chunk scored 12.34 while KNN noise also holds rank-1 slots; RRF
+        # alone can bury the phrase hit under double-list noise).
+        # Chunks only the dense side found keep fused order after those.
+        bm25_rank = {cid: i for i, (cid, _s) in enumerate(lexical)}
+        fused_rank = {cid: i for i, (cid, _s) in enumerate(fused)}
+        ranked = sorted(
+            pool,
+            key=lambda cs: (
+                0 if cs[0] in bm25_rank else 1,          # BM25 hits first
+                bm25_rank.get(cs[0], fused_rank.get(cs[0], 1 << 30)),
+            ),
+        )
         trace["rerank_skipped"] = True
     else:
         # NORMAL / TABLE: rerank the fused top-30.

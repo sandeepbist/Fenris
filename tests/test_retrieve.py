@@ -147,6 +147,33 @@ class TestRoute:
         assert d.route_id == "NORMAL"
         assert d.signals["rare_terms"] == []
 
+    def test_hyphenated_identifier_routes_exact_via_phrase_probe(self, conn):
+        """INV-202301-323 never appears whole in term_df (FTS5 subtokens
+        only), so the whole-term miss probes the live index with the
+        phrase: few matching sources == rare == EXACT. Found by the golden
+        eval's exact slice."""
+        seed_corpus(conn)
+        # one chunk containing the identifier, written through FTS5
+        s = add_source(conn, file_id="inv-000", revision="r1")
+        add_chunk(conn, s, 1, "Invoice", "Invoice INV-202301-323 Tessellate")
+        d = route_fn("Find invoice INV-202301-323", conn)
+        assert d.route_id == "EXACT"
+        assert d.signals["rare_terms"] == ["inv-202301-323"]
+
+    def test_hyphenated_common_pair_stays_normal(self, conn):
+        """A hyphenated term whose phrase spans MANY sources (e.g. a
+        recurring compound) is not rare; the probe measures, it doesn't
+        assume."""
+        seed_corpus(conn)
+        # a compound appearing in 5 distinct sources: above the rare
+        # threshold (3), the phrase probe must not call it rare.
+        for i in range(5):
+            s = add_source(conn, file_id=f"ac-{i}", revision=f"r{i}")
+            add_chunk(conn, s, 1, "AC", "apple banana smoothie recipe")
+        d = route_fn("apple-banana smoothie ideas", conn)
+        assert d.route_id == "NORMAL"
+        assert d.signals["rare_terms"] == []
+
     def test_filename_token_routes_exact(self, conn):
         seed_corpus(conn)
         d = route_fn("what does the Apple Report.pdf say", conn)
@@ -271,9 +298,25 @@ class TestBM25:
         assert bm25_search(conn, "C++ OR foo:bar") == []
 
     def test_fts_query_string_quotes_tokens_and_phrases(self):
-        assert fts_query_string("apple banana") == '"apple" "banana"'
-        assert fts_query_string('find "apple pie" now') == '"apple pie" "find" "now"'
+        assert fts_query_string("apple banana") == '"apple" OR "banana"'
+        assert fts_query_string('find "apple pie" now') == '"apple pie" OR "find" OR "now"'
         assert fts_query_string("...") == ""
+
+    def test_fts_question_words_do_not_zero_lexical_hits(self, conn):
+        """A question whose framing word is absent from every chunk must
+        still return hits (OR combination; bm25 ranks). Found by the golden
+        eval's exact slice: 'Find invoice INV-202301-323' ANDed the word
+        "find" against chunks that never contain it -> zero hits everywhere.
+        """
+        s = add_source(conn, file_id="inv-000", revision="r1")
+        add_chunk(conn, s, 1, "Invoice INV-202301-323",
+                  "Invoice INV-202301-323 Tessellate Consulting")
+        hits = bm25_search(conn, "Find invoice INV-202301-323")
+        assert hits, "framing word 'Find' must not zero the search"
+        file_id = conn.execute(
+            "SELECT s.file_id FROM sources s JOIN chunks c ON c.source_id = s.id "
+            "WHERE c.chunk_id = ?", (hits[0][0],)).fetchone()[0]
+        assert file_id == "inv-000"
 
 
 # --------------------------------------------------------------------------- #
@@ -623,6 +666,29 @@ class TestRerank:
 
 
 class TestSearch:
+    def test_exact_route_keeps_bm25_winner_first(self, conn):
+        """EXACT questions keep their BM25 winner at the top of evidence,
+        not wherever RRF happens to place it. The phrase-matching chunk
+        scored 12.34 on BM25; KNN-only noise chunks must never outrank it
+        (found by the golden eval: 'Find invoice INV-202301-323' lost to
+        hard-negative docs that only the dense side surfaced)."""
+        seed_corpus(conn)
+        s = add_source(conn, file_id="inv-000", revision="r1")
+        c_inv = add_chunk(conn, s, 1, "Invoice", "Invoice INV-202301-323 Tessellate")
+        # dense-only noise: a chunk lexically unrelated but with a vec
+        add_vec(conn, c_inv, vec(1.0, 0.0))
+        # a noise chunk sitting dense-close to the query vector
+        s_noise = add_source(conn, file_id="nd-1", revision="r1")
+        c_noise = add_chunk(conn, s_noise, 1, "Noise", "zebra savanna wildlife")
+        add_vec(conn, c_noise, vec(0.9, 0.1))
+        result = search(conn, "Find invoice INV-202301-323",
+                        vec(0.9, 0.1), NoopReranker())
+        assert result.route_decision.route_id == "EXACT"
+        assert result.evidence, "expected evidence"
+        assert result.evidence[0].file_id == "inv-000"
+        # BM25 hits precede dense-only members in the ranked pool
+        assert result.trace["rerank_skipped"] is True
+
     def test_end_to_end_returns_expected_top_chunk(self, conn):
         seed = seed_corpus(conn)
         # query lexically biased to apples AND dense-close to f1's vector

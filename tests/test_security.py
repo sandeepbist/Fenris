@@ -83,8 +83,14 @@ class TestCitationForgery:
             "cited_evidence_ids": ["E:deadbeefdeadbeef"],
             "claims_conflict": False, "missing_evidence": [],
         }])
+        # A query that lexically matches NOTHING: retrieval is empty, the
+        # ladder rules INSUFFICIENT, and the property under test (the
+        # fabricated text is withheld whole, not marker-stripped) runs.
+        # ("what was revenue?" used to enter this state only by accident -
+        # the old AND-combined BM25 zeroed on the framing word "what"; the
+        # OR fix made it genuinely retrieve, switching the path.)
         packet = ask(
-            conn, "what was revenue?", None,
+            conn, "zzzqqq nothing matches this", None,
             generator=forged, search_fn=lambda q: search(conn, q, None),
         )
         assert packet.citations == []          # forged id never resolves

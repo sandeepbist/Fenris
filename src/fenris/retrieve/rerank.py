@@ -219,6 +219,8 @@ def resolve_reranker(use_flashrank: bool = True):
     from fenris.config import reranker_choice
 
     choice = reranker_choice().strip().lower()
+    if choice in ("noop", "off", "none"):
+        return NoopReranker(), "noop-explicit"
     if choice == "modernbert":
         if models_mod.available("modernbert-rerank"):
             return ModernBertReranker(), "modernbert"

@@ -49,13 +49,19 @@ LIMIT ?
 
 
 def fts_query_string(query: str) -> str:
-    """Build a safe FTS5 MATCH string: every token becomes a quoted phrase.
+    """Build a safe FTS5 MATCH string: every token becomes a quoted phrase,
+    combined with OR.
 
  Quoting every token makes odd input (``C++``, ``foo:bar``, ``2025-06-01``)
- a literal phrase lookup instead of an FTS5 syntax error; multiple tokens
- become an implicit-AND of phrases. An original double-quoted phrase
- (``"exact words"``) is kept as one multi-token phrase so the EXACT route
- can hit on a full-phrase match.
+ a literal phrase lookup instead of an FTS5 syntax error; bm25() ranking
+ does the work from there - a chunk containing more, rarer tokens scores
+ higher, one containing none is simply not matched. AND-combining was
+ tried first and is wrong for question-shaped queries: "Find invoice
+ INV-202301-323" ANDs the word "find" against every chunk, and no chunk
+ contains it - one framing word not in the document zeroes ALL lexical
+ hits (found by the golden eval's exact slice). An original double-quoted
+ phrase (``"exact words"``) stays one multi-token phrase for the EXACT
+ route's full-phrase match.
  """
     import re
 
@@ -68,7 +74,7 @@ def fts_query_string(query: str) -> str:
         parts.append(f'"{tok}"')
     if not parts:
         return ""
-    return " ".join(parts)
+    return " OR ".join(parts)
 
 
 def bm25_search(conn: sqlite3.Connection, query: str, table_only: bool = False,

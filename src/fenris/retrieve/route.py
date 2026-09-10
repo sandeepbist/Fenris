@@ -88,6 +88,8 @@ ROUTES = ("EXACT", "TABLE", "AGENTIC", "NORMAL")
 
 # unicode61-ish: alphanumerics + underscore run together, decimals split.
 _TOKEN_RE = re.compile(r"[A-Za-z0-9_]+")
+# FTS5 unicode61-style split for subtoken retries (hyphenated identifiers)
+_SUBTOKEN_RE = re.compile(r"[A-Za-z0-9_]+")
 
 # numbers (incl. decimals, thousands "1,234", percents "12.5%") and dates
 # (ISO "2025-03-14", slashed "3/14/2025", "14/03/2025", month names)
@@ -157,10 +159,19 @@ def _raw_terms(query: str) -> list[str]:
 
 def rare_terms(conn: sqlite3.Connection, terms: list[str],
                threshold: int = RARE_DF_THRESHOLD) -> list[str]:
-    """Terms with ``term_df.active_source_count <= threshold`` (df over
- DISTINCT sources). Terms missing from ``term_df`` are not rare - absence
- of stats means "never indexed", which must not fabricate an EXACT route.
- Empty terms or empty term_df -> [], never raises."""
+    """Terms naming at most ``threshold`` distinct active sources.
+
+ A term present in ``term_df`` is rare when its ``active_source_count``
+ is within the threshold. Terms missing from ``term_df`` are not rare -
+ absence of stats means "never indexed", which must not fabricate an
+ EXACT route - with one exception: hyphenated identifiers
+ (``INV-202301-323``) never appear whole in term_df because it counts
+ FTS5 subtokens (``inv``, ``202301``, ``323``). For those, the term's
+ subtokens are re-joined as an FTS5 phrase and matched against the live
+ index: a phrase hitting at most ``threshold`` sources IS the term
+ being rare, measured on the actual index rather than guessed from
+ missing stats. Empty terms or empty term_df -> [], never raises.
+ """
     terms = [t for t in dict.fromkeys(terms) if t]
     if not terms:
         return []
@@ -170,7 +181,38 @@ def rare_terms(conn: sqlite3.Connection, terms: list[str],
             f"({','.join('?' * len(terms))})", terms).fetchall()
     except sqlite3.Error:
         return []
-    return [term for term, df in rows if df <= threshold]
+    found = dict(rows)
+    rare: list[str] = []
+    for term in terms:
+        df = found.get(term)
+        if df is not None:
+            if df <= threshold:
+                rare.append(term)
+            continue
+        # whole-term miss. Only terms term_df STRUCTURALLY cannot hold
+        # whole - multi-token identifiers like INV-202301-323 - earn the
+        # phrase probe; a plain word missing from term_df means stats
+        # were never written, and absence of stats must not fabricate
+        # rarity.
+        if _SUBTOKEN_RE.fullmatch(term):
+            continue
+        sub = _SUBTOKEN_RE.findall(term)
+        if len(sub) < 2:
+            continue
+        phrase = " ".join(sub)
+        try:
+            n = conn.execute(
+                "SELECT COUNT(DISTINCT s.id) FROM chunks_fts "
+                "JOIN chunks c ON c.chunk_id = chunks_fts.rowid "
+                "JOIN sources s ON s.id = c.source_id "
+                "WHERE chunks_fts MATCH ? AND s.active = 1 AND s.trashed = 0",
+                (f'"{phrase}"',),
+            ).fetchone()[0]
+        except sqlite3.Error:
+            continue
+        if n <= threshold:
+            rare.append(term)
+    return rare
 
 
 def numeric_tokens(query: str) -> list[str]:

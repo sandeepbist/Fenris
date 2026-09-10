@@ -74,10 +74,18 @@ def _open_db():
 
 
 def _make_embedder():
-    """Gemini embedder for queries; GOOGLE_API_KEY/GEMINI_API_KEY via the SDK."""
-    from google import genai
+    """Gemini embedder for queries; GOOGLE_API_KEY/GEMINI_API_KEY via the SDK.
 
-    from fenris.ingest.embed import GeminiEmbedder
+    FENRIS_EMBEDDER=fake swaps in the deterministic offline embedder -
+    the golden eval runs this way on CI, where no API key exists.
+    """
+    import os
+
+    from fenris.ingest.embed import FakeEmbedder, GeminiEmbedder
+
+    if os.environ.get("FENRIS_EMBEDDER") == "fake":
+        return FakeEmbedder()
+    from google import genai
 
     client = genai.Client()
     return GeminiEmbedder(client)
@@ -185,11 +193,18 @@ def run_eval(
 
         from fenris.eval.cases import load_cases
         from fenris.eval.runner import run_suite
+        from fenris.eval.seed import seed_golden_corpus
 
         cases_dir = Path("eval/cases") / suite
         if not cases_dir.is_dir():
             typer.echo(f"unknown suite: {suite} (no {cases_dir})")
             raise typer.Exit(code=2)
+
+        # The suite runs over the real index: seed the corpus first
+        # (idempotent; a fresh FENRIS_HOME ingests all 99 docs, a warm
+        # one re-checks revisions and writes nothing).
+        n_docs, families = seed_golden_corpus(conn)
+        typer.echo(f"corpus: {n_docs} docs across {len(families)} families")
         cases = load_cases(cases_dir)
         if limit:
             cases = cases[:limit]
@@ -207,7 +222,16 @@ def run_eval(
                 for e in evidence
             ]
 
-        result = run_suite(conn, cases, retrieve, flag_config={"suite": suite})
+        # The run row records the mode so offline numbers (fake embedder,
+        # noop reranker) are never mistaken for calibrated Gemini runs.
+        import os
+
+        flags = {
+            "suite": suite,
+            "embedder": getattr(embedder, "model_id", embedder.__class__.__name__),
+            "reranker": "noop" if os.environ.get("FENRIS_RERANKER") == "noop" else "default",
+        }
+        result = run_suite(conn, cases, retrieve, flag_config=flags)
         typer.echo(result.markdown)
         if result.overall:
             typer.echo("\noverall (mean of slice means):")
