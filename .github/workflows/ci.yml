@@ -35,7 +35,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-          python -m pip uninstall -y docling-ibm-models torch torchvision triton accelerate 2>/dev/null || true
+          python -c "import subprocess,sys; subprocess.run([sys.executable,'-m','pip','uninstall','-y','docling-ibm-models','torch','torchvision','triton','accelerate'])"
 
       - name: Lint
         run: python -m ruff check src tests
@@ -50,6 +50,7 @@ jobs:
         env:
           FENRIS_HOME: ${{ runner.temp }}/fenris-home
           FENRIS_DIGEST_SCHEDULER: "0"
+          FENRIS_EMBEDDER: fake
 
   frontend:
     name: Frontend (bun)
@@ -86,6 +87,16 @@ jobs:
             libglib2.0-dev libgtk-3-dev libwebkit2gtk-4.1-dev \
             libayatana-appindicator3-dev librsvg2-dev
 
+      # tauri::generate_context! requires frontendDist to exist at
+      # compile time; build the real frontend (fast, also verified).
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Build frontend (tauri compile-time input)
+        run: |
+          bun install --frozen-lockfile
+          bun run build
+        working-directory: frontend
+
       - name: Check
         run: cargo check
         working-directory: desktop
@@ -105,7 +116,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-          python -m pip uninstall -y docling-ibm-models torch torchvision triton accelerate 2>/dev/null || true
+          python -c "import subprocess,sys; subprocess.run([sys.executable,'-m','pip','uninstall','-y','docling-ibm-models','torch','torchvision','triton','accelerate'])"
 
       - name: App importable and routes enumerated
         run: |

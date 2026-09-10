@@ -28,9 +28,13 @@ def connect(db_path, apply: bool = True) -> sqlite3.Connection:
         sqlite_vec.load(conn)
         conn.enable_load_extension(False)
     except (ImportError, AttributeError, sqlite3.Error, OSError):
-        # No sqlite-vec in the environment (e.g., CI smoke tests): schema still
-        # applies; vec0 is created lazily by apply_vec0 when the ext is present.
-        conn.enable_load_extension(False)
+        # No sqlite-vec or no loadable-extension support in this
+        # interpreter (e.g., macOS pythons without it): schema still
+        # applies; vec0 is created lazily by apply_vec0 when possible.
+        try:
+            conn.enable_load_extension(False)
+        except (AttributeError, sqlite3.Error):
+            pass
     if apply:
         schema.apply_schema(conn)
         try:

@@ -36,7 +36,7 @@ jobs:
       - run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-          python -m pip uninstall -y docling-ibm-models torch torchvision triton accelerate 2>/dev/null || true
+          python -c "import subprocess,sys; subprocess.run([sys.executable,'-m','pip','uninstall','-y','docling-ibm-models','torch','torchvision','triton','accelerate'])"
 
       - run: python -m ruff check src tests
 
@@ -126,7 +126,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]" pyinstaller
-          python -m pip uninstall -y docling-ibm-models torch torchvision triton accelerate 2>/dev/null || true
+          python -c "import subprocess,sys; subprocess.run([sys.executable,'-m','pip','uninstall','-y','docling-ibm-models','torch','torchvision','triton','accelerate'])"
 
       - name: Build engine sidecar (PyInstaller)
         run: |
