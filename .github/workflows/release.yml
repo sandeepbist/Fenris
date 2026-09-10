@@ -94,12 +94,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # macOS deferred with CI: setup-python's build lacks loadable-
+      # extension support (sqlite-vec can't load). Re-add both together.
       matrix:
         include:
-          - os: macos-latest        # arm64 + x86_64
-            args: "--target aarch64-apple-darwin"
-          - os: macos-latest
-            args: "--target x86_64-apple-darwin"
           - os: ubuntu-latest
             args: ""
           - os: windows-latest

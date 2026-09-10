@@ -16,13 +16,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        # macOS deferred: setup-python's build lacks loadable-extension
+        # support, so sqlite-vec can't load and every vec0 assertion
+        # fails for environment reasons, not code reasons. The engine
+        # itself already degrades gracefully (lexical-only retrieval).
+        # Re-add when a sqlite-vec-compatible python is available.
+        os: [ubuntu-latest, windows-latest]
         python: ["3.12", "3.13", "3.14"]
-        include:
-          - os: macos-latest
-            python: "3.12"
+        exclude:
           - os: windows-latest
-            python: "3.12"
+            python: "3.13"
+          - os: windows-latest
+            python: "3.14"
     steps:
       - uses: actions/checkout@v7
 
