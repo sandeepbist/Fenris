@@ -125,7 +125,10 @@ class FolderConnector:
             try:
                 if p.stat().st_size > FOLDER_MAX_BYTES:
                     continue
-                rel = str(p.relative_to(self.root))
+                # stored identity: forward slashes on every OS - a file_id
+                # must not differ between the machine that indexed it and
+                # any other that reads the index
+                rel = p.relative_to(self.root).as_posix()
                 out.append(ConnectorFile(
                     file_id=rel,
                     title=p.name,

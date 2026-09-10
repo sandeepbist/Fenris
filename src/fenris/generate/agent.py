@@ -348,7 +348,11 @@ def run_agentic_loop(conn: sqlite3.Connection, query: str, *,
     rounds_used = 1
 
     while rounds_used < max_rounds:
-        if time.monotonic() > deadline:
+        # >= not >: a zero deadline must trip on the very first check.
+        # Windows' coarse monotonic clock (~15.6ms) makes '>' miss when
+        # both reads land on the same tick, and the loop reported STALL
+        # instead - found by the CI matrix.
+        if time.monotonic() >= deadline:
             result.stop_reason = STOP_DEADLINE
             result.deadline_exceeded = True
             break

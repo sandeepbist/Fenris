@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sqlite3
 import time
 from dataclasses import dataclass
 
@@ -150,18 +151,22 @@ def _existing_hash_map(conn, hashes: list[str]) -> dict[str, bytes]:
 
     mode_version = chunker_identity(CHUNKER_FULL_VERSION, contextual_headers_mode())
     out: dict[str, bytes] = {}
-    for start in range(0, len(hashes), 500):
-        batch = hashes[start : start + 500]
-        placeholders = ",".join("?" * len(batch))
-        rows = conn.execute(
-            f"""SELECT c.text_hash, v.embedding
-                  FROM chunks c JOIN chunks_vec v ON v.chunk_id = c.chunk_id
-                  JOIN sources s ON s.id = c.source_id
-                 WHERE c.text_hash IN ({placeholders}) AND s.chunker_version = ?""",
-            [*batch, mode_version],
-        ).fetchall()
-        for text_hash, embedding in rows:
-            out[text_hash] = embedding
+    try:
+        for start in range(0, len(hashes), 500):
+            batch = hashes[start : start + 500]
+            placeholders = ",".join("?" * len(batch))
+            rows = conn.execute(
+                f"""SELECT c.text_hash, v.embedding
+                      FROM chunks c JOIN chunks_vec v ON v.chunk_id = c.chunk_id
+                      JOIN sources s ON s.id = c.source_id
+                     WHERE c.text_hash IN ({placeholders}) AND s.chunker_version = ?""",
+                [*batch, mode_version],
+            ).fetchall()
+            for text_hash, embedding in rows:
+                out[text_hash] = embedding
+    except sqlite3.Error:
+        # no vec0 table when sqlite-vec is unloadable: nothing to reuse
+        return {}
     return out
 
 
@@ -216,11 +221,16 @@ def _retire_old_sources(conn, meta: FileMeta) -> list[int]:
         conn.execute(
             "UPDATE sources SET active=0 WHERE id=?", (old_id,)
         )
-        conn.execute(
-            """UPDATE chunks_vec SET active=0 WHERE chunk_id IN
+        try:
+            conn.execute(
+                """UPDATE chunks_vec SET active=0 WHERE chunk_id IN
  (SELECT chunk_id FROM chunks WHERE source_id=?)""",
-            (old_id,),
-        )
+                (old_id,),
+            )
+        except sqlite3.Error:
+            # no vec0 table when sqlite-vec is unloadable; the mirror is
+            # best-effort by design (KNN is degraded in that environment)
+            pass
         retired.append(old_id)
     return retired
 
@@ -645,19 +655,28 @@ def ingest_file(
             chunk_id_by_item.append(cur.lastrowid)
 
         # chunks_vec for every embeddable item: new API vectors and dedup-reused
-        # stored vectors, metadata mirrored from the source
-        for item in embeddable:
-            text_hash = item["text_hash"]
-            vector = vec_by_hash.get(text_hash) or stored.get(text_hash)
-            if vector is None:
-                continue
-            conn.execute(
-                """INSERT INTO chunks_vec(chunk_id, embedding, active, trashed,
+        # stored vectors, metadata mirrored from the source. When sqlite-vec
+        # is not loadable (e.g. pythons without extension support), the vec0
+        # table never exists: vectors are skipped and lexical retrieval
+        # carries the index - the same degradation KNN already applies.
+        vec_ready = True
+        try:
+            conn.execute("SELECT 1 FROM chunks_vec LIMIT 1")
+        except sqlite3.Error:
+            vec_ready = False
+        if vec_ready:
+            for item in embeddable:
+                text_hash = item["text_hash"]
+                vector = vec_by_hash.get(text_hash) or stored.get(text_hash)
+                if vector is None:
+                    continue
+                conn.execute(
+                    """INSERT INTO chunks_vec(chunk_id, embedding, active, trashed,
  auth_epoch) VALUES (?,?,?,?,?)""",
-                (_embeddable_chunk_id(item, body_chunk_ids, base_ordinal,
-                                      source_id, conn),
-                 vector, 1, 1 if file_meta.trashed else 0, file_meta.auth_epoch),
-            )
+                    (_embeddable_chunk_id(item, body_chunk_ids, base_ordinal,
+                                          source_id, conn),
+                     vector, 1, 1 if file_meta.trashed else 0, file_meta.auth_epoch),
+                )
 
         # term_df: new source contributes its terms; retired ones decontributed
         _bump_term_df(conn, _source_terms_from_items(prepared, table_blocks), +1)
