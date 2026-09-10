@@ -10,6 +10,7 @@ duration, never zero, and the answer says which it is.
 
 from __future__ import annotations
 
+import calendar
 import sqlite3
 import time
 
@@ -71,8 +72,8 @@ def is_stale_sync(
     if not stamp:
         return True
     try:
-        drained = time.strptime(stamp, "%Y-%m-%dT%H:%M:%SZ")
-        age = time.time() - time.mktime(time.gmtime() * 0 + drained)
+        drained = calendar.timegm(time.strptime(stamp, "%Y-%m-%dT%H:%M:%SZ"))
     except (ValueError, TypeError):
         return True
+    age = time.time() - drained
     return age > max_age_minutes * 60

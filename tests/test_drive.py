@@ -659,6 +659,11 @@ def test_auth_flow_uses_pkce_and_readonly_scope(tmp_path, monkeypatch):
     monkeypatch.setattr(A.keyring, "set_password", ring.set_password)
     monkeypatch.setattr(A.keyring, "get_password", ring.get_password)
 
+    class _UsableBackend:  # not null.Keyring / fail.Keyring -> passes the gate
+        pass
+
+    monkeypatch.setattr(A.keyring, "get_keyring", lambda: _UsableBackend())
+
     token = A.run_auth_flow(secrets)
     assert token == DUMMY_TOKEN_FOR_TESTS
     assert captured["scopes"] == [A.DRIVE_SCOPE]

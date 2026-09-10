@@ -14,6 +14,8 @@ accounting) and a tmp projection DB. The load-bearing assertions:
 
 from __future__ import annotations
 
+import time
+
 import pytest
 
 from fenris.config import FenrisConfig
@@ -229,10 +231,20 @@ class TestResyncAndStaleness:
     def test_staleness_flags_and_hints(self, conn, drive):
         upload(drive, "f1", content=b"content", md5="m1")
         sync_all(conn, drive, pace_seconds=0)
-        # never drained -> stale
+        # sync_all ends with a drain -> fresh, on any machine timezone
+        assert not is_stale_sync(conn)
+        assert last_drain_at(conn) is not None
+        # a drained-but-old cursor is stale (age is UTC-correct)
+        old = time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - 120 * 60)
+        )
+        conn.execute(
+            "UPDATE sync_cursor SET updated_at = ? WHERE drive_id = 'mydrive'", (old,)
+        )
+        conn.commit()
         assert is_stale_sync(conn)
         drain(conn, drive, pace_seconds=0)
-        assert last_drain_at(conn) is not None
+        assert not is_stale_sync(conn)
         # hints refreshed for active sources
         hint = conn.execute(
             "SELECT drive_version FROM sources_hints WHERE file_id='f1'"
